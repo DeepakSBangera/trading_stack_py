@@ -1,6 +1,7 @@
 # Convert elasticity to recommended price within +/-band
 import numpy as np
 
+
 def optimal_price_from_elasticity(cost, elasticity_abs, p_min=None, p_max=None):
     if elasticity_abs is None or np.isnan(elasticity_abs):
         return np.nan
@@ -13,6 +14,7 @@ def optimal_price_from_elasticity(cost, elasticity_abs, p_min=None, p_max=None):
     if p_max is not None:
         p_star = min(p_star, p_max)
     return float(p_star)
+
 
 def apply_recommendations(df, price_col, qty_col, cost_col, elasticity_abs, pct_band=0.1):
     current_price = df[price_col].median()

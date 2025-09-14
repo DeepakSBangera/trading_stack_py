@@ -1,7 +1,7 @@
 # Pricing model: log-log elasticity per product using OLS
 import numpy as np
-import pandas as pd
 import statsmodels.api as sm
+
 
 def fit_loglog_elasticity(df, price_col, qty_col, extra_cols=None):
     extra_cols = extra_cols or []
@@ -14,4 +14,3 @@ def fit_loglog_elasticity(df, price_col, qty_col, extra_cols=None):
     model = sm.OLS(d["ln_qty"], X, hasconst=True).fit()
     beta = model.params.get("ln_price", np.nan)  # elasticity (often negative)
     return beta, model
-

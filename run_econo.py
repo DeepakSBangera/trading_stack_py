@@ -1,9 +1,12 @@
 # Run diagnostics + ARIMA forecasts for all CSVs in econo/timeseries
-import os, glob
-import pandas as pd
+import glob
+import os
 from datetime import date
+
+import pandas as pd
 from econo.diagnostics import adf_test, kpss_test
 from econo.forecast import arima_forecast
+
 
 def main():
     files = glob.glob("econo/timeseries/*.csv")
@@ -38,6 +41,7 @@ def main():
         fc = pd.concat(fc_frames, ignore_index=True)
         fc.to_csv(f"econo/forecasts_{date.today().isoformat()}.csv", index=False)
         print(f"Wrote econo/forecasts_{date.today().isoformat()}.csv")
+
 
 if __name__ == "__main__":
     main()

@@ -1,11 +1,13 @@
 # Backtest all symbols in watchlist, write summaries and daily equity
-import os, yaml
-import pandas as pd
-from src import data_io
-from src.signals import make_signals
-from src.backtest import backtest_symbol, summarize_universe
+import os
 
-CFG = yaml.safe_load(open("config/config.yaml","r",encoding="utf-8"))
+import pandas as pd
+import yaml
+from src import data_io
+from src.backtest import backtest_symbol, summarize_universe
+from src.signals import make_signals
+
+CFG = yaml.safe_load(open("config/config.yaml", encoding="utf-8"))
 ppyr = int(CFG.get("backtest", {}).get("periods_per_year", 252))
 bt = CFG.get("backtest", {})
 gates = CFG.get("gate", {})
@@ -15,9 +17,9 @@ rule = CFG.get("signals", {}).get("rule", "R1_trend_breakout_obv")
 os.makedirs("reports", exist_ok=True)
 
 symbols = data_io.load_watchlist(CFG["data"]["universe_csv"])
-source  = CFG["data"].get("source","csv")
-start   = CFG["data"].get("start","2018-01-01")
-csv_dir = CFG["data"].get("csv_dir","data/csv")
+source = CFG["data"].get("source", "csv")
+start = CFG["data"].get("start", "2018-01-01")
+csv_dir = CFG["data"].get("csv_dir", "data/csv")
 
 results, daily_eq = {}, []
 
@@ -38,7 +40,7 @@ for sym in symbols:
     results[sym] = res
 
     if not res["daily"].empty:
-        d = res["daily"][["net","equity"]].copy()
+        d = res["daily"][["net", "equity"]].copy()
         d["symbol"] = sym
         d.index.name = "date"
         daily_eq.append(d.reset_index())
@@ -64,17 +66,26 @@ if daily_eq:
 
 # Gate decision (portfolio-level quick check)
 if daily_eq:
-    from src.metrics import cagr, sharpe, max_drawdown, profit_factor, calmar
+    from src.metrics import cagr, calmar, max_drawdown, profit_factor, sharpe
+
     port_cagr = cagr(port_eq, ppyr)
     port_sharpe = sharpe(port_ret, ppyr)
     port_mdd = max_drawdown(port_eq)
     port_pf = profit_factor(port_ret)
     port_calmar = calmar(port_cagr, port_mdd)
-    print(f"Portfolio — CAGR: {port_cagr:.2%}, Sharpe: {port_sharpe:.2f}, MDD: {port_mdd:.2%}, PF: {port_pf:.2f}, Calmar: {port_calmar:.2f}")
+    msg = (
+        f"Portfolio â€” CAGR: {port_cagr:.2%}, Sharpe: {port_sharpe:.2f}, "
+        f"MDD: {port_mdd:.2%}, PF: {port_pf:.2f}, Calmar: {port_calmar:.2f}"
+    )
+    print(msg)
 
     ok = True
-    if port_cagr < float(gates.get("min_cagr", 0.10)): ok = False
-    if port_mdd < float(gates.get("max_mdd", -0.25)): ok = False
-    if port_sharpe < float(gates.get("min_sharpe", 1.0)): ok = False
-    if port_pf < float(gates.get("min_profit_factor", 1.3)): ok = False
+    if port_cagr < float(gates.get("min_cagr", 0.10)):
+        ok = False
+    if port_mdd < float(gates.get("max_mdd", -0.25)):
+        ok = False
+    if port_sharpe < float(gates.get("min_sharpe", 1.0)):
+        ok = False
+    if port_pf < float(gates.get("min_profit_factor", 1.3)):
+        ok = False
     print("GO" if ok else "NO-GO")

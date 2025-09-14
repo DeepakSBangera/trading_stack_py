@@ -1,12 +1,15 @@
 # Generate realistic(ish) FX OHLCV CSVs for symbols in data/universe/watchlist_fx.csv
 # Columns: date,open,high,low,close,volume (volume=0 for FX)
-import os, hashlib
+import hashlib
+import os
+
 import numpy as np
 import pandas as pd
 
 WATCHLIST = r"data/universe/watchlist_fx.csv"
 OUTDIR = r"data/csv"
 N_DAYS = 750  # ~3 years of business days
+
 
 def make_series(seed, n=N_DAYS, spot=75.0):
     rng = np.random.default_rng(seed)
@@ -21,19 +24,15 @@ def make_series(seed, n=N_DAYS, spot=75.0):
     intraday = np.abs(rng.normal(0.0, 0.0015, size=n)) * close  # ~15 bps
     open_ = np.r_[close[0], close[:-1]]  # previous close as open
     high = np.maximum(open_, close) + intraday
-    low  = np.minimum(open_, close) - intraday
+    low = np.minimum(open_, close) - intraday
 
     # FX "volume" often not meaningful at daily frequency → set to zero
     vol = np.zeros(n, dtype=int)
 
-    return pd.DataFrame({
-        "date": dates,
-        "open": open_,
-        "high": high,
-        "low": low,
-        "close": close,
-        "volume": vol
-    })
+    return pd.DataFrame(
+        {"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": vol}
+    )
+
 
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
@@ -47,6 +46,7 @@ def main():
         fp = os.path.join(OUTDIR, f"{sym}.csv")
         df.to_csv(fp, index=False)
         print("Wrote", fp)
+
 
 if __name__ == "__main__":
     main()

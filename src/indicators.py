@@ -1,15 +1,21 @@
 # Minimal indicators used by rules (SMA, ATR, OBV, slope, RSI)
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 
 def sma(s, n):
     return s.rolling(n, min_periods=n).mean()
 
+
 def atr(df, n=14):
-    h, l, c = df["high"], df["low"], df["close"]
-    prev_c = c.shift(1)
-    tr = pd.concat([(h - l), (h - prev_c).abs(), (l - prev_c).abs()], axis=1).max(axis=1)
+    high, low_, close = df["high"], df["low"], df["close"]
+    prev_c = close.shift(1)
+    tr = pd.concat(
+        [(high - low_), (high - prev_c).abs(), (low_ - prev_c).abs()],
+        axis=1,
+    ).max(axis=1)
     return tr.rolling(n, min_periods=n).mean()
+
 
 def obv(df):
     # On-Balance Volume: if volume missing (e.g., FX), return zeros
@@ -22,17 +28,20 @@ def obv(df):
 
 def slope(s, n):
     x = np.arange(n)
+
     def _fit(y):
         if len(y) < n or np.isnan(y).any():
             return np.nan
         A = np.vstack([x, np.ones_like(x)]).T
         m, _ = np.linalg.lstsq(A, y.astype(float), rcond=None)[0]
         return m
+
     return s.rolling(n).apply(lambda w: _fit(w.values), raw=False)
+
 
 def rsi(s, n=14):
     delta = s.diff()
-    gain = delta.clip(lower=0).ewm(alpha=1/n, adjust=False, min_periods=n).mean()
-    loss = (-delta.clip(upper=0)).ewm(alpha=1/n, adjust=False, min_periods=n).mean()
+    gain = delta.clip(lower=0).ewm(alpha=1 / n, adjust=False, min_periods=n).mean()
+    loss = (-delta.clip(upper=0)).ewm(alpha=1 / n, adjust=False, min_periods=n).mean()
     rs = gain / loss.replace(0, np.nan)
     return 100 - (100 / (1 + rs))

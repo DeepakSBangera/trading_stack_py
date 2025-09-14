@@ -1,16 +1,19 @@
 # Streamlit dashboard: shows latest BUY list + shows current rule & source from config
-import streamlit as st
+import glob
+import os
+
 import pandas as pd
-import glob, os, yaml
+import streamlit as st
+import yaml
 
 st.title("Trading Dashboard — Signals & Portfolio (Milestone-1)")
 
 # Show config summary
 try:
-    with open("config/config.yaml","r",encoding="utf-8") as f:
+    with open("config/config.yaml", encoding="utf-8") as f:
         CFG = yaml.safe_load(f)
-    rule = CFG["signals"].get("rule","?")
-    source = CFG["data"].get("source","?")
+    rule = CFG["signals"].get("rule", "?")
+    source = CFG["data"].get("source", "?")
     st.caption(f"Using rule: **{rule}**, data source: **{source}**")
 except Exception:
     st.caption("Could not read config/config.yaml")
@@ -24,7 +27,7 @@ if files:
 else:
     st.info("Run `python run_daily.py` to generate today's BUY list.")
 
-col1,col2 = st.columns(2)
+col1, col2 = st.columns(2)
 with col1:
     st.subheader("Positions (paper)")
     try:

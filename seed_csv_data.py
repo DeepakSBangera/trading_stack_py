@@ -1,11 +1,14 @@
 # Generate synthetic OHLCV CSVs for symbols in watchlist.csv (for offline testing)
-import os, hashlib
+import hashlib
+import os
+
 import numpy as np
 import pandas as pd
 
 WATCHLIST = r"data/universe/watchlist.csv"
 OUTDIR = r"data/csv"
 N_DAYS = 120  # business days
+
 
 def make_series(seed, n=N_DAYS, start_price=250.0):
     rng = np.random.default_rng(seed)
@@ -18,8 +21,11 @@ def make_series(seed, n=N_DAYS, start_price=250.0):
     low = close - atr_noise
     open_ = np.r_[close[0], close[:-1]]  # prev close as open
     vol = rng.integers(150_000, 450_000, size=n)
-    df = pd.DataFrame({"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": vol})
+    df = pd.DataFrame(
+        {"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": vol}
+    )
     return df
+
 
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
@@ -31,6 +37,7 @@ def main():
         fp = os.path.join(OUTDIR, f"{sym}.csv")
         df.to_csv(fp, index=False)
         print("Wrote", fp)
+
 
 if __name__ == "__main__":
     main()
