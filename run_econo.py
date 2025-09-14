@@ -1,4 +1,6 @@
 # Run diagnostics + ARIMA forecasts for all CSVs in econo/timeseries
+from __future__ import annotations
+
 import glob
 import os
 from datetime import date
@@ -8,7 +10,7 @@ from econo.diagnostics import adf_test, kpss_test
 from econo.forecast import arima_forecast
 
 
-def main():
+def main() -> None:
     files = glob.glob("econo/timeseries/*.csv")
     if not files:
         print("[INFO] No time series under econo/timeseries. Add CSVs with columns: date,value")
@@ -25,7 +27,7 @@ def main():
             adf = adf_test(s)
             kps = kpss_test(s)
             diag_rows.append({"series": name, **adf, **{f"kpss_{k}": v for k, v in kps.items()}})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             diag_rows.append({"series": name, "error": str(e)})
         try:
             fit, sf = arima_forecast(s)
@@ -39,8 +41,9 @@ def main():
         print("Wrote econo/diagnostics.csv")
     if fc_frames:
         fc = pd.concat(fc_frames, ignore_index=True)
-        fc.to_csv(f"econo/forecasts_{date.today().isoformat()}.csv", index=False)
-        print(f"Wrote econo/forecasts_{date.today().isoformat()}.csv")
+        outfile = f"econo/forecasts_{date.today().isoformat()}.csv"
+        fc.to_csv(outfile, index=False)
+        print(f"Wrote {outfile}")
 
 
 if __name__ == "__main__":

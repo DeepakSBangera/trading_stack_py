@@ -1,4 +1,6 @@
 # Batch pricing: estimate elasticity and write recommendations CSV
+from __future__ import annotations
+
 import os
 from datetime import date
 
@@ -9,7 +11,7 @@ from pricing.recommend import apply_recommendations
 INFILE = "pricing/data/transactions.csv"
 
 
-def main():
+def main() -> None:
     if not os.path.exists(INFILE):
         print(f"[INFO] No pricing data at {INFILE}. Add a CSV to get recommendations.")
         return
@@ -17,8 +19,11 @@ def main():
     out_rows = []
     for pid, d in df.groupby("product_id"):
         try:
-            beta, model = fit_loglog_elasticity(
-                d, price_col="price", qty_col="qty", extra_cols=["promo_flag"]
+            beta, _ = fit_loglog_elasticity(
+                d,
+                price_col="price",
+                qty_col="qty",
+                extra_cols=["promo_flag"],
             )
             eps = abs(beta)
             rec = apply_recommendations(
@@ -40,7 +45,7 @@ def main():
                     "band_hi": rec["band"][1],
                 }
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             out_rows.append({"product_id": pid, "error": str(e)})
     out = pd.DataFrame(out_rows)
     os.makedirs("pricing", exist_ok=True)

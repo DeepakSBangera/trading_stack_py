@@ -1,15 +1,32 @@
-# Trading Plan — W0 Bootstrap
+# Trading · Pricing · Econometrics — Python-First (Low-Cost)
 
-**Goal (W0):** Benchmarks & policy gates. Repo+env ready; paper-trade only.
+## What this repo gives you
+- Trading: fetch data, compute indicators/signals, write a buy list, view in Streamlit.
+- Pricing: estimate log–log price elasticity; write price recommendations.
+- Econometrics: run ADF/KPSS diagnostics + ARIMA baseline forecasts.
 
-## Quickstart
-```bash
+## Quickstart (Windows, F:)
+```bat
+cd /d F:\Projects\trading_stack_py
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Unix: source .venv/bin/activate
+.\.venv\Scriptsctivate
 pip install -r requirements.txt
-pre-commit install && pre-commit run --all-files
-pytest -q
+
+python run_daily.py
+streamlit run app\dashboard.py
 ```
 
-See `docs/benchmarks.md` and `docs/policy_gates.md`. Track gates in `reports/wk0_gates.csv`.
+### Pricing (later)
+Place `pricing\data\transactions.csv` with columns:
+`date,product_id,price,qty,promo_flag,cost`
+Then run:
+```bat
+python pricing\run_pricing.py
+```
+
+### Econometrics (later)
+Put `econo\timeseries\*.csv` with columns: `date,value`
+Then run:
+```bat
+python run_econo.py
+```

@@ -1,8 +1,10 @@
 # Toy position sizing + paper portfolio snapshotting (hook up later if needed)
+from __future__ import annotations
+
 import pandas as pd
 
 
-def size_position(equity, price, atr, cfg):
+def size_position(equity: float, price: float, atr: float, cfg: dict) -> int:
     risk_amt = equity * cfg["risk_per_trade_pct"]
     stop = price - cfg["atr_mult_stop"] * atr
     per_share_risk = max(price - stop, 0.01)
@@ -13,7 +15,12 @@ def size_position(equity, price, atr, cfg):
 
 
 def update_positions(
-    buylist, prices_next_open, positions_csv, portfolio_csv, cfg, init_equity=1_000_000.0
+    buylist: pd.DataFrame,
+    prices_next_open: pd.Series,
+    positions_csv: str,
+    portfolio_csv: str,
+    cfg: dict,
+    init_equity: float = 1_000_000.0,
 ):
     try:
         positions = pd.read_csv(positions_csv)

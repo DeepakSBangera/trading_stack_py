@@ -1,9 +1,17 @@
 # Pricing model: log-log elasticity per product using OLS
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import statsmodels.api as sm
 
 
-def fit_loglog_elasticity(df, price_col, qty_col, extra_cols=None):
+def fit_loglog_elasticity(
+    df: pd.DataFrame,
+    price_col: str,
+    qty_col: str,
+    extra_cols: list[str] | None = None,
+):
     extra_cols = extra_cols or []
     d = df[[price_col, qty_col] + extra_cols].dropna()
     d = d[(d[price_col] > 0) & (d[qty_col] > 0)].copy()

@@ -1,8 +1,16 @@
 # Convert elasticity to recommended price within +/-band
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 
 
-def optimal_price_from_elasticity(cost, elasticity_abs, p_min=None, p_max=None):
+def optimal_price_from_elasticity(
+    cost: float,
+    elasticity_abs: float | None,
+    p_min: float | None = None,
+    p_max: float | None = None,
+) -> float:
     if elasticity_abs is None or np.isnan(elasticity_abs):
         return np.nan
     if elasticity_abs <= 1:
@@ -16,10 +24,22 @@ def optimal_price_from_elasticity(cost, elasticity_abs, p_min=None, p_max=None):
     return float(p_star)
 
 
-def apply_recommendations(df, price_col, qty_col, cost_col, elasticity_abs, pct_band=0.1):
+def apply_recommendations(
+    df: pd.DataFrame,
+    price_col: str,
+    qty_col: str,
+    cost_col: str,
+    elasticity_abs: float,
+    pct_band: float = 0.1,
+) -> dict:
     current_price = df[price_col].median()
     c = df[cost_col].median() if cost_col in df else current_price * 0.6
     p_min = current_price * (1 - pct_band)
     p_max = current_price * (1 + pct_band)
     p_star = optimal_price_from_elasticity(c, elasticity_abs, p_min, p_max)
-    return dict(current=current_price, cost=c, recommended=p_star, band=(p_min, p_max))
+    return {
+        "current": current_price,
+        "cost": c,
+        "recommended": p_star,
+        "band": (p_min, p_max),
+    }

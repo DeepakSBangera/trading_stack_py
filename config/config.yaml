@@ -1,37 +1,27 @@
-data:
+﻿data:
   source: csv
-  csv_dir: data/csv
   start: 2018-01-01
   universe_csv: data/universe/watchlist.csv
+  csv_dir: data/csv
 
 signals:
   rule: R2_momo_rsi
   params:
-    # faster trend so it triggers more
-    sma_fast: 10
-    sma_slow: 30
-
-    # wider ATR band so more symbols qualify
+    sma_fast: 20
+    sma_slow: 50
+    lookback_high: 252
+    obv_window: 10
+    atr_window: 14
     atr_min_pct: 0.005
-    atr_max_pct: 0.12
-
-    # relax anti-spike (allow recent moves)
+    atr_max_pct: 0.10
     avoid_spike_ret: 0.20
-
-    # easier RSI filter
-    rsi_window: 10
+    rsi_window: 14
     rsi_buy: 50
 
-backtest:
-  tcost_bps: 10         # round-trip cost in basis points for each position change
-  slippage_bps: 5       # extra per trade
-  periods_per_year: 252
-  use_atr_stop: false   # set true to enable ATR stop
-  atr_stop_mult: 3.0    # stop distance in ATR units
+risk:
+  risk_per_trade_pct: 0.01
+  atr_mult_stop: 2.5
+  max_pos_value_pct: 0.08
 
-gate:
-  min_years: 1.0        # require at least 1 year of data
-  min_cagr: 0.10        # >=10% CAGR
-  max_mdd: -0.25        # drawdown no worse than -25%
-  min_sharpe: 1.0       # annualized
-  min_profit_factor: 1.3
+scheduler:
+  daily_run_hour_ist: 19

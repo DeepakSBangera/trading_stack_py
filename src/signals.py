@@ -1,10 +1,12 @@
-# Feature engineering + pluggable rules (select by name via config)
+# Feature engineering + pluggable rules (select by name)
+from __future__ import annotations
+
 import pandas as pd
 
 from .indicators import atr, obv, rsi, slope, sma
 
 
-def compute_features(df, params):
+def compute_features(df: pd.DataFrame, params: dict) -> pd.DataFrame:
     p = params or {}
     out = df.copy()
     sma_fast = int(p.get("sma_fast", 20))
@@ -23,17 +25,11 @@ def compute_features(df, params):
     out["atr_pct"] = out["atr"] / out["close"]
     out["ret_5d"] = out["close"].pct_change(5)
     out["rsi"] = rsi(out["close"], rsi_win)
-
-    # If OBV has no information (e.g., FX/commodities), neutralize its slope
-    if out["obv"].abs().sum(skipna=True) == 0:
-        out["obv_slope"] = 0.0
-    out["obv_slope"] = out["obv_slope"].fillna(0.0)
-
     return out
 
 
-# ----- Rule R1: Trend + near 52W high + OBV slope + ATR band + anti-spike
-def rule_R1_trend_breakout_obv(features, params):
+def rule_R1_trend_breakout_obv(features: pd.DataFrame, params: dict) -> pd.DataFrame:
+    """Trend + near 52W high + OBV slope + sane vol + no big recent spike."""
     p = params or {}
     atr_min = float(p.get("atr_min_pct", 0.01))
     atr_max = float(p.get("atr_max_pct", 0.06))
@@ -50,18 +46,20 @@ def rule_R1_trend_breakout_obv(features, params):
     return pd.DataFrame(
         {
             "buy": buy.astype(int),
-            "score": cross_up.astype(int)
-            + breakout.astype(int)
-            + obv_ok.astype(int)
-            + vol_ok.astype(int)
-            + anti_spk.astype(int),
+            "score": (
+                cross_up.astype(int)
+                + breakout.astype(int)
+                + obv_ok.astype(int)
+                + vol_ok.astype(int)
+                + anti_spk.astype(int)
+            ),
         },
         index=features.index,
     )
 
 
-# ----- Rule R2: Momentum + RSI filter + ATR band + anti-spike
-def rule_R2_momo_rsi(features, params):
+def rule_R2_momo_rsi(features: pd.DataFrame, params: dict) -> pd.DataFrame:
+    """Momentum + RSI filter + ATR band + anti-spike."""
     p = params or {}
     atr_min = float(p.get("atr_min_pct", 0.01))
     atr_max = float(p.get("atr_max_pct", 0.06))
@@ -76,23 +74,28 @@ def rule_R2_momo_rsi(features, params):
     return pd.DataFrame(
         {
             "buy": buy.astype(int),
-            "score": trend_up.astype(int)
-            + rsi_ok.astype(int)
-            + vol_ok.astype(int)
-            + anti_spk.astype(int),
+            "score": (
+                trend_up.astype(int)
+                + rsi_ok.astype(int)
+                + vol_ok.astype(int)
+                + anti_spk.astype(int)
+            ),
         },
         index=features.index,
     )
 
 
-# Registry of available rules
 RULES = {
     "R1_trend_breakout_obv": rule_R1_trend_breakout_obv,
     "R2_momo_rsi": rule_R2_momo_rsi,
 }
 
 
-def make_signals(df, params, rule_name="R1_trend_breakout_obv"):
+def make_signals(
+    df: pd.DataFrame,
+    params: dict,
+    rule_name: str = "R1_trend_breakout_obv",
+) -> pd.DataFrame:
     feats = compute_features(df, params)
     rule_fn = RULES.get(rule_name, rule_R1_trend_breakout_obv)
     sigs = rule_fn(feats, params)
