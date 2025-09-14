@@ -1,0 +1,42 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.dist-info/
+.build/
+build/
+dist/
+
+# Tools & caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+data/
+db/
+logs/
+reports/artifacts/
+runs/
+*.log
+
+# Node (if any)
+node_modules/
+
+# Env & secrets
+.env
+*.env

@@ -1,0 +1,4 @@
+gate_id,gate_name,owner,status,evidence_path
+G0.1,Repo cloned & structure confirmed,Tech Lead,PENDING,reports/artifacts/tree_snapshot.txt
+G0.2,Environment reproducible,Tech Lead,PENDING,reports/artifacts/setup_log.txt
+G0.3,Secrets isolated,Security,PENDING,reports/artifacts/secret_scan.json

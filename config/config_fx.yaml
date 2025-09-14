@@ -1,0 +1,27 @@
+data:
+  source: csv
+  csv_dir: data/csv
+  start: 2018-01-01
+  universe_csv: data/universe/watchlist_fx.csv
+
+signals:
+  rule: R2_momo_rsi
+  params:
+    sma_fast: 10
+    sma_slow: 30
+    rsi_window: 10
+    rsi_buy: 52
+    atr_min_pct: 0.0005        # 5 bps — FX is low-vol
+    atr_max_pct: 0.02          # 2%
+
+backtest:
+  tcost_bps: 1
+  slippage_bps: 1
+  periods_per_year: 252
+
+gate:
+  min_years: 2
+  min_cagr: 0.05
+  max_mdd: -0.15
+  min_sharpe: 1.0
+  min_profit_factor: 1.3

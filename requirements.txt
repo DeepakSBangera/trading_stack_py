@@ -1,0 +1,11 @@
+pandas
+numpy
+pydantic
+pyyaml
+click
+pytest
+coverage
+ruff
+black
+pre-commit
+great-expectations

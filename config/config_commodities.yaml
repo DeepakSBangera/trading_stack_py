@@ -1,0 +1,27 @@
+data:
+  source: csv
+  csv_dir: data/csv
+  start: 2015-01-01
+  universe_csv: data/universe/watchlist_cmdty.csv
+
+signals:
+  rule: R2_momo_rsi
+  params:
+    sma_fast: 20
+    sma_slow: 50
+    rsi_window: 14
+    rsi_buy: 55
+    atr_min_pct: 0.002
+    atr_max_pct: 0.08
+
+backtest:
+  tcost_bps: 10
+  slippage_bps: 5
+  periods_per_year: 252
+
+gate:
+  min_years: 3
+  min_cagr: 0.08
+  max_mdd: -0.25
+  min_sharpe: 1.0
+  min_profit_factor: 1.3
