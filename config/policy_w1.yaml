@@ -1,0 +1,9 @@
+# W1 policy knobs (baseline)
+top_n: 30
+weights: { z12_1: 0.5, z6m: 0.3, z1m: 0.2, zvol: -0.3 }   # zvol is a penalty
+vol_lookback_days: 20
+atr_lookback_days: 14
+per_name_cap: 0.06           # 6% cap used later when sizing
+fallback_windows: { m12: 252, m6: 126, m1: 21 }  # trading days
+list3_file: "config/lists/list3_quality.csv"      # optional; can be empty
+list2_file: "config/lists/list2_conviction.csv"   # optional; can be empty

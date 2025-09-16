@@ -4,10 +4,17 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
-select = ["E","F","I","UP"]
-ignore = []
-src = ["src","app","econo","pricing"]
+target-version = "py311"
+src = ["src", "app", "econo", "pricing"]
 
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = []  # e.g., add "E501" here if you want to suppress long-line errors
+
+# (Optional) if you want to keep a *.backup.py around without fixing it:
+# [tool.ruff.lint.per-file-ignores]
+# "scripts/*.backup.py" = ["E501", "E701", "E702", "E741"]
+ 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

@@ -1,9 +1,8 @@
-﻿data:
+data:
   source: csv
   start: 2018-01-01
   universe_csv: data/universe/watchlist.csv
   csv_dir: data/csv
-
 signals:
   rule: R2_momo_rsi
   params:
@@ -13,15 +12,13 @@ signals:
     obv_window: 10
     atr_window: 14
     atr_min_pct: 0.005
-    atr_max_pct: 0.10
-    avoid_spike_ret: 0.20
+    atr_max_pct: 0.1
+    avoid_spike_ret: 0.2
     rsi_window: 14
-    rsi_buy: 50
-
+    rsi_buy: 52
 risk:
   risk_per_trade_pct: 0.01
   atr_mult_stop: 2.5
   max_pos_value_pct: 0.08
-
 scheduler:
   daily_run_hour_ist: 19
