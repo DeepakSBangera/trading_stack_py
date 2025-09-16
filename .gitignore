@@ -40,3 +40,8 @@ node_modules/
 # Env & secrets
 .env
 *.env
+# Local artifacts
+reports/buylist_*.csv
+data/prices/*.parquet
+data/features/*.parquet
+db/*.csv
