@@ -3,6 +3,7 @@ import os
 
 import pandas as pd
 import yaml
+
 from src import data_io
 from src.backtest import backtest_symbol, summarize_universe
 from src.signals import make_signals
