@@ -5,6 +5,7 @@ import os
 from datetime import date
 
 import pandas as pd
+
 from pricing.models import fit_loglog_elasticity
 from pricing.recommend import apply_recommendations
 

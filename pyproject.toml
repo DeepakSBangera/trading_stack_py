@@ -5,11 +5,10 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "app", "econo", "pricing"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
-ignore = []  # e.g., add "E501" here if you want to suppress long-line errors
+extend-ignore = ["E501"]  # Let the formatter handle line length
 
 # (Optional) if you want to keep a *.backup.py around without fixing it:
 # [tool.ruff.lint.per-file-ignores]

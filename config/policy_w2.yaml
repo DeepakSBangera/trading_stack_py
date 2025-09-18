@@ -1,0 +1,5 @@
+top_n: 5            # hold top 5 names each rebalance
+rebalance: "W-FRI"  # rebalance on Friday's close; options: W-MON, W-FRI, etc.
+tc_bps: 5           # transaction cost in basis points (5bp = 0.05%)
+start_date: "2023-01-01"
+capital: 100000

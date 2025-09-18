@@ -6,6 +6,7 @@ import os
 from datetime import date
 
 import pandas as pd
+
 from econo.diagnostics import adf_test, kpss_test
 from econo.forecast import arima_forecast
 
