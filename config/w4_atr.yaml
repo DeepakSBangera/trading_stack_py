@@ -1,0 +1,7 @@
+# Week 4 — ATR stop settings (simple, portfolio-friendly)
+atr_window: 14          # ATR lookback (days)
+atr_mult: 3.0           # Stop distance in ATRs (e.g., 3x ATR)
+min_hold_days: 5        # Do not trigger stops before N days from entry (if known)
+use_trailing: true      # Trailing stop (based on rolling max)
+# Price candidates for parquet files (not used here; the script reads px.csv from the latest backtest)
+price_candidates: ["adj close","Adj Close","close","Close"]

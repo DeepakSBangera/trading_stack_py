@@ -169,3 +169,9 @@ Module imports fail? Run scripts via module from repo root: python -m scripts.w2
 No plots? That’s fine—plots are optional unless matplotlib is installed.
 
 Turnover guard says “file not found”? Run the backtest and w3_turnover.py first.
+
+
+**W4 (vol-target + drawdown throttle):**
+```bat
+python -m scripts.w2_backtest
+python scripts\w4_voltarget_stops.py
