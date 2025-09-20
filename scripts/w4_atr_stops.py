@@ -114,7 +114,7 @@ def main() -> None:
     print(f"Held names: {len(df)}")
     print(f"ATR window: {w}  |  ATR multiple: {k}  | trailing: {trailing}")
     print(
-        f"Portfolio ATR (approx): {port_atr_pct*100:.2f}% per day"
+        f"Portfolio ATR (approx): {port_atr_pct * 100:.2f}% per day"
         if port_atr_pct == port_atr_pct
         else "Portfolio ATR: N/A"
     )
