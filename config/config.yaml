@@ -22,3 +22,9 @@ risk:
   max_pos_value_pct: 0.08
 scheduler:
   daily_run_hour_ist: 19
+costs:
+  tc_bps: 5         # round-trip transaction cost in basis points
+turnover_policy:
+  target_avg_turnover_per_rebalance: 0.25    # 25%
+  target_p95_turnover: 0.45                   # 45%
+
