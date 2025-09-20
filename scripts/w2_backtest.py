@@ -13,8 +13,21 @@ TOP_N = 5  # pick top-N assets each rebalance
 REBAL_FREQ = "ME"  # month-end; use "ME" (not "M") to avoid deprecation warnings
 RUNS_DIR = Path("reports/backtests")
 
-# try these columns in each parquet file (case-sensitive)
+# Turnover control (small bonus to incumbents; reduces churn via tie-breaker)
+INCUMBENT_BONUS_STD = 0.05  # 5% of score std added to current holdings
+MIN_HOLD_THRESHOLD = 1e-12  # treat >0 as "currently held"
+
+# Transaction costs (round-trip) in basis points; applied via daily turnover × TC_BPS
+TC_BPS = 5.0
+
+# Candidate price columns in each parquet file (case-sensitive)
 PRICE_CANDIDATES = ["adj close", "Adj Close", "close", "Close"]
+
+
+def _turnover_from_weights(w_d: pd.DataFrame) -> pd.Series:
+    """Daily portfolio turnover = 0.5 * sum(|w_t - w_{t-1}|) across names."""
+    dw = (w_d - w_d.shift(1)).abs()
+    return 0.5 * dw.sum(axis=1).fillna(0.0)
 
 
 # ----------------------------
@@ -87,9 +100,7 @@ def monthly_last(px: pd.DataFrame) -> pd.DataFrame:
 
 
 def r12_1_scores(px_m: pd.DataFrame) -> pd.DataFrame:
-    """
-    Momentum score = 12-month return minus 1-month return, computed on month-end prices.
-    """
+    """Momentum score = 12M return minus 1M return, computed on month-end prices."""
     r12 = px_m / px_m.shift(12) - 1.0
     r01 = px_m / px_m.shift(1) - 1.0
     return r12 - r01
@@ -99,21 +110,39 @@ def build_monthly_weights(px: pd.DataFrame, top_n: int) -> pd.DataFrame:
     """
     Equal-weight the top_n assets by r12-1 score each month-end.
     Returns a DataFrame indexed by month-ends with weights per asset.
+
+    Adds a tiny, scale-aware bonus to current holdings to reduce churn (tie-breaker only).
     """
     px_m = monthly_last(px)
     scores = r12_1_scores(px_m)
-
     w_m = pd.DataFrame(0.0, index=scores.index, columns=px.columns)
+
+    # keep previous month-end weights to identify incumbents
+    prev_w = pd.Series(0.0, index=px.columns)
 
     for date, row in scores.iterrows():
         row = row.dropna()
         if not len(row):
+            prev_w = pd.Series(0.0, index=px.columns)
             continue
+
+        # --- Turnover tie-breaker: small bonus to incumbents ---
+        if INCUMBENT_BONUS_STD:
+            sd = float(row.std(ddof=0)) or 0.0
+            if sd > 0.0:
+                incumbents = prev_w[prev_w > MIN_HOLD_THRESHOLD].index.intersection(row.index)
+                if len(incumbents):
+                    bonus = INCUMBENT_BONUS_STD * sd
+                    row.loc[incumbents] = row.loc[incumbents] + bonus
+        # -------------------------------------------------------
+
         winners = row.nlargest(top_n).index[:top_n]
         if len(winners):
             w_m.loc[date, winners] = 1.0 / len(winners)
 
-    # If there are leading months with all-zeros (before we have 12M history), keep as zeros.
+        prev_w = w_m.loc[date].copy()
+
+    # If there are leading months with all-zeros (before 12M history), keep as zeros.
     return w_m
 
 
@@ -140,8 +169,15 @@ def run_backtest(px: pd.DataFrame, top_n: int = TOP_N) -> BacktestResult:
     # Daily returns (avoid deprecated fill; then fill first row NAs with 0)
     ret = px.pct_change(fill_method=None).fillna(0.0)
 
-    # Use yesterday's weights to earn today's returns
-    port_ret = (w_d.shift(1).fillna(0.0) * ret).sum(axis=1)
+    # Gross daily portfolio return (use yesterday's weights)
+    gross_ret = (w_d.shift(1).fillna(0.0) * ret).sum(axis=1)
+
+    # Costs from daily turnover
+    turnover = _turnover_from_weights(w_d)  # 0..1 per day
+    cost_per_day = turnover * (TC_BPS / 10000.0)  # bps -> fraction
+
+    # Net daily return
+    port_ret = gross_ret - cost_per_day
 
     # Equity curve (start at 1.0)
     equity = (1.0 + port_ret).cumprod()
@@ -149,10 +185,10 @@ def run_backtest(px: pd.DataFrame, top_n: int = TOP_N) -> BacktestResult:
     # Metrics
     years = max((equity.index[-1] - equity.index[0]).days / 365.25, 1e-9)
     cagr = float(equity.iloc[-1] ** (1.0 / years) - 1.0)
-
-    ann_ret = float((1.0 + port_ret.mean()) ** 252 - 1.0)
+    ann_ret_g = float((1.0 + gross_ret.mean()) ** 252 - 1.0)
+    ann_ret_n = float((1.0 + port_ret.mean()) ** 252 - 1.0)
     ann_vol = float(port_ret.std(ddof=0) * sqrt(252))
-    sharpe = float(ann_ret / ann_vol) if ann_vol > 0 else float("nan")
+    sharpe = float(ann_ret_n / ann_vol) if ann_vol > 0 else float("nan")
 
     roll_max = equity.cummax()
     dd = equity / roll_max - 1.0
@@ -161,13 +197,17 @@ def run_backtest(px: pd.DataFrame, top_n: int = TOP_N) -> BacktestResult:
     metrics = {
         "TOP_N": top_n,
         "REBAL_FREQ": REBAL_FREQ,
+        "TC_bps": TC_BPS,
         "start": str(px.index[0]),
         "end": str(px.index[-1]),
         "CAGR": cagr,
-        "AnnRet": ann_ret,
+        "GrossAnnRet": ann_ret_g,
+        "AnnRet": ann_ret_n,  # net
         "AnnVol": ann_vol,
-        "Sharpe(0%)": sharpe,
+        "Sharpe(0%)": sharpe,  # net
         "MaxDrawdown": mdd,
+        "AvgDailyTurnover": float(turnover.mean()),
+        "P95DailyTurnover": float(turnover.quantile(0.95)),
     }
 
     return BacktestResult(
@@ -193,7 +233,7 @@ def save_outputs(res: BacktestResult, outdir: Path) -> None:
         import matplotlib.pyplot as plt  # type: ignore
 
         fig = plt.figure(figsize=(8, 4.5))
-        res.equity.plot(title="Equity Curve")
+        res.equity.plot(title="Equity Curve (net of costs)")
         plt.xlabel("")
         plt.tight_layout()
         fig.savefig(outdir / "equity_curve.png", dpi=144)
@@ -219,19 +259,23 @@ def main() -> None:
     res = run_backtest(px, top_n=TOP_N)
 
     # Pretty print summary
-    print("\n=== Backtest summary ===")
+    print("\n=== Backtest summary (net) ===")
     for k in [
         "TOP_N",
         "REBAL_FREQ",
+        "TC_bps",
         "start",
         "end",
         "CAGR",
+        "GrossAnnRet",
         "AnnRet",
         "AnnVol",
         "Sharpe(0%)",
         "MaxDrawdown",
+        "AvgDailyTurnover",
+        "P95DailyTurnover",
     ]:
-        print(f"{k:>12}: {res.metrics[k]}")
+        print(f"{k:>16}: {res.metrics[k]}")
 
     # Save run artifacts
     run_dir = RUNS_DIR / pd.Timestamp.now().strftime("%Y-%m-%d_%H%M")
