@@ -1,4 +1,6 @@
-A beginner-friendly repo that grows week-by-week:
+Trading · Pricing · Econometrics — Python-First (Low-Cost)
+
+A beginner-friendly repo that grows week-by-week.
 
 Trading: load prices, compute momentum/ATR, build a BUY list, backtest a simple momentum strategy.
 
@@ -13,44 +15,99 @@ python -m venv .venv
 pip install -r requirements.txt
 
 
-Daily signals (build features + BUY list):
+Common runs:
 
+# Daily signals (build features + BUY list)
 python scripts\w1_build_entry_exit.py
 
-
-Simple backtest (momentum top-N, monthly rebalance):
-
+# Simple backtest (momentum top-N, monthly rebalance)
 python -m scripts.w2_backtest
 
-
-Dashboard (shows latest BUY list and basic portfolio view):
-
+# Dashboard (shows latest BUY list and portfolio tiles)
 streamlit run app\dashboard.py
 
 
-Outputs land in reports\ (e.g., reports\buylist_YYYY-MM-DD.csv and reports\backtests\...).
+Outputs go to reports\
+(e.g., reports\buylist_YYYY-MM-DD.csv and reports\backtests\<run>\...)
 
-What’s inside (Week 0 → Week 1)
+If imports like from src... fail, run modules from the repo root:
+python -m scripts.w2_backtest
+
+Week 3 — Costs & Churn Control (NEW)
+
+We added:
+
+A tiny incumbent bonus during ranking (small tie-breaker toward current holdings) to cut churn.
+
+A turnover profile derived from your latest backtest.
+
+A turnover guard that checks your weekly rebalance against policy caps.
+
+Run it
+# 1) Ensure you have a recent backtest run
+python -m scripts.w2_backtest
+
+# 2) Build turnover profile from the latest run
+python scripts\w3_turnover.py
+# -> writes: reports\backtests\<run>\turnover_by_rebalance.csv
+#            reports\wk3_turnover_profile.csv (summary)
+
+# 3) Set your policy caps (edit this if needed)
+notepad reports\wk3_turnover_policy.json
+
+# 4) Check the guard (flags breaches)
+python scripts\w3_turnover_guard.py
+# -> writes: reports\wk3_turnover_violations.csv
+
+
+Default policy file (reports/wk3_turnover_policy.json):
+
+{
+  "policy_caps": {
+    "target_avg_turnover_per_rebalance": 0.25,
+    "target_p95_turnover": 0.45,
+    "advisory_turnover_bps": 3500,
+    "max_turnover_bps": 6000,
+    "max_weekly_adds": 5,
+    "max_weekly_drops": 5
+  }
+}
+
+What you’ll see
+
+reports/backtests/<run>/turnover_by_rebalance.csv – per-rebalance turnover (bps), adds/drops
+
+reports/wk3_turnover_profile.csv – overall averages/percentiles
+
+reports/wk3_turnover_violations.csv – lines for any WARN/HARD breaches or adds/drops caps
+
+Data Flow (Week 0 → Week 1)
 flowchart TD
   A[Raw price CSVs<br/>data/csv/*.csv] --> B[Loader & Feature Builder<br/>scripts/w1_build_entry_exit.py]
   F[Watchlists<br/>data/universe/*.csv] --> B
   G[Policy & Lists<br/>config/policy_w1.yaml<br/>config/lists/*] --> B
   B --> C[Per-ticker features<br/>data/features/*.parquet<br/>returns, ATR]
-  C --> D[Rank & pick<br/>momentum score + list priority]
+  C --> D[Rank & pick<br/>r12-1 momentum + list priority]
   D --> E[Reports<br/>reports/wk1_entry_exit_baseline.csv<br/>reports/buylist_YYYY-MM-DD.csv]
 
-  subgraph Tooling
-    H[Pre-commit (local)<br/>ruff, black, secrets]
-    I[CI on GitHub<br/>.github/workflows/ci.yml]
-  end
-  H -. checks before commit .-> B
-  I -. checks on push .-> E
+Turnover Pipeline (Week 3)
+flowchart TD
+  X[Backtest run<br/>python -m scripts.w2_backtest] --> Y[turnover_by_rebalance.csv]
+  Y --> Z[wk3_turnover_profile.csv]
+  P[Policy<br/>wk3_turnover_policy.json] --> G[Guard<br/>python scripts/w3_turnover_guard.py]
+  Z --> G
+  G --> V[wk3_turnover_violations.csv]
 
-Project layout (high-level)
+
+Notes:
+
+The incumbent bonus is a small boost to current holdings (scale-aware, based on score std) to reduce unnecessary flips.
+
+You can tune this in code (see INCUMBENT_BONUS_STD in scripts/w2_backtest.py).
+
+Project Layout (high-level)
 flowchart TB
   root([trading_stack_py])
-
-  %% top-level
   root --> gh[".github/"]
   root --> cfg["config/"]
   root --> data["data/"]
@@ -62,63 +119,53 @@ flowchart TB
   root --> reqs[requirements.txt]
   root --> env[sample.env]
 
-  %% .github
   subgraph G[".github/"]
-    direction TB
     ci["workflows/ci.yml"]
   end
-  gh --> ci
 
-  %% config
   subgraph C["config/"]
-    direction TB
     policy["policy_w1.yaml"]
-    lists["lists/"]
+    lists["lists/ (L2/L3)"]
   end
-  cfg --> policy
-  cfg --> lists
-  subgraph L["config/lists/"]
-    direction TB
-    l2["list2_conviction.csv"]
-    l3["list3_quality.csv"]
-  end
-  lists --> l2
-  lists --> l3
 
-  %% data
   subgraph D["data/"]
-    direction TB
-    csv["csv/*.csv  (raw price files)"]
-    prices["prices/*.parquet  (clean prices)"]
-    feats["features/*.parquet  (computed features)"]
-    uni["universe/*.csv  (watchlists)"]
+    csv["csv/*.csv (raw)"]
+    prices["prices/*.parquet (clean)"]
+    feats["features/*.parquet (features)"]
+    uni["universe/*.csv (watchlists)"]
   end
-  data --> csv
-  data --> prices
-  data --> feats
-  data --> uni
 
-  %% scripts
   subgraph S["scripts/"]
-    direction TB
-    s1["w1_build_entry_exit.py  (compute momentum & ATR, make buylist)"]
-    s2["w1_signals_snapshot.py  (summarize signals)"]
-    s3["w1_update_cfg.py  (update config)"]
-    s4["w2_backtest.py  (simple top-N momentum backtest)"]
+    s1["w1_build_entry_exit.py"]
+    s2["w1_signals_snapshot.py"]
+    s3["w1_update_cfg.py"]
+    s4["w2_backtest.py  (top-N momentum)"]
+    s5["w3_turnover.py  (profile)"]
+    s6["w3_turnover_guard.py (policy)"]
   end
-  scripts --> s1
-  scripts --> s2
-  scripts --> s3
-  scripts --> s4
 
-  %% reports
   subgraph R["reports/"]
-    direction TB
-    r1["wk1_entry_exit_baseline.csv"]
-    r2["buylist_YYYY-MM-DD.csv"]
-    r3["backtests/<run>/ (csv, png)"]
+    r1["buylist_YYYY-MM-DD.csv"]
+    r2["wk1_entry_exit_baseline.csv"]
+    r3["backtests/<run> (csv/png)"]
+    r4["wk3_turnover_profile.csv"]
+    r5["wk3_turnover_violations.csv"]
   end
-  reports --> r1
-  reports --> r2
-  reports --> r3
 
+CI & Quality
+
+Pre-commit (local): ruff, ruff-format, black, detect-secrets.
+
+GitHub Actions: runs lint + format + tests on every push (.github/workflows/ci.yml).
+
+Protect main by requiring PR + passing checks.
+
+Troubleshooting
+
+Activate venv (PowerShell): .\.venv\Scripts\Activate.ps1
+
+Module imports fail? Run scripts via module from repo root: python -m scripts.w2_backtest
+
+No plots? That’s fine—plots are optional unless matplotlib is installed.
+
+Turnover guard says “file not found”? Run the backtest and w3_turnover.py first.
