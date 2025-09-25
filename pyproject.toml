@@ -1,3 +1,20 @@
+[project]
+name = "trading-stack-py"
+version = "0.0.1"
+description = "Walk-forward CV + Deflated Sharpe Ratio utilities for trading research"
+readme = "README_W5.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ---------------- existing tool config you shared ----------------
+
 [tool.black]
 line-length = 100
 target-version = ["py311"]
@@ -13,7 +30,8 @@ extend-ignore = ["E501"]  # Let the formatter handle line length
 # (Optional) if you want to keep a *.backup.py around without fixing it:
 # [tool.ruff.lint.per-file-ignores]
 # "scripts/*.backup.py" = ["E501", "E701", "E702", "E741"]
- 
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
