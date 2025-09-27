@@ -23,3 +23,11 @@ reports/backtests/
 reports/buylist_*.csv
 reports/signals_snapshot.csv
 reports/*equity*.png
+data/
+reports/
+*.npy
+*.parquet
+data/
+reports/
+*.npy
+*.parquet
