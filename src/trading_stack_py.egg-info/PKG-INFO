@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: trading-stack-py
+Version: 0.0.1
+Summary: Walk-forward CV + Deflated Sharpe Ratio utilities for trading research
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
