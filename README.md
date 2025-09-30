@@ -175,3 +175,14 @@ Turnover guard says “file not found”? Run the backtest and w3_turnover.py fi
 ```bat
 python -m scripts.w2_backtest
 python scripts\w4_voltarget_stops.py
+
+### W9 — Join W6 splits with W7 metrics
+
+After producing a W6 dataset and a W7 modeling report, run:
+
+```bash
+python -m trading_stack_py.pipelines.evaluate_models \
+  --w6-dir reports/W6/<your W6 folder> \
+  --w7-dir reports/W7/<your W7 folder> \
+  --tag REL_W9 \
+  --outdir reports/W9
