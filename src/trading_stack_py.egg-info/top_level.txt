@@ -1,2 +1,0 @@
-backtest
-trading_stack_py
