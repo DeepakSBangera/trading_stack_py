@@ -1,37 +1,60 @@
+# -------------------------
+# Editor / OS artifacts
+# -------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
 
-# editor/backup files
-*.backup.py
-
-.venv/
+# -------------------------
+# Python bytecode / builds
+# -------------------------
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dylib
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# -------------------------
+# Virtual envs / dotenvs
+# -------------------------
+.venv/
+.env
+.env.*
+
+# -------------------------
+# Tool caches / coverage
+# -------------------------
 .pytest_cache/
-.env
-.venv/
-.env
-__pycache__/
-*.pyc
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
 
-.venv/
-.env
-__pycache__/
-*.pyc
+# -------------------------
+# Project-generated artifacts
+# -------------------------
+data/
+reports/
+*.npy
+*.parquet
 
-*.backup.py
-# generated outputs
+# Specific report outputs
 reports/backtests/
 reports/buylist_*.csv
 reports/signals_snapshot.csv
 reports/*equity*.png
-data/
-reports/
-*.npy
-*.parquet
-data/
-reports/
-*.npy
-*.parquet
-reports/
-data/
-*.npy
-*.parquet
+
+# -------------------------
+# Logs / temp files
+# -------------------------
+logs/
+*.log
+*.backup.py
