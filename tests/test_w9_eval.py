@@ -46,12 +46,14 @@ def _make_toy_w6(tmp: Path) -> Path:
 
 
 def _make_toy_w7(tmp: Path) -> Path:
-    # Minimal per-segment metrics (regression flavor)
+    tmp.mkdir(parents=True, exist_ok=True)  # ensure W7 dir exists
     mets = pd.DataFrame(
-        [
-            {"segment": 1, "mse": 0.1, "r2": 0.0, "pnl_proxy": 1.0, "n_test": 2},
-            {"segment": 2, "mse": 0.2, "r2": -0.1, "pnl_proxy": -0.5, "n_test": 2},
-        ]
+        {
+            "segment": [1, 2, 3],
+            "mse": [0.1, 0.2, 0.3],
+            "r2": [0.01, -0.02, 0.0],
+            "pnl_proxy": [1.0, -0.5, 0.2],
+        }
     )
     mets.to_csv(tmp / "segment_metrics.csv", index=False)
     return tmp
