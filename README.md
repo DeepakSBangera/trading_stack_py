@@ -186,3 +186,9 @@ python -m trading_stack_py.pipelines.evaluate_models \
   --w7-dir reports/W7/<your W7 folder> \
   --tag REL_W9 \
   --outdir reports/W9
+
+### Evaluate (W9)
+```powershell
+$w6 = (Get-ChildItem reports\W6 -Directory | Sort-Object LastWriteTime -Desc | Select -First 1).FullName
+$w7 = (Get-ChildItem reports\W7 -Directory | Sort-Object LastWriteTime -Desc | Select -First 1).FullName
+python -m trading_stack_py.pipelines.evaluate_models --w6-dir $w6 --w7-dir $w7 --tag REL_W9 --outdir reports/W9
