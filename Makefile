@@ -17,3 +17,5 @@ qc:
 
 demo-logging:
 	python scripts/demo_logging.py
+w10:
+\tpython scripts/w10_arimax.py --data-glob "data/csv/*.csv" --out "reports/wk10_forecast_eval.csv" --order "1,1,1"
