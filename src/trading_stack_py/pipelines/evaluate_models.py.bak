@@ -1,0 +1,156 @@
+from __future__ import annotations
+
+import argparse
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+
+
+# -----------------------------
+# Helpers
+# -----------------------------
+def _ensure_segment_col(df: pd.DataFrame) -> pd.DataFrame:
+    """Make sure the metrics frame has a 'segment' column."""
+    if not isinstance(df, pd.DataFrame):
+        df = pd.DataFrame(df)
+
+    if "segment" in df.columns:
+        return df
+
+    if "seg" in df.columns:
+        return df.rename(columns={"seg": "segment"})
+    if df.index.name == "segment":
+        return df.reset_index()
+    if 0 in df.columns:
+        return df.rename(columns={0: "segment"})
+
+    if df.index.nlevels == 1 and pd.api.types.is_integer_dtype(df.index):
+        df = df.copy()
+        df.insert(0, "segment", df.index.to_series().astype(int).values)
+        df = df.reset_index(drop=True)
+        return df
+
+    raise KeyError("segment")
+
+
+def _segments_from_w6_dirs(w6_dir: Path) -> pd.DataFrame:
+    """
+    Discover available walk-forward segments by scanning W6 `segment_*` folders.
+    Returns a DataFrame with a single 'segment' column.
+    """
+    w6_dir = Path(w6_dir)
+    segs: list[int] = []
+    for p in sorted(w6_dir.glob("segment_*")):
+        if not p.is_dir():
+            continue
+        try:
+            seg = int(p.name.split("_")[-1])
+            segs.append(seg)
+        except Exception:
+            continue
+    return pd.DataFrame({"segment": sorted(segs)})
+
+
+# -----------------------------
+# Core API
+# -----------------------------
+def evaluate(
+    w6_dir: str | Path,
+    w7_dir: str | Path,
+    out_root: str | Path | None = None,
+    tag: str = "W9",
+    write_latest_copy: bool = True,
+) -> Path:
+    """
+    Join W6 segments with W7 segment metrics, write a timestamped report and,
+    optionally, a 'latest' copy.
+
+    Returns the path to the timestamped W9 output folder.
+    """
+    w6_dir = Path(w6_dir)
+    w7_dir = Path(w7_dir)
+    out_root = Path(out_root) if out_root else Path("reports") / "W9"
+
+    # --- Load W7 metrics
+    metrics_path = w7_dir / "segment_metrics.csv"
+    if not metrics_path.exists():
+        raise FileNotFoundError(f"Missing W7 file: {metrics_path}")
+    metrics = pd.read_csv(metrics_path)
+    metrics = _ensure_segment_col(metrics)
+
+    # --- Build W6 segment list (no segments.csv required)
+    segs = _segments_from_w6_dirs(w6_dir)
+    if segs.empty:
+        raise FileNotFoundError(
+            f"No segment_* folders found under {w6_dir}. Did W6 run successfully?"
+        )
+
+    # --- Merge & sort
+    merged = (
+        pd.merge(segs, metrics, on="segment", how="inner")
+        .sort_values("segment")
+        .reset_index(drop=True)
+    )
+
+    # --- Write timestamped folder
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stamp_dir = out_root / f"{tag}_{ts}"
+    stamp_dir.mkdir(parents=True, exist_ok=True)
+
+    joined_csv = stamp_dir / "joined.csv"
+    merged.to_csv(joined_csv, index=False)
+
+    (stamp_dir / "README.md").write_text(
+        f"# {tag}\n\n"
+        f"- W6 dir: `{w6_dir}`\n"
+        f"- W7 dir: `{w7_dir}`\n"
+        "- Output:\n"
+        f"  - `joined.csv` (segments ? metrics)\n"
+    )
+
+    # --- Also write/refresh a non-timestamped "latest" copy if requested
+    if write_latest_copy:
+        latest_dir = out_root / tag
+        latest_dir.mkdir(parents=True, exist_ok=True)
+        merged.to_csv(latest_dir / "joined.csv", index=False)
+        (latest_dir / "README.md").write_text(
+            f"# {tag} (latest)\n\n"
+            f"This folder mirrors the most recent run: `{stamp_dir.name}`.\n"
+        )
+
+    return stamp_dir
+
+
+# -----------------------------
+# CLI
+# -----------------------------
+def main() -> None:
+    ap = argparse.ArgumentParser(description="W9: Join W6 segments with W7 metrics.")
+    ap.add_argument("--w6-dir", required=True, help="Path to W6 output folder")
+    ap.add_argument("--w7-dir", required=True, help="Path to W7 metrics folder (the run with segment_metrics.csv)")
+    ap.add_argument("--tag", default="W9", help="Output tag (folder name under outdir)")
+    ap.add_argument("--outdir", default="reports/W9", help="Base output folder for W9")
+    ap.add_argument(
+        "--no-latest",
+        action="store_true",
+        help="If set, do not create the non-timestamped 'latest' copy.",
+    )
+    args = ap.parse_args()
+
+    w6 = Path(args.w6_dir)
+    w7 = Path(args.w7_dir)
+    outdir = Path(args.outdir)
+
+    out_path = evaluate(
+        w6,
+        w7,
+        out_root=outdir,
+        tag=args.tag,
+        write_latest_copy=not args.no_latest,
+    )
+    print(f"W9 report written: {out_path}")
+
+
+if __name__ == "__main__":
+    main()
