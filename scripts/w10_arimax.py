@@ -20,11 +20,13 @@ from __future__ import annotations
 
 import argparse
 import sys
+import warnings
 from collections.abc import Iterable
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.frequencies import to_offset
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 PRICE_CANDIDATES: tuple[str, ...] = (
@@ -68,6 +70,20 @@ def load_price_series(path: Path) -> pd.Series:
     if isinstance(s.index, pd.DatetimeIndex) and not s.index.is_monotonic_increasing:
         s = s.sort_index()
 
+    # Give the series a stable frequency if possible (reduces SARIMAX warnings)
+    if isinstance(s.index, pd.DatetimeIndex):
+        freq = pd.infer_freq(s.index)
+        if freq:
+            try:
+                # Align to inferred frequency; if holidays cause holes, fall back to setting metadata only
+                s = s.asfreq(freq)
+            except ValueError:
+                try:
+                    s.index.freq = to_offset(freq)
+                except Exception:
+                    # If even that fails, keep as-is; SARIMAX will still work, just noisier
+                    pass
+
     return s.astype(float)
 
 
@@ -91,7 +107,12 @@ def eval_symbol(
         enforce_stationarity=False,
         enforce_invertibility=False,
     )
-    res = model.fit(disp=False)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
+        warnings.filterwarnings("ignore", message="No frequency information")
+        res = model.fit(disp=False)
 
     fc = res.forecast(steps=len(y_test))
 
