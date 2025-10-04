@@ -58,3 +58,8 @@ reports/*equity*.png
 logs/
 *.log
 *.backup.py
+
+# .gitattributes (root of repo)
+*.py text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf

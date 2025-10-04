@@ -13,11 +13,22 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-# ---------------- existing tool config you shared ----------------
+# ---------------- formatting / linting ----------------
 
 [tool.black]
+required-version = "25.9.0"
 line-length = 100
 target-version = ["py311"]
+exclude = '''
+/(
+  \.git
+| \.venv
+| build
+| dist
+| data
+| reports
+)/
+'''
 
 [tool.ruff]
 line-length = 100
@@ -34,4 +45,3 @@ extend-ignore = ["E501"]  # Let the formatter handle line length
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-
