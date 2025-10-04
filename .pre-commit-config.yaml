@@ -1,18 +1,47 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
+  # Use the official pre-commit mirror for Black (pins to PyPI version)
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.9.0
     hooks:
       - id: black
         language_version: python3.11
+        exclude: |
+          ^(
+            reports/|
+            data/|
+            build/|
+            dist/
+          )
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: [--fix]
+        exclude: |
+          ^(
+            reports/|
+            data/|
+            build/|
+            dist/
+          )
+      - id: ruff-format
+        exclude: |
+          ^(
+            reports/|
+            data/|
+            build/|
+            dist/
+          )
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
+        exclude: |
+          ^(
+            reports/|
+            data/|
+            build/|
+            dist/
+          )
