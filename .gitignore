@@ -58,3 +58,5 @@ reports/*equity*.png
 logs/
 *.log
 *.backup.py
+
+*.py text eol=lf
