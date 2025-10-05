@@ -1,4 +1,5 @@
 name: CI
+
 on:
   push:
     branches: ["**"]
@@ -7,6 +8,7 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,21 +20,34 @@ jobs:
       - name: Upgrade pip
         run: python -m pip install -U pip
 
-      - name: Install deps
+      - name: Install project deps
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           pip install -e .
 
-      - name: Lint
-        run: |
-          pip install ruff black
-          ruff check .
-          ruff format --check .
-          black --check .
+      # ---- Lint using pre-commit (matches repo-pinned versions) ----
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Run pre-commit (ruff, black, detect-secrets)
+        run: pre-commit run --all-files
+
+      # (Optional) Debug what Black wants, if it ever fails again
+      # - name: Black diff (debug)
+      #   if: failure()
+      #   run: black --diff --check tests/test_w11_alpha_blend.py || true
 
       - name: Quick import sanity
-        run: python -c "import trading_stack_py,sys; print('pkg:', trading_stack_py.__file__)"
+        run: python -c "import trading_stack_py, sys; print('pkg:', trading_stack_py.__file__)"
 
       - name: Run tests
         env:
