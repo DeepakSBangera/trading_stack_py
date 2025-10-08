@@ -26,6 +26,11 @@ w11:
 w11:
 \tpython scripts/w11_alpha_blend.py --out "reports/wk11_alpha_blend.csv"
 
+w12:
+\tpython scripts/w12_kelly_dd.py --out reports/wk12_kelly_dd.csv
+
+
+
 
 
 
