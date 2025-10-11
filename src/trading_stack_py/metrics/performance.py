@@ -1,7 +1,11 @@
+# src/trading_stack_py/metrics/performance.py
 from __future__ import annotations
+
+from math import sqrt
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 
 def max_drawdown(equity: pd.Series) -> float:
@@ -44,3 +48,21 @@ def summarize(bt_df: pd.DataFrame) -> dict:
         "Calmar": calmar(eq),
         "Trades": int(bt_df["ENTRY"].sum() + bt_df["EXIT"].sum()),
     }
+
+
+def probabilistic_sharpe_ratio(
+    sr: float, sr_bench: float, n: int, skew: float = 0.0, kurt: float = 3.0
+) -> float:
+    """
+    PSR from Bailey & López de Prado (2012/2014).
+    sr: observed Sharpe (daily)
+    sr_bench: benchmark Sharpe (e.g., 0)
+    n: number of returns used to compute sr
+    skew, kurt: skewness and kurtosis of returns (excess kurt not required here; use full kurtosis)
+    """
+    if n <= 2:
+        return 0.0
+    num = (sr - sr_bench) * sqrt(n - 1)
+    den = sqrt(1 - skew * sr + (kurt - 1) / 4.0 * (sr**2))
+    z = num / den if den > 0 else 0.0
+    return float(norm.cdf(z))
