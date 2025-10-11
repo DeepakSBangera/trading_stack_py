@@ -20,8 +20,8 @@ def basic_long_signal(df: pd.DataFrame) -> pd.DataFrame:
     _obv = obv(out["Close"], out["Volume"]).fillna(0)
     out["OBV_SLOPE5"] = (_obv - _obv.shift(5)).fillna(0)
     out["LONG"] = (out["ST_UP"]) & (out["Close"] > out["SMA50"]) & (out["OBV_SLOPE5"] > 0)
-    out["ENTRY"] = out["LONG"] & (~out["LONG"].shift(1).fillna(False))
-    out["EXIT"] = (~out["LONG"]) & (out["LONG"].shift(1).fillna(False))
+    out["ENTRY"] = out["LONG"] & (~out["LONG"].shift(1, fill_value=False))
+    out["EXIT"] = (~out["LONG"]) & (out["LONG"].shift(1, fill_value=False))
     return out[
         [
             "Date",
