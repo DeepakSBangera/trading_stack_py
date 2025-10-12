@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 from src.trading_stack_py.backtest.engine import run_long_only
-from src.trading_stack_py.config import get_portfolio_params, load_strategy_config
+from src.trading_stack_py.config import load_strategy_config
 from src.trading_stack_py.data_loader import get_prices
 from src.trading_stack_py.signals.core_signals import basic_long_signal
 
@@ -16,12 +16,12 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--start", default="2015-01-01", help="Start date (YYYY-MM-DD)")
     ap.add_argument("--end", default=None, help="End date (YYYY-MM-DD)")
 
-    default_cost = get_portfolio_params().get("cost_bps", 10)
+    # Don’t read config here; allow override via CLI. If None, we’ll pull from config after parse.
     ap.add_argument(
         "--cost_bps",
         type=float,
-        default=default_cost,
-        help=f"Round-trip cost in basis points (default from config: {default_cost})",
+        default=None,
+        help="Round-trip cost in basis points (default from config if omitted).",
     )
 
     ap.add_argument(
@@ -33,12 +33,12 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument(
         "--use_crossover",
         action="store_true",
-        help="If set, use SMA(fast) > SMA(slow). Otherwise, use config default (Close>fast unless config says otherwise).",
+        help="Force SMA(fast) > SMA(slow) at runtime (overrides config).",
     )
     ap.add_argument(
         "--force_refresh",
         action="store_true",
-        help="Ignore any cached/local data when using remote sources.",
+        help="Ignore cached/local data when using remote sources.",
     )
     return ap.parse_args()
 
@@ -46,8 +46,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    # Load strategy config (MA windows, optional filters, etc.)
+    # Load config now (provides MA windows, default costs, etc.)
     cfg = load_strategy_config()
+    # pick cost_bps: CLI override > config > fallback 10
+    cfg_cost = float(cfg.portfolio.get("cost_bps", 10))
+    cost_bps = float(args.cost_bps) if args.cost_bps is not None else cfg_cost
 
     # Pull prices
     df = get_prices(
@@ -58,18 +61,18 @@ def main() -> None:
         force_refresh=args.force_refresh,
     )
 
-    # If --use_crossover is given, override to crossover; otherwise let the signal use cfg.use_crossover
+    # If --use_crossover set, override; else None = use config default
     use_crossover_effective = True if args.use_crossover else None
 
     # Build signal dataframe
     sig = basic_long_signal(df, use_crossover=use_crossover_effective, cfg=cfg)
 
-    # Run a simple long-only backtest on the ENTRY/EXIT columns
+    # Run backtest
     bt = run_long_only(
         sig,
         entry_col="ENTRY",
         exit_col="EXIT",
-        cost_bps=args.cost_bps,
+        cost_bps=cost_bps,
     )
 
     # Write results

@@ -1,49 +1,72 @@
 # src/trading_stack_py/config.py
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import yaml
 
+# Defaults if config/strategy.yml is missing or partial
 _DEFAULTS = {
-    "portfolio": {"cost_bps": 10, "top_n": 5, "rebal_freq": "ME", "cash_buffer": 0.0},
-    "signals": {"ma": {"fast": 20, "slow": 200, "use_crossover": False}},
+    "signals": {
+        "ma_fast": 20,
+        "ma_slow": 200,
+        "use_crossover": False,  # default = Close > fast; set True for fast>slow
+    },
+    "portfolio": {
+        "top_n": 5,  # breadth for portfolio mode (not used by single-ticker run)
+        "rebal_freq": "ME",  # month-end
+        "cost_bps": 10,  # round-trip bps used by CLI if not overridden
+        "cash_buffer": 0.00,
+    },
 }
 
 
-def _load_yaml() -> dict:
-    # support both strategy.yaml and strategy.yml
-    for name in ("config/strategy.yaml", "config/strategy.yml"):
-        p = Path(name)
-        if p.exists():
-            with p.open("r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-    return {}
+@dataclass
+class StrategyConfig:
+    ma_fast: int
+    ma_slow: int
+    use_crossover: bool
+    portfolio: dict[str, Any]
 
 
-def get_portfolio_params() -> dict:
-    data = _load_yaml()
-    return {**_DEFAULTS["portfolio"], **(data.get("portfolio") or {})}
+def _load_yaml(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
 
 
-def get_default_ma_params() -> tuple[int, int]:
-    data = _load_yaml()
-    ma = (data.get("signals") or {}).get("ma") or {}
-    fast = ma.get("fast", _DEFAULTS["signals"]["ma"]["fast"])
-    slow = ma.get("slow", _DEFAULTS["signals"]["ma"]["slow"])
-    try:
-        fast = int(fast)
-    except Exception:
-        fast = _DEFAULTS["signals"]["ma"]["fast"]
-    try:
-        slow = int(slow)
-    except Exception:
-        slow = _DEFAULTS["signals"]["ma"]["slow"]
-    return fast, slow
+def load_strategy_config(config_dir: Path | None = None) -> StrategyConfig:
+    """
+    Loads config from config/strategy.yml or config/strategy.yaml.
+    Falls back to sane defaults if not found or keys are missing.
+    """
+    base = Path(config_dir) if config_dir else Path("config")
+    yml = base / "strategy.yml"
+    yaml_ = base / "strategy.yaml"
+
+    user_cfg = _load_yaml(yml if yml.exists() else yaml_) if base.exists() else {}
+
+    # Merge shallowly against defaults
+    merged = {
+        "signals": {**_DEFAULTS["signals"], **(user_cfg.get("signals") or {})},
+        "portfolio": {**_DEFAULTS["portfolio"], **(user_cfg.get("portfolio") or {})},
+    }
+
+    return StrategyConfig(
+        ma_fast=int(merged["signals"]["ma_fast"]),
+        ma_slow=int(merged["signals"]["ma_slow"]),
+        use_crossover=bool(merged["signals"]["use_crossover"]),
+        portfolio=merged["portfolio"],
+    )
 
 
-def get_signal_flags() -> dict:
-    data = _load_yaml()
-    ma = (data.get("signals") or {}).get("ma") or {}
-    use_crossover = bool(ma.get("use_crossover", _DEFAULTS["signals"]["ma"]["use_crossover"]))
-    return {"use_crossover": use_crossover}
+def get_portfolio_params(config_dir: Path | None = None) -> dict[str, Any]:
+    """
+    Convenience: returns the 'portfolio' dict (e.g., to read cost_bps).
+    Kept for backwards compatibility with earlier imports.
+    """
+    cfg = load_strategy_config(config_dir=config_dir)
+    return dict(cfg.portfolio)
