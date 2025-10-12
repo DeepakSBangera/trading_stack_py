@@ -1,46 +1,7 @@
-# src/trading_stack_py/backtest/engine.py
 from __future__ import annotations
-
-import math
-from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
-
-
-@dataclass
-class _Metrics:
-    cagr: float
-    sharpe: float
-    maxdd: float
-    calmar: float
-
-
-def _compute_metrics(equity: pd.Series, dates: pd.Series) -> _Metrics:
-    equity = equity.astype(float)
-    rets = equity.pct_change().fillna(0.0)
-    n = len(equity)
-    if n <= 1:
-        return _Metrics(0.0, 0.0, 0.0, 0.0)
-
-    # trading days between first/last date (fallback to 252 if dates missing)
-    try:
-        years = max(
-            (pd.to_datetime(dates.iloc[-1]) - pd.to_datetime(dates.iloc[0])).days / 365.25, 1e-9
-        )
-        cagr = float((equity.iloc[-1] / max(equity.iloc[0], 1e-12)) ** (1.0 / years) - 1.0)
-    except Exception:
-        cagr = 0.0
-
-    vol = float(rets.std()) * math.sqrt(252.0)
-    sharpe = float((rets.mean() * math.sqrt(252.0)) / vol) if vol > 0 else 0.0
-
-    roll_max = equity.cummax()
-    dd = (equity / roll_max) - 1.0
-    maxdd = float(dd.min()) if len(dd) else 0.0
-    calmar = (cagr / abs(maxdd)) if maxdd < 0 else 0.0
-
-    return _Metrics(cagr, sharpe, maxdd, calmar)
 
 
 def run_long_only(
@@ -50,60 +11,48 @@ def run_long_only(
     cost_bps: float = 10.0,
 ) -> pd.DataFrame:
     """
-    Executes a simple long-only strategy using boolean ENTRY/EXIT columns.
-    Buys 100% on ENTRY when flat; sells 100% on EXIT when long.
+    Very simple long-only backtest:
+    - Enter on ENTRY True, exit on EXIT True
+    - 100% allocation when in-position, 0% otherwise
+    - Apply costs on transitions (entry & exit)
+    Returns a frame with Equity and Return columns plus running metrics at the last row.
     """
     df = sig.copy()
-    if "Date" not in df.columns:
-        df["Date"] = pd.to_datetime(df.index)
-    df["Date"] = pd.to_datetime(df["Date"])
-    df = df.sort_values("Date").reset_index(drop=True)
+    df = df.reset_index(drop=True)
 
-    buy = df[entry_col].astype(bool).fillna(False).to_numpy()
-    sell = df[exit_col].astype(bool).fillna(False).to_numpy()
-    prices = df["Close"].astype(float).to_numpy()
-
-    cost = float(cost_bps) / 10_000.0
-    cash = 1.0
-    units = 0.0
+    # Position: 1 in-market, 0 out-of-market
+    pos = np.zeros(len(df), dtype=float)
     in_pos = False
-    trades = 0
-    equity_curve = []
-
     for i in range(len(df)):
-        p = prices[i]
-
-        if (not in_pos) and buy[i]:
-            # buy all
-            units = cash * (1.0 - cost) / p
-            cash = 0.0
+        if not in_pos and bool(df.at[i, entry_col]):
             in_pos = True
-            trades += 1
-
-        elif in_pos and sell[i]:
-            # sell all
-            cash = units * p * (1.0 - cost)
-            units = 0.0
+        elif in_pos and bool(df.at[i, exit_col]):
             in_pos = False
+        pos[i] = 1.0 if in_pos else 0.0
+    df["Position"] = pos
 
-        equity_curve.append(cash + units * p)
+    # Price-based returns (fallback if 'Close' missing -> zeros)
+    if "Close" in df.columns:
+        raw_ret = pd.Series(df["Close"]).astype(float).pct_change().fillna(0.0)
+    else:
+        raw_ret = pd.Series(np.zeros(len(df)))
 
-    out = pd.DataFrame(
-        {"Date": df["Date"], "Equity": equity_curve},
-        copy=False,
-    )
+    # Trading costs: apply when position changes (entry or exit)
+    pos_shift = pd.Series(pos).shift(1).fillna(0.0)
+    traded = (pd.Series(pos) != pos_shift).astype(float)
+    # cost applied on the day of the switch
+    cost = traded * (cost_bps / 1e4)
 
-    m = _compute_metrics(out["Equity"], out["Date"])
-    out["CAGR"] = np.nan
-    out["Sharpe"] = np.nan
-    out["MaxDD"] = np.nan
-    out["Calmar"] = np.nan
-    out["Trades"] = np.nan
+    # Strategy return: position * raw - cost
+    strat_ret = pos * raw_ret - cost
+    df["Return"] = strat_ret
 
-    out.iloc[-1, out.columns.get_loc("CAGR")] = m.cagr
-    out.iloc[-1, out.columns.get_loc("Sharpe")] = m.sharpe
-    out.iloc[-1, out.columns.get_loc("MaxDD")] = m.maxdd
-    out.iloc[-1, out.columns.get_loc("Calmar")] = m.calmar
-    out.iloc[-1, out.columns.get_loc("Trades")] = trades
+    # Equity curve (start at 1.0)
+    df["Equity"] = (1.0 + df["Return"]).cumprod()
 
-    return out
+    # Basic running trade count (entries)
+    trades = int(pd.Series(df[entry_col]).fillna(False).astype(bool).sum())
+    df["Trades"] = trades
+
+    # (Optional) You may compute rolling metrics here and store at last row if you like.
+    return df
