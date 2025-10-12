@@ -1,4 +1,12 @@
-top_n: 5           # number of tickers to hold
-rebal_freq: ME     # ME = month-end
-cost_bps: 10       # 10 basis points per rebalance trade
-cash_buffer: 0.00  # leave 0% in cash
+# config/strategy.yaml
+portfolio:
+  top_n: 5           # number of tickers to hold
+  rebal_freq: ME     # ME = month-end
+  cost_bps: 10       # 10 basis points per rebalance trade
+  cash_buffer: 0.00  # leave 0% in cash
+
+signals:
+  ma:
+    fast: 20         # default fast MA
+    slow: 200        # default slow MA
+    use_crossover: false
