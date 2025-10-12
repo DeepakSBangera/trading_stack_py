@@ -37,8 +37,9 @@ def _safe_equity(df: pd.DataFrame, base: float = 1.0) -> pd.Series:
     """
     if "Equity" in df.columns:
         eq = pd.Series(df["Equity"]).astype(float)
-        # guard against zeros/negatives if any
-        return eq.replace([np.inf, -np.inf], np.nan).fillna(method="ffill").fillna(method="bfill")
+        # replace infs, then forward/backward fill (no deprecated fillna(method=...))
+        eq = eq.replace([np.inf, -np.inf], np.nan).ffill().bfill()
+        return eq
 
     ret = _safe_returns(df)
     eq = pd.Series(base * (1.0 + ret).cumprod(), index=df.index)
@@ -62,7 +63,6 @@ def _cagr(equity: pd.Series, periods_per_year: int = 252) -> float:
         return 0.0
     start = float(equity.iloc[0])
     end = float(equity.iloc[-1])
-    # trading days approximation:
     years = max(1e-9, len(equity) / periods_per_year)
     if start <= 0 or end <= 0:
         return 0.0
@@ -125,15 +125,19 @@ def summarize(bt_df: pd.DataFrame) -> dict[str, float]:
     return out
 
 
-# ---- Optional: Probabilistic Sharpe Ratio helpers if you need them elsewhere ----
-def probabilistic_sharpe_ratio(observed_sr: float, benchmark_sr: float, n_obs: int) -> float:
+def probabilistic_sharpe_ratio(
+    observed_sr: float,
+    benchmark_sr: float,
+    n_obs: int,
+    *,
+    skew: float = 0.0,
+    kurt: float = 3.0,
+) -> float:
     """
     Bailey & Lopez de Prado PSR (simplified).
-    observed_sr: observed Sharpe ratio
-    benchmark_sr: Sharpe threshold to test against
-    n_obs: number of observations
+    We accept skew/kurt for API compatibility but ignore them in this simplified form.
     """
     if n_obs <= 1:
         return 0.0
-    z = (observed_sr - benchmark_sr) * np.sqrt(n_obs - 1)
+    z = (observed_sr - benchmark_sr) * np.sqrt(max(1.0, n_obs - 1))
     return float(1.0 - norm.cdf(z))
