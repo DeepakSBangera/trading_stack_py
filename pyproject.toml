@@ -48,4 +48,6 @@ addopts = "-q"
 
 [project.scripts]
 trading-stack = "trading_stack_py.cli:main"
+trading-stack-portfolio = "trading_stack_py.portfolio_cli:main"
+
 
