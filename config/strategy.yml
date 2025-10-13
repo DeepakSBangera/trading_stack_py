@@ -7,6 +7,6 @@ portfolio:
 
 signals:
   ma:
-    fast: 20         # default fast MA
-    slow: 200        # default slow MA
-    use_crossover: false
+    fast: 10         # default fast MA
+    slow: 50        # default slow MA
+    use_crossover: true
