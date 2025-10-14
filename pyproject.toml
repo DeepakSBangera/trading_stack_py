@@ -1,17 +1,36 @@
-[project]
-name = "trading-stack-py"
-version = "0.0.1"
-description = "Walk-forward CV + Deflated Sharpe Ratio utilities for trading research"
-readme = "README_W5.md"
-requires-python = ">=3.11"
-dependencies = []
-
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project]
+name = "trading-stack-py"
+version = "0.0.1"
+description = "Minimal trading research stack: data → signals → backtest → metrics (incl. walk-forward CV & PSR)"
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.10",
+  "PyYAML>=6.0",
+  "yfinance>=0.2.40",
+  "requests>=2.31"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pre-commit>=3.7",
+  "black>=24.0",
+  "ruff>=0.6"
+]
+
+[project.scripts]
+trading-stack = "trading_stack_py.cli:main"
+trading-stack-portfolio = "trading_stack_py.portfolio_cli:main"
 
 # ---------------- formatting / linting ----------------
 
@@ -38,37 +57,6 @@ target-version = "py311"
 select = ["E", "F", "I", "UP"]
 extend-ignore = ["E501"]  # Let the formatter handle line length
 
-# (Optional) if you want to keep a *.backup.py around without fixing it:
-# [tool.ruff.lint.per-file-ignores]
-# "scripts/*.backup.py" = ["E501", "E701", "E702", "E741"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-
-[project.scripts]
-trading-stack = "trading_stack_py.cli:main"
-trading-stack-portfolio = "trading_stack_py.portfolio_cli:main"
-
-dependencies = [
-  "numpy>=1.24",
-  "pandas>=2.0",
-  "PyYAML>=6.0",
-  "yfinance>=0.2.40",
-]
-
-[project]
-# ...
-dependencies = [
-  "numpy>=1.24",
-  "pandas>=2.0",
-  "scipy>=1.10",
-  "PyYAML>=6.0",
-  "yfinance>=0.2.40",
-]
-
-[project.optional-dependencies]
-dev = ["pre-commit>=3.7", "black>=24.0", "ruff>=0.6"]
-
-
-
