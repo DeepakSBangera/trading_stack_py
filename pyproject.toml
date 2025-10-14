@@ -50,4 +50,25 @@ addopts = "-q"
 trading-stack = "trading_stack_py.cli:main"
 trading-stack-portfolio = "trading_stack_py.portfolio_cli:main"
 
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "PyYAML>=6.0",
+  "yfinance>=0.2.40",
+]
+
+[project]
+# ...
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.10",
+  "PyYAML>=6.0",
+  "yfinance>=0.2.40",
+]
+
+[project.optional-dependencies]
+dev = ["pre-commit>=3.7", "black>=24.0", "ruff>=0.6"]
+
+
 
