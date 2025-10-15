@@ -1,3 +1,8 @@
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install git+https://github.com/DeepakSBangera/trading_stack_py.git@v1.1.5
+trading-stack --ticker RELIANCE.NS --start 2015-01-01 --source synthetic
+
 Trading · Pricing · Econometrics — Python-First (Low-Cost)
 
 A beginner-friendly repo that grows week-by-week.
