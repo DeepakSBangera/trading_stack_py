@@ -6,50 +6,65 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
-
-      - name: Upgrade pip
-        run: python -m pip install -U pip
-
-      - name: Install project deps
-        run: |
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-          pip install -e .
-
-      # ---- Lint using pre-commit (matches repo-pinned versions) ----
-      - name: Install pre-commit
-        run: pip install pre-commit
-
+      - run: python -m pip install -U pip
+      - run: pip install -e ".[dev]"
       - name: Cache pre-commit
         uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
-          restore-keys: |
-            pre-commit-${{ runner.os }}-
-
-      - name: Run pre-commit (ruff, black, detect-secrets)
+          restore-keys: pre-commit-${{ runner.os }}-
+      - name: pre-commit (ruff/black/secrets)
         run: pre-commit run --all-files
 
-      # (Optional) Debug what Black wants, if it ever fails again
-      # - name: Black diff (debug)
-      #   if: failure()
-      #   run: black --diff --check tests/test_w11_alpha_blend.py || true
-
-      - name: Quick import sanity
-        run: python -c "import trading_stack_py, sys; print('pkg:', trading_stack_py.__file__)"
-
-      - name: Run tests
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - run: python -m pip install -U pip
+      - name: Install project (dev)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          pip install -e ".[dev]"
+      - name: Import sanity
+        run: python -c "import trading_stack_py as m; print('pkg:', m.__file__)"
+      - name: Unit tests
         env:
           PYTHONPATH: ${{ github.workspace }}/src
         run: pytest -q
+      - name: CLI smoke (no network)
+        run: |
+          trading-stack --ticker RELIANCE.NS --start 2015-01-01 --source synthetic
+          trading-stack-portfolio --tickers RELIANCE.NS,HDFCBANK.NS,INFY.NS,ICICIBANK.NS,TCS.NS \
+            --start 2018-01-01 --source synthetic --lookback 126 --top_n 3 --cost_bps 10
+
+  packaging:
+    # Quick packaging sanity so tags can't break pip installs
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: python -m pip install -U pip build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
