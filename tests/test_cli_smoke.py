@@ -1,8 +1,47 @@
-from trading_stack_py.cv.walkforward import WalkForwardCV
+import subprocess
+import sys
 
 
-def test_wf_cli_shapes():
-    n = 300
-    cv = WalkForwardCV(train_size=120, test_size=30, step_size=30, expanding=False, embargo=3)
-    splits = list(cv.split(n))
-    assert len(splits) == 5
+def _run(cmd: list[str]) -> int:
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    return proc.returncode
+
+
+def test_single_symbol_synthetic():
+    rc = _run(
+        [
+            sys.executable,
+            "-m",
+            "trading_stack_py.cli",
+            "--ticker",
+            "RELIANCE.NS",
+            "--start",
+            "2015-01-01",
+            "--source",
+            "synthetic",
+        ]
+    )
+    assert rc == 0
+
+
+def test_portfolio_synthetic():
+    rc = _run(
+        [
+            sys.executable,
+            "-m",
+            "trading_stack_py.portfolio_cli",
+            "--tickers",
+            "RELIANCE.NS,HDFCBANK.NS,INFY.NS,ICICIBANK.NS,TCS.NS",
+            "--start",
+            "2018-01-01",
+            "--source",
+            "synthetic",
+            "--lookback",
+            "126",
+            "--top_n",
+            "3",
+            "--cost_bps",
+            "10",
+        ]
+    )
+    assert rc == 0

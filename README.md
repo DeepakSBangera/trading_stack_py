@@ -1,3 +1,9 @@
+py -3.11 -m venv .venv; .\.venv\Scripts\Activate.ps1
+python -m pip install -U pip
+pip install git+https://github.com/DeepakSBangera/trading_stack_py.git@v1.1.5
+trading-stack --ticker RELIANCE.NS --start 2015-01-01 --source synthetic
+
+
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install git+https://github.com/DeepakSBangera/trading_stack_py.git@v1.1.5
