@@ -1,63 +1,17 @@
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[project]
-name = "trading-stack-py"
-version = "1.1.9"
-description = "Minimal trading research stack: data ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ signals ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ backtest ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ metrics (incl. walk-forward CV & PSR)"
-readme = "README.md"
-requires-python = ">=3.11"
-
-dependencies = [
-  "numpy>=1.24",
-  "pandas>=2.0",
-  "scipy>=1.10",
-  "PyYAML>=6.0",
-  "yfinance>=0.2.40",
-  "requests>=2.31"
-]
-
-[project.optional-dependencies]
-dev = [
-  "pre-commit>=3.7",
-  "black>=24.0",
-  "ruff>=0.6"
-]
-
-[project.scripts]
-trading-stack = "trading_stack_py.cli:main"
-trading-stack-portfolio = "trading_stack_py.portfolio_cli:main"
-
-# ---------------- formatting / linting ----------------
-
-[tool.black]
-required-version = "25.9.0"
-line-length = 100
-target-version = ["py311"]
-exclude = '''
-/(
-  \.git
-| \.venv
-| build
-| dist
-| data
-| reports
-)/
-'''
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
-
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
-extend-ignore = ["E501"]  # Let the formatter handle line length
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-q"
-
+ignore = [
+  "UP038",   # isinstance(..., (A, B))
+  "E501",    # line length (black handles wrapping)
+  "C408",    # dict(...) literal nit (we’ll modernize later)
+  "ISC001",  # conflict with formatter
+]
+select = [
+  "E", "F", "W",
+  "I",       # import sorting
+  "UP",      # pyupgrade (minus UP038)
+  "B",       # flake8-bugbear
+  "PIE",
+  "A",
+  "C4",
+  "ICN",
+]

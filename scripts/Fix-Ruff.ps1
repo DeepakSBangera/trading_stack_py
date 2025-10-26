@@ -40,10 +40,11 @@ function Regex-Replace-InFile {
 # ---- Specific fixes ----
 
 # 1) tools/add_date_if_missing.py — remove unused variable assignment (F841)
+#    Replace the entire assignment line with a pure validation call (no $1 backref).
 Regex-Replace-InFile `
   -Path ".\tools\add_date_if_missing.py" `
-  -Pattern "(?m)^\s*test\s*=\s*pd\.to_datetime\(([^)]*)\)\s*$" `
-  -Replacement "pd.to_datetime($1)"
+  -Pattern "(?m)^\s*test\s*=\s*pd\.to_datetime\([^)]*\)\s*$" `
+  -Replacement 'pd.to_datetime(df[c], errors="raise", utc=True)'
 
 # 2) tools/summarize_compare.py — bare except -> except Exception (E722)
 Regex-Replace-InFile `
