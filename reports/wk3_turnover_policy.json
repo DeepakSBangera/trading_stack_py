@@ -1,6 +1,0 @@
-{
-  "policy_caps": {
-    "target_avg_turnover_per_rebalance": 0.25,
-    "target_p95_turnover": 0.45
-  }
-}

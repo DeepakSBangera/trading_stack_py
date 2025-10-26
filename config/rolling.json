@@ -1,0 +1,15 @@
+{
+  "nav_file": "reports/portfolio_v2.parquet",
+  "nav_col": "nav_net",
+  "ret_window_sharpe": 252,
+  "ret_window_sortino": 252,
+  "vol_window": 63,
+  "dd_window": 252,
+  "annualization": 252,
+  "rf_per_period": 0.0,
+  "regime_method": "sma_crossover",
+  "regime_fast": 50,
+  "regime_slow": 200,
+  "out_parquet": "reports/rolling_metrics.parquet",
+  "out_summary": "reports/rolling_metrics_summary.txt"
+}

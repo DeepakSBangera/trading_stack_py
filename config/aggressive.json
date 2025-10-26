@@ -1,0 +1,9 @@
+﻿{
+  "prices_root": "data_synth\\prices",
+  "start": "2015-01-01",
+  "lookback": 84,
+  "top_n": 6,
+  "rebalance": "ME",
+  "cost_bps": 15,
+  "outdir": "reports"
+}

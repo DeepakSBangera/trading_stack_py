@@ -1,0 +1,12 @@
+﻿# Kill-Switch Thresholds (Base Profile)
+dd_weekly_pct: 0.08            # >8% weekly drawdown -> de-risk 25–50%
+var_breach: true               # if VaR breach signaled -> halt adds
+data_gap_days: 1               # >1 day data gap -> freeze new trades
+slippage_p95_bps: 50           # >50 bps 95p slippage -> reduce size
+execution_reject_rate: 0.02    # >2% rejects -> manual review
+actions:
+  dd_weekly_pct: [halt_adds, derisk_0p25]
+  var_breach: [halt_adds]
+  data_gap_days: [halt_adds]
+  slippage_p95_bps: [derisk_0p25]
+  execution_reject_rate: [manual_review]

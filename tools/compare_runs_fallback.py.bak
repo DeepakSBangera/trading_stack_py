@@ -1,0 +1,103 @@
+﻿# compare_runs_fallback.py — same logic as main comparator, kept simple/robust
+import argparse
+from pathlib import Path
+import math
+import pandas as pd
+import numpy as np
+
+ANN_FACTOR = 252.0
+
+def _to_naive_utc(dti: pd.Series) -> pd.DatetimeIndex:
+    if hasattr(dti.dtype, "tz") and dti.dtype.tz is not None:
+        return dti.dt.tz_convert("UTC").dt.tz_localize(None)
+    return pd.to_datetime(dti, utc=False)
+
+def _load_equity(fn: Path) -> pd.DataFrame:
+    if not fn.exists():
+        raise FileNotFoundError("not found: {}".format(fn))
+    df = pd.read_parquet(str(fn))
+    if "date" not in df.columns:
+        raise ValueError("equity file missing 'date': {}".format(fn))
+    df["date"] = _to_naive_utc(df["date"])
+    df = df.sort_values("date").drop_duplicates(subset=["date"]).set_index("date")
+
+    if "ret_net" in df.columns:
+        rets = pd.to_numeric(df["ret_net"], errors="coerce").fillna(0.0)
+    elif "ret_gross" in df.columns:
+        rets = pd.to_numeric(df["ret_gross"], errors="coerce").fillna(0.0)
+    else:
+        nav_col = None
+        for c in ("nav_net", "nav_gross"):
+            if c in df.columns:
+                nav_col = c
+                break
+        if nav_col is None:
+            raise ValueError("no returns or nav columns found in {}".format(fn))
+        nav = pd.to_numeric(df[nav_col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+        nav = nav.fillna(method="ffill").fillna(1.0)
+        rets = nav.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    df["_ret"] = rets.astype(float)
+    df["_nav"] = (1.0 + df["_ret"]).cumprod()
+    return df[["_ret", "_nav"]]
+
+def _summary(df: pd.DataFrame) -> dict:
+    n = int(df.shape[0])
+    if n <= 0:
+        return dict(days=0, cagr=0.0, sharpe=0.0, max_dd=0.0, total_ret=0.0)
+    rets = df["_ret"].astype(float)
+    nav  = df["_nav"].astype(float).replace([np.inf, -np.inf], np.nan).fillna(method="ffill").fillna(1.0)
+
+    total_ret = float(nav.iloc[-1] - 1.0)
+    mu = float(rets.mean())
+    sd = float(rets.std(ddof=1)) if n > 1 else 0.0
+    sharpe = (mu / sd) * math.sqrt(ANN_FACTOR) if (sd and sd != 0.0 and not math.isnan(sd)) else 0.0
+
+    roll_max = nav.cummax()
+    dd = (nav / roll_max) - 1.0
+    max_dd = float(dd.min()) if len(dd) else 0.0
+
+    cagr = float((1.0 + total_ret) ** (ANN_FACTOR / n) - 1.0) if n > 0 else 0.0
+    return dict(days=n, cagr=cagr, sharpe=sharpe, max_dd=max_dd, total_ret=total_ret)
+
+def main():
+    p = argparse.ArgumentParser(description="fallback comparator")
+    p.add_argument("--a", required=True)
+    p.add_argument("--b", required=True)
+    p.add_argument("--out", required=True)
+    args = p.parse_args()
+
+    outdir = Path(args.out).resolve()
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    a_df = _load_equity(Path(args.a))
+    b_df = _load_equity(Path(args.b))
+    a_sum = _summary(a_df)
+    b_sum = _summary(b_df)
+
+    tbl = pd.DataFrame.from_dict(
+        {"A_older": a_sum, "B_newer": b_sum},
+        orient="index",
+        columns=["days", "cagr", "sharpe", "max_dd", "total_ret"],
+    )
+
+    (outdir / "compare_runs.parquet").write_bytes(tbl.to_parquet(index=True))
+    tbl.to_csv(str(outdir / "compare_runs.csv"), index=True)
+
+    print("Compare done. Summary (ASCII):")
+    cols = ["days", "cagr", "sharpe", "max_dd", "total_ret"]
+    header = "{:>8} {:>10} {:>10} {:>10} {:>10}".format("days","cagr","sharpe","max_dd","total_ret")
+    print("           " + header)
+    for idx in ["A_older", "B_newer"]:
+        r = tbl.loc[idx, cols]
+        line = "{:>8d} {:>10.6f} {:>10.6f} {:>10.6f} {:>10.6f}".format(
+            int(r["days"]),
+            float(r["cagr"]),
+            float(r["sharpe"]),
+            float(r["max_dd"]),
+            float(r["total_ret"]),
+        )
+        print("{:9s} {}".format(idx, line))
+
+if __name__ == "__main__":
+    main()

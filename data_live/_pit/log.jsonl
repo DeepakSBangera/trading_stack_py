@@ -1,0 +1,2 @@
+{"mode": "kite", "kite.enabled": true, "dry_run": true, "action": "dry_run_only", "note": "no API calls in this stub", "ts": "2025-10-24T18:07:27.555444Z"}
+{"mode": "kite", "kite.enabled": false, "action": "scaffold_only", "ts": "2025-10-24T18:08:07.889841Z"}

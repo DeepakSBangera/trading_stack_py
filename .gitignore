@@ -66,3 +66,34 @@ logs/
 
 reports/
 *.csv
+# env & secrets
+.venv/
+.env
+*.env
+
+# local artifacts
+reports/
+*.parquet
+*.png
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+~$*
+# env & secrets
+.venv/
+.env
+*.env
+
+# local artifacts
+reports/
+*.parquet
+*.png
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+~$*
+.venv-*
+*.duckdb_wal
+*.duckdb*
