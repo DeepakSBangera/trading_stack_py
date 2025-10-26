@@ -22,7 +22,7 @@ function Add-FileTopPragma {
       $new = $Pragma + "`r`n" + $text
     }
     Set-Content -LiteralPath $Path -Value $new -Encoding UTF8
-    Write-Host "[OK] Added pragma to $Path: $Pragma"
+    Write-Host "[OK] Added pragma to $($Path): $($Pragma)"
   }
 }
 
@@ -33,7 +33,7 @@ function Regex-Replace-InFile {
   $new = [regex]::Replace($raw, $Pattern, $Replacement)
   if ($new -ne $raw) {
     Set-Content -LiteralPath $Path -Value $new -Encoding UTF8
-    Write-Host "[OK] Patched $Path"
+    Write-Host "[OK] Patched $($Path)"
   }
 }
 
@@ -59,30 +59,30 @@ Add-FileTopPragma ".\tools\compare_runs_fallback.py" "# ruff: noqa: E402"
 # tools/dump_parquet_schemas.py
 Regex-Replace-InFile `
   -Path ".\tools\dump_parquet_schemas.py" `
-  -Pattern "(?m)^(.*isinstance\(x,\s*\(np\.generic,\)\)\).*?$" `
-  -Replacement '$1  # noqa: UP038'
+  -Pattern "(?m)^(.*isinstance\(x,\s*\(np\.generic,\)\)\s*)(.*)$" `
+  -Replacement '$1# noqa: UP038'
 Regex-Replace-InFile `
   -Path ".\tools\dump_parquet_schemas.py" `
-  -Pattern "(?m)^(.*isinstance\(x,\s*\(list,\s*tuple,\s*set\)\)\).*?$" `
-  -Replacement '$1  # noqa: UP038'
+  -Pattern "(?m)^(.*isinstance\(x,\s*\(list,\s*tuple,\s*set\)\)\s*)(.*)$" `
+  -Replacement '$1# noqa: UP038'
 
 # tools/run_from_config.py
 Regex-Replace-InFile `
   -Path ".\tools\run_from_config.py" `
-  -Pattern "(?m)^(.*isinstance\(cmd,\s*\(list,\s*tuple\)\)\).*?$" `
-  -Replacement '$1  # noqa: UP038'
+  -Pattern "(?m)^(.*isinstance\(cmd,\s*\(list,\s*tuple\)\)\s*)(.*)$" `
+  -Replacement '$1# noqa: UP038'
 
 # tradingstack/io/equity.py
 Regex-Replace-InFile `
   -Path ".\tradingstack\io\equity.py" `
-  -Pattern "(?m)^(.*isinstance\(df\.index,\s*\(pd\.DatetimeIndex,\s*pd\.PeriodIndex\)\)\).*?$" `
-  -Replacement '$1  # noqa: UP038'
+  -Pattern "(?m)^(.*isinstance\(df\.index,\s*\(pd\.DatetimeIndex,\s*pd\.PeriodIndex\)\)\s*)(.*)$" `
+  -Replacement '$1# noqa: UP038'
 
-# tradingstack/metrics/sharpe.py (make line-level pragma on list|tuple check)
+# tradingstack/metrics/sharpe.py
 Regex-Replace-InFile `
   -Path ".\tradingstack\metrics\sharpe.py" `
-  -Pattern "(?m)^(.*isinstance\(x,\s*\(list,\s*tuple\)\)\).*?$" `
-  -Replacement '$1  # noqa: UP038'
+  -Pattern "(?m)^(.*isinstance\(x,\s*\(list,\s*tuple\)\)\s*)(.*)$" `
+  -Replacement '$1# noqa: UP038'
 
 # 5) Unused locals F841 -> underscore them if still needed for structure
 Regex-Replace-InFile `
@@ -95,7 +95,6 @@ Regex-Replace-InFile `
   -Replacement "_delta ="
 
 # 6) tradingstack/metrics/__init__.py — lots of F401 for re-exports
-# add a file-level pragma once; keeps your public API surface unchanged
 Add-FileTopPragma ".\tradingstack\metrics\__init__.py" "# ruff: noqa: F401"
 
 Write-Host "`n[OK] Fix-Ruff.ps1 completed. Re-run your commit." -ForegroundColor Green
