@@ -38,7 +38,9 @@ def ensure_datetime_index(df: pd.DataFrame) -> pd.DataFrame:
                 df = df.dropna(subset=[col]).set_index(col)
                 break
         else:
-            raise TypeError("Prices require a datetime column ('date') or a DatetimeIndex.")
+            raise TypeError(
+                "Prices require a datetime column ('date') or a DatetimeIndex."
+            )
     df = df.sort_index()
     df.index.name = "date"
     return df
@@ -71,7 +73,9 @@ def load_prices_for(ticker: str, prices_root: str) -> pd.DataFrame:
                 close_col = cols_lower[candidate]
                 break
     if close_col is None:
-        raise KeyError(f"'close' column not found in {path}. Columns: {list(df.columns)}")
+        raise KeyError(
+            f"'close' column not found in {path}. Columns: {list(df.columns)}"
+        )
 
     out = df[[close_col]].rename(columns={close_col: "close"}).dropna()
     out["close"] = out["close"].astype(float)
@@ -101,7 +105,9 @@ def week_end_dates(ix: pd.DatetimeIndex) -> pd.DatetimeIndex:
     ix = ix.tz_convert("UTC")
     iso = ix.isocalendar()
     s = pd.Series(0, index=ix)
-    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(lambda x: x.index.max())
+    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(
+        lambda x: x.index.max()
+    )
     return pd.DatetimeIndex(we.to_list(), tz="UTC")
 
 
@@ -133,7 +139,9 @@ def build_topn_weights(
 ) -> pd.DataFrame:
     """Equal-weight Top-N momentum names at each rebalance; carry forward until next."""
     mom = compute_momentum(px_wide, lookback)
-    weights = pd.DataFrame(0.0, index=px_wide.index, columns=px_wide.columns, dtype=float)
+    weights = pd.DataFrame(
+        0.0, index=px_wide.index, columns=px_wide.columns, dtype=float
+    )
     last_w = pd.Series(0.0, index=px_wide.columns, dtype=float)
 
     for d in rebalance_dates:
@@ -153,7 +161,10 @@ def build_topn_weights(
 
 
 def apply_transaction_costs(
-    weights: pd.DataFrame, rets: pd.DataFrame, rebalance_dates: pd.DatetimeIndex, cost_bps: float
+    weights: pd.DataFrame,
+    rets: pd.DataFrame,
+    rebalance_dates: pd.DatetimeIndex,
+    cost_bps: float,
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
     """Gross ret = w_{t-1}·r_t ; net ret = gross - turnover*cost_bps/10000 on rebalance days; turnover = |Δw|/2."""
     w_shift = weights.shift(1).fillna(0.0)
@@ -212,13 +223,20 @@ def main():
     )
     p.add_argument("--universe-csv", required=True, help="CSV with header 'ticker'")
     p.add_argument(
-        "--prices-root", required=True, help="Root folder of price parquet files (can be nested)"
+        "--prices-root",
+        required=True,
+        help="Root folder of price parquet files (can be nested)",
     )
     p.add_argument("--start", required=True, help="Backtest start date (YYYY-MM-DD)")
     p.add_argument(
-        "--lookback", type=int, default=126, help="Momentum lookback in trading days (default: 126)"
+        "--lookback",
+        type=int,
+        default=126,
+        help="Momentum lookback in trading days (default: 126)",
     )
-    p.add_argument("--top-n", type=int, default=4, help="Number of names to hold (default: 4)")
+    p.add_argument(
+        "--top-n", type=int, default=4, help="Number of names to hold (default: 4)"
+    )
     p.add_argument(
         "--rebalance",
         choices=["ME", "WE", "QE"],
@@ -255,7 +273,9 @@ def main():
 
     # Returns from full history; build weights using rebalances >= start
     rets_full = panel_full.pct_change().fillna(0.0)
-    weights_full = build_topn_weights(panel_full, rcal, lookback=args.lookback, topn=args.top_n)
+    weights_full = build_topn_weights(
+        panel_full, rcal, lookback=args.lookback, topn=args.top_n
+    )
 
     # Apply costs using full returns (weights constant outside rebalances)
     gross_full, net_full, turnover_full = apply_transaction_costs(
@@ -295,7 +315,7 @@ def main():
     # Trades on rebalance days (before/after/turnover)
     trades_rows: list[dict] = []
     weights_prev = weights.shift(1).fillna(0.0)
-    delta = weights - weights_prev
+    _delta = weights - weights_prev  # noqa: F841
     for d in rcal:
         if d not in weights.index:
             continue

@@ -13,7 +13,7 @@ def find_datetime_col(df):
                 return c
             # try coercion
             try:
-                test = pd.to_datetime(df[c], errors="raise", utc=True)
+                pd.to_datetime(df[c], errors="raise", utc=True)  # validate only
                 return c
             except Exception:
                 pass
@@ -51,7 +51,10 @@ def main():
     if cand is not None:
         s = pd.to_datetime(df[cand], utc=True, errors="coerce")
         if s.isna().all():
-            print("FAIL: candidate column existed but could not be parsed to datetime:", cand)
+            print(
+                "FAIL: candidate column existed but could not be parsed to datetime:",
+                cand,
+            )
             sys.exit(3)
         df.insert(0, "date", s)
         # drop special index column if that’s what we used

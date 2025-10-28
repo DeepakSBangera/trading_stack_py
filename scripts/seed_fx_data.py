@@ -30,7 +30,14 @@ def make_series(seed, n=N_DAYS, spot=75.0):
     vol = np.zeros(n, dtype=int)
 
     return pd.DataFrame(
-        {"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": vol}
+        {
+            "date": dates,
+            "open": open_,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": vol,
+        }
     )
 
 

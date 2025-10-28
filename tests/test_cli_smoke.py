@@ -3,7 +3,9 @@ import sys
 
 
 def _run(cmd: list[str]) -> int:
-    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    proc = subprocess.run(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
     return proc.returncode
 
 

@@ -63,7 +63,14 @@ def make_series(seed: int, n: int, spot: float, asset: str) -> pd.DataFrame:
     low = np.minimum(open_, close) - intraday
 
     df = pd.DataFrame(
-        {"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": volume}
+        {
+            "date": dates,
+            "open": open_,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": volume,
+        }
     )
     return df
 
@@ -75,8 +82,12 @@ def main():
         default=r"data/universe/watchlist.csv",
         help="Path to watchlist CSV with a 'symbol' column",
     )
-    ap.add_argument("--outdir", default=r"data/csv", help="Output directory for generated CSVs")
-    ap.add_argument("--days", type=int, default=750, help="Number of business days to generate")
+    ap.add_argument(
+        "--outdir", default=r"data/csv", help="Output directory for generated CSVs"
+    )
+    ap.add_argument(
+        "--days", type=int, default=750, help="Number of business days to generate"
+    )
     args = ap.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)

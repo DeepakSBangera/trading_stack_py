@@ -24,7 +24,11 @@ def main():
     args = ap.parse_args()
 
     def _load(path):
-        return pd.read_parquet(path) if path.lower().endswith(".parquet") else pd.read_csv(path)
+        return (
+            pd.read_parquet(path)
+            if path.lower().endswith(".parquet")
+            else pd.read_csv(path)
+        )
 
     eqdf = _load(args.equity_csv)
     if "date" not in eqdf.columns:
@@ -36,14 +40,23 @@ def main():
     eq_col = next(
         (
             c
-            for c in ("equity", "nav", "portfolio", "value", "equity_curve", "equity_nav")
+            for c in (
+                "equity",
+                "nav",
+                "portfolio",
+                "value",
+                "equity_curve",
+                "equity_nav",
+            )
             if c in eqdf.columns
         ),
         None,
     )
     if eq_col is None:
         num_cols = [
-            c for c in eqdf.columns if c != "date" and pd.api.types.is_numeric_dtype(eqdf[c])
+            c
+            for c in eqdf.columns
+            if c != "date" and pd.api.types.is_numeric_dtype(eqdf[c])
         ]
         if not num_cols:
             raise SystemExit("No numeric equity-like column found.")

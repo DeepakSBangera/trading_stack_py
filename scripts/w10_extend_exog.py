@@ -19,7 +19,9 @@ def pick(cols: Iterable[str], cands: Iterable[str]) -> str | None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Extend/align exog over the price date range.")
+    ap = argparse.ArgumentParser(
+        description="Extend/align exog over the price date range."
+    )
     ap.add_argument("--data-glob", default="data/csv/*.csv")
     ap.add_argument("--exog-in", default="data/factors/nifty_macro.csv")
     ap.add_argument("--exog-out", default="data/factors/nifty_macro_extended.csv")

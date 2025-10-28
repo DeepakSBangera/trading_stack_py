@@ -22,14 +22,23 @@ def _err(msg: str):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--weights", required=True, help="weights long parquet (date,ticker,weight)")
     ap.add_argument(
-        "--prices-root", required=True, help="root folder of per-ticker parquet price/return files"
+        "--weights", required=True, help="weights long parquet (date,ticker,weight)"
+    )
+    ap.add_argument(
+        "--prices-root",
+        required=True,
+        help="root folder of per-ticker parquet price/return files",
     )
     ap.add_argument("--out", required=True, help="output folder")
-    ap.add_argument("--equity", required=True, help="portfolio_v2.parquet (for parity check)")
     ap.add_argument(
-        "--mapping", required=False, default="", help="CSV mapping ticker->sector (optional)"
+        "--equity", required=True, help="portfolio_v2.parquet (for parity check)"
+    )
+    ap.add_argument(
+        "--mapping",
+        required=False,
+        default="",
+        help="CSV mapping ticker->sector (optional)",
     )
     args = ap.parse_args()
 
@@ -56,15 +65,19 @@ def main():
 
         # Optional sector/group frame
         if args.mapping and pathlib.Path(args.mapping).exists():
-            contrib_sector = group_contribution(contrib, pathlib.Path(args.mapping), "sector")
+            _contrib_sector = group_contribution(
+                contrib, pathlib.Path(args.mapping), "sector"
+            )
         else:
-            contrib_sector = pd.DataFrame(index=contrib.index)
+            _contrib_sector = pd.DataFrame(index=contrib.index)
 
         # Parity check against equity file (if it has _nav)
         eq = eq.copy()
         if "date" in eq.columns:
             # Normalize equity date
-            eq["date"] = pd.to_datetime(eq["date"], errors="coerce", utc=True).dt.tz_convert(None)
+            eq["date"] = pd.to_datetime(
+                eq["date"], errors="coerce", utc=True
+            ).dt.tz_convert(None)
             eq = eq.dropna(subset=["date"]).set_index("date").sort_index()
         eq.index.name = "date"
         if "_nav" in eq.columns:
@@ -79,18 +92,24 @@ def main():
             recon_nav = (1.0 + aligned).cumprod()
             # compare shapes & difference
             common = nav.index.intersection(recon_nav.index)
-            diff = (nav.reindex(common).fillna(method="ffill") - recon_nav.reindex(common)).abs()
+            diff = (
+                nav.reindex(common).fillna(method="ffill") - recon_nav.reindex(common)
+            ).abs()
             with open(out_dir / "attribution_parity.txt", "w", encoding="utf-8") as fh:
                 fh.write(f"dates={len(common)}\n")
                 fh.write(f"abs_diff_sum={diff.sum():.8f}\n")
                 fh.write("note=abs_diff_sum close to 0 indicates parity\n")
         else:
             with open(out_dir / "attribution_parity.txt", "w", encoding="utf-8") as fh:
-                fh.write("dates=0\nabs_diff_sum=0.00000000\nnote=_nav not found in equity\n")
+                fh.write(
+                    "dates=0\nabs_diff_sum=0.00000000\nnote=_nav not found in equity\n"
+                )
 
         # Write outputs
         contrib.to_parquet(out_dir / "attribution_ticker.parquet")
-        port_ret.to_frame("port_ret").to_parquet(out_dir / "attribution_portfolio_returns.parquet")
+        port_ret.to_frame("port_ret").to_parquet(
+            out_dir / "attribution_portfolio_returns.parquet"
+        )
 
         print("OK attribution ->", out_dir)
         print("  wrote:", out_dir / "attribution_ticker.parquet")

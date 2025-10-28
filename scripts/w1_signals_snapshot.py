@@ -21,7 +21,9 @@ def _load_from_week1_report() -> pd.DataFrame | None:
     df = pd.read_csv(latest)
     # Expect typical columns from Week 1; keep whatever exists
     keep_cols = [
-        c for c in ["ticker", "score", "atr", "atr_pct", "rank", "list_priority"] if c in df.columns
+        c
+        for c in ["ticker", "score", "atr", "atr_pct", "rank", "list_priority"]
+        if c in df.columns
     ]
     if "ticker" not in df.columns:
         # try common alternate name

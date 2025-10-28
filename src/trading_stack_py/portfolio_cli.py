@@ -52,7 +52,9 @@ def _parse_args() -> argparse.Namespace:
 # ---------------------------
 # Result coercion helpers
 # ---------------------------
-def _coerce_df_from_like(obj: Any, dates: Iterable[Any] | None = None) -> pd.DataFrame | None:
+def _coerce_df_from_like(
+    obj: Any, dates: Iterable[Any] | None = None
+) -> pd.DataFrame | None:
     """
     Try to coerce various 'equity-like' objects into a DataFrame with Date/Equity columns.
     Returns None if not possible.
@@ -62,14 +64,16 @@ def _coerce_df_from_like(obj: Any, dates: Iterable[Any] | None = None) -> pd.Dat
         df = obj.copy()
         if "Date" not in df.columns:
             # If there's an index that looks like dates, move it out
-            if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(df.index) == len(df):
+            if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(
+                df.index
+            ) == len(df):
                 df = df.reset_index().rename(columns={"index": "Date"})
             else:
                 # best effort date
                 if "Date" not in df.columns:
-                    if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(df.index) == len(
-                        df
-                    ):
+                    if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(
+                        df.index
+                    ) == len(df):
                         df = df.reset_index().rename(columns={"index": "Date"})
                 # If first column isn't Date, but looks like dates, rename it
                 if "Date" not in df.columns and df.shape[1] >= 2:
@@ -144,7 +148,11 @@ def _extract_equity_df(res: Any) -> pd.DataFrame:
 def _jsonable(obj: Any) -> Any:
     def _json_fallback(o: Any) -> Any:
         if isinstance(o, pd.DataFrame):
-            return {"_type": "DataFrame", "shape": list(o.shape), "cols": list(o.columns)}
+            return {
+                "_type": "DataFrame",
+                "shape": list(o.shape),
+                "cols": list(o.columns),
+            }
         if isinstance(o, pd.Series):
             return {"_type": "Series", "name": o.name, "rows": int(len(o))}
         if isinstance(o, list | tuple):

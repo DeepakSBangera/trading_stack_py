@@ -16,12 +16,12 @@ def load_table(path: str) -> pd.DataFrame:
 
 
 def pick_source(reports_dir: str):
-    trades = latest(os.path.join(reports_dir, "portfolioV2_*_trades.parquet")) or latest(
-        os.path.join(reports_dir, "portfolioV2_*_trades.csv")
-    )
-    weights = latest(os.path.join(reports_dir, "portfolioV2_*_weights.parquet")) or latest(
-        os.path.join(reports_dir, "portfolioV2_*_weights.csv")
-    )
+    trades = latest(
+        os.path.join(reports_dir, "portfolioV2_*_trades.parquet")
+    ) or latest(os.path.join(reports_dir, "portfolioV2_*_trades.csv"))
+    weights = latest(
+        os.path.join(reports_dir, "portfolioV2_*_weights.parquet")
+    ) or latest(os.path.join(reports_dir, "portfolioV2_*_weights.csv"))
     return trades, weights
 
 
@@ -32,20 +32,32 @@ def monthly_from_trades(df: pd.DataFrame):
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date"]).sort_values("date")
     for c in df.columns:
-        if c.lower() in ("weight_delta", "notional_delta", "shares_delta", "turnover", "qty_delta"):
+        if c.lower() in (
+            "weight_delta",
+            "notional_delta",
+            "shares_delta",
+            "turnover",
+            "qty_delta",
+        ):
             df[c] = pd.to_numeric(df[c], errors="coerce")
     cand = next(
         (
             c
-            for c in ("notional_delta", "weight_delta", "shares_delta", "qty_delta", "turnover")
+            for c in (
+                "notional_delta",
+                "weight_delta",
+                "shares_delta",
+                "qty_delta",
+                "turnover",
+            )
             if c in df.columns
         ),
         None,
     )
     if cand is None and {"weight_before", "weight_after"}.issubset(df.columns):
-        df["weight_delta"] = pd.to_numeric(df["weight_after"], errors="coerce") - pd.to_numeric(
-            df["weight_before"], errors="coerce"
-        )
+        df["weight_delta"] = pd.to_numeric(
+            df["weight_after"], errors="coerce"
+        ) - pd.to_numeric(df["weight_before"], errors="coerce")
         cand = "weight_delta"
     if cand is None:
         return None
@@ -82,7 +94,8 @@ def monthly_from_weights(path: str):
         (
             c
             for c in w.columns
-            if c.lower() in ("weight", "w", "target_weight", "final_weight") and c != date_col
+            if c.lower() in ("weight", "w", "target_weight", "final_weight")
+            and c != date_col
         ),
         None,
     )
@@ -127,7 +140,9 @@ def main():
     if out is None:
         raise SystemExit("No usable trades/weights source found in reports/")
 
-    outpq = args.outparquet or os.path.join(args.reports, "wk3_turnover_profile.parquet")
+    outpq = args.outparquet or os.path.join(
+        args.reports, "wk3_turnover_profile.parquet"
+    )
     out.to_parquet(outpq, index=False, compression="snappy")
     print(f"✓ Wrote {outpq}")
     print(f"Source: {src}")

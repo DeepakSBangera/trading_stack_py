@@ -37,7 +37,13 @@ def test_w6_portfolio_compare_exists_and_schema() -> None:
     df = pd.read_csv(OUT)
     assert len(df) > 0, "portfolio compare output is empty"
 
-    required = {"symbol", "weight_ew", "weight_mv_shrink", "adv_cap_ok", "sector_cap_ok"}
+    required = {
+        "symbol",
+        "weight_ew",
+        "weight_mv_shrink",
+        "adv_cap_ok",
+        "sector_cap_ok",
+    }
     missing = required.difference(df.columns)
     assert not missing, f"missing required columns: {sorted(missing)}"
 

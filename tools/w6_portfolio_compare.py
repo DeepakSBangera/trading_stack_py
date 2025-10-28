@@ -100,7 +100,9 @@ def week_end_dates(ix: pd.DatetimeIndex) -> pd.DatetimeIndex:
     ix = ix.tz_convert("UTC")
     iso = ix.isocalendar()
     s = pd.Series(0, index=ix)
-    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(lambda x: x.index.max())
+    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(
+        lambda x: x.index.max()
+    )
     return pd.DatetimeIndex(we.to_list(), tz="UTC")
 
 
@@ -188,7 +190,10 @@ def ew_weights(n: int) -> np.ndarray:
 
 
 def apply_costs_and_nav(
-    weights_df: pd.DataFrame, rets: pd.DataFrame, rebal_dates: pd.DatetimeIndex, cost_bps: float
+    weights_df: pd.DataFrame,
+    rets: pd.DataFrame,
+    rebal_dates: pd.DatetimeIndex,
+    cost_bps: float,
 ) -> tuple[pd.Series, pd.Series, pd.Series]:
     w_shift = weights_df.shift(1).fillna(0.0)
     gross = (w_shift * rets).sum(axis=1)
@@ -221,7 +226,10 @@ def main():
     ap.add_argument("--prices-root", required=True)
     ap.add_argument("--start", required=True)
     ap.add_argument(
-        "--lookback", type=int, default=252, help="estimation window length in trading days"
+        "--lookback",
+        type=int,
+        default=252,
+        help="estimation window length in trading days",
     )
     ap.add_argument("--rebalance", choices=["ME", "WE", "QE"], default="ME")
     ap.add_argument("--cost-bps", type=float, default=10.0)

@@ -9,7 +9,13 @@ from typing import Final
 import numpy as np
 import pandas as pd
 
-PRICE_CANDS: Final[tuple[str, ...]] = ("adj close", "adj_close", "close", "price", "adjclose")
+PRICE_CANDS: Final[tuple[str, ...]] = (
+    "adj close",
+    "adj_close",
+    "close",
+    "price",
+    "adjclose",
+)
 DATE_CANDS: Final[tuple[str, ...]] = ("date", "timestamp", "dt")
 
 
@@ -104,7 +110,9 @@ def _load_sleeves(sleeve_glob: str) -> pd.DataFrame | None:
 
 
 # ---------- allocator ----------
-def _ridge_mv_weights(R: pd.DataFrame, lam: float = 10.0, clip01: bool = True) -> pd.Series:
+def _ridge_mv_weights(
+    R: pd.DataFrame, lam: float = 10.0, clip01: bool = True
+) -> pd.Series:
     """
     Mean-variance style weights: w ∝ (Σ + λI)^{-1} μ
     - R: T×N returns
@@ -163,18 +171,30 @@ def _avg_offdiag_corr(R: pd.DataFrame) -> float:
 
 # ---------- main ----------
 def main() -> None:
-    ap = argparse.ArgumentParser(description="W11 — Alpha blending with correlation penalty")
-    ap.add_argument(
-        "--out", default="reports/wk11_alpha_blend.csv", help="Output CSV (single-row summary)"
+    ap = argparse.ArgumentParser(
+        description="W11 — Alpha blending with correlation penalty"
     )
     ap.add_argument(
-        "--price-glob", default="data/csv/*.csv", help="Fallback: use symbols if no sleeves"
+        "--out",
+        default="reports/wk11_alpha_blend.csv",
+        help="Output CSV (single-row summary)",
     )
     ap.add_argument(
-        "--sleeve-glob", default="reports/sleeves/*.csv", help="Optional: sleeve return CSVs"
+        "--price-glob",
+        default="data/csv/*.csv",
+        help="Fallback: use symbols if no sleeves",
     )
-    ap.add_argument("--lambda", dest="lam", type=float, default=10.0, help="Ridge λ in (Σ + λI)")
-    ap.add_argument("--window", type=int, default=252, help="Lookback window (days) for metrics")
+    ap.add_argument(
+        "--sleeve-glob",
+        default="reports/sleeves/*.csv",
+        help="Optional: sleeve return CSVs",
+    )
+    ap.add_argument(
+        "--lambda", dest="lam", type=float, default=10.0, help="Ridge λ in (Σ + λI)"
+    )
+    ap.add_argument(
+        "--window", type=int, default=252, help="Lookback window (days) for metrics"
+    )
     args = ap.parse_args()
 
     # Prefer sleeves if available; else build from symbol returns
@@ -206,7 +226,11 @@ def main() -> None:
     out = pd.DataFrame(
         [
             {
-                "date": (Rw.index.max().date() if isinstance(Rw.index, pd.DatetimeIndex) else None),
+                "date": (
+                    Rw.index.max().date()
+                    if isinstance(Rw.index, pd.DatetimeIndex)
+                    else None
+                ),
                 "blend_ret": round(ann_ret / 252.0, 6),  # report daily expected return
                 "blend_vol": round(ann_vol / (252.0**0.5), 6),  # report daily vol
                 "blend_sharpe": round(sharpe, 3) if np.isfinite(sharpe) else np.nan,

@@ -14,7 +14,7 @@ rets = true_edge + 0.01 * np.random.standard_t(df=6, size=n)  # fat tails
 cv = WalkForwardCV(train_size=378, test_size=63, step_size=21, expanding=True)
 segments = 0
 sr_list = []
-for tr, te in cv.split(n):
+for _tr, te in cv.split(n):
     segments += 1
     r_te = rets[te]
     # simple SR on test segment

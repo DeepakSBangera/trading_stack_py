@@ -33,7 +33,9 @@ def _align_close_panel(
 ) -> pd.DataFrame:
     frames = []
     for t in tickers:
-        df = get_prices(t, start=start, end=end, source=source, force_refresh=force_refresh)
+        df = get_prices(
+            t, start=start, end=end, source=source, force_refresh=force_refresh
+        )
         c = df[["Date", "Close"]].copy()
         c["Date"] = pd.to_datetime(c["Date"])
         c = c.set_index("Date").rename(columns={"Close": t})

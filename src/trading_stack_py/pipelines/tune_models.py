@@ -20,7 +20,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-def load_segments(w6_dir: Path) -> list[tuple[int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+def load_segments(
+    w6_dir: Path,
+) -> list[tuple[int, np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
     """Read W6 segments: expects segments.csv, and segment_XX/{X_train,y_train,X_test,y_test}.npy."""
     segs = pd.read_csv(w6_dir / "segments.csv")
     records = []
@@ -112,7 +114,11 @@ def tune_classification_per_segment(
             model.fit(Xtr, ytr_bin)
             proba = model.predict_proba(Xte)[:, 1]
             pred_cls = (proba > 0.5).astype(int)
-            auc = roc_auc_score(yte_bin, proba) if len(np.unique(yte_bin)) > 1 else float("nan")
+            auc = (
+                roc_auc_score(yte_bin, proba)
+                if len(np.unique(yte_bin)) > 1
+                else float("nan")
+            )
             acc = accuracy_score(yte_bin, pred_cls)
             prec = precision_score(yte_bin, pred_cls, zero_division=0)
             rec = recall_score(yte_bin, pred_cls, zero_division=0)
@@ -129,15 +135,23 @@ def tune_classification_per_segment(
             }
             if (
                 best is None
-                or (np.nan_to_num(recd["auc"], nan=-1) > np.nan_to_num(best["auc"], nan=-1) + 1e-15)
-                or (np.isclose(recd["auc"], best["auc"]) and recd["acc"] > best["acc"] + 1e-15)
+                or (
+                    np.nan_to_num(recd["auc"], nan=-1)
+                    > np.nan_to_num(best["auc"], nan=-1) + 1e-15
+                )
+                or (
+                    np.isclose(recd["auc"], best["auc"])
+                    and recd["acc"] > best["acc"] + 1e-15
+                )
             ):
                 best = recd
         rows.append(best)
     return pd.DataFrame(rows).sort_values("segment").reset_index(drop=True)
 
 
-def _write_summary_reg(df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str) -> None:
+def _write_summary_reg(
+    df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str
+) -> None:
     out_root.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_root / "best_params.csv", index=False)
     lines = [
@@ -160,7 +174,9 @@ def _write_summary_reg(df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str)
     (out_root / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def _write_summary_cls(df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str) -> None:
+def _write_summary_cls(
+    df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str
+) -> None:
     out_root.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_root / "best_params.csv", index=False)
     lines = [
@@ -186,7 +202,10 @@ def _write_summary_cls(df: pd.DataFrame, out_root: Path, w6_dir: Path, tag: str)
 
 
 def run_tuning(
-    w6_dir: Path, task: str = "regression", tag: str = "W8", outdir: Path = Path("reports/W8")
+    w6_dir: Path,
+    task: str = "regression",
+    tag: str = "W8",
+    outdir: Path = Path("reports/W8"),
 ) -> Path:
     """Convenience callable for tests/scripts. Returns the created run folder."""
     records = load_segments(w6_dir)
@@ -209,11 +228,17 @@ def main() -> None:
         description="W8: per-segment hyperparameter tuning (Ridge/Logistic)."
     )
     ap.add_argument("--w6-dir", required=True, help="Path to W6 output folder")
-    ap.add_argument("--task", choices=["regression", "classification"], default="regression")
+    ap.add_argument(
+        "--task", choices=["regression", "classification"], default="regression"
+    )
     ap.add_argument("--tag", default="W8")
     ap.add_argument("--outdir", default="reports/W8")
-    ap.add_argument("--alphas", default="0.1,0.3,1.0,3.0", help="Comma-separated alphas for Ridge")
-    ap.add_argument("--Cs", default="0.3,1.0,3.0", help="Comma-separated Cs for Logistic")
+    ap.add_argument(
+        "--alphas", default="0.1,0.3,1.0,3.0", help="Comma-separated alphas for Ridge"
+    )
+    ap.add_argument(
+        "--Cs", default="0.3,1.0,3.0", help="Comma-separated Cs for Logistic"
+    )
     args = ap.parse_args()
 
     w6 = Path(args.w6_dir)

@@ -145,12 +145,18 @@ def write_parquet(
 
 
 def write_decision(
-    note_path: pathlib.Path, dsr: float, min_dsr: float, pbo: float | None, max_pbo: float
+    note_path: pathlib.Path,
+    dsr: float,
+    min_dsr: float,
+    pbo: float | None,
+    max_pbo: float,
 ):
     pbo_txt = "NA" if (pbo is None or np.isnan(pbo)) else f"{pbo:.4f}"
     lines = []
     lines.append(f"DSR={dsr:.4f} (min {min_dsr})")
-    lines.append(f"PBO={pbo_txt}" + ("" if pbo is None or np.isnan(pbo) else f" (max {max_pbo})"))
+    lines.append(
+        f"PBO={pbo_txt}" + ("" if pbo is None or np.isnan(pbo) else f" (max {max_pbo})")
+    )
     ok_dsr = dsr >= min_dsr
     ok_pbo = True if (pbo is None or np.isnan(pbo)) else (pbo <= max_pbo)
     decision = "PROMOTE" if (ok_dsr and ok_pbo) else "REJECT"
@@ -159,19 +165,33 @@ def write_decision(
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Compute DSR/PBO from best available equity parquet.")
-    ap.add_argument(
-        "--out", default="reports/wk5_walkforward_dsr.parquet", help="Output parquet path"
+    ap = argparse.ArgumentParser(
+        description="Compute DSR/PBO from best available equity parquet."
     )
     ap.add_argument(
-        "--note", default="reports/promotion_decision.txt", help="Decision note path (ASCII/UTF-8)"
+        "--out",
+        default="reports/wk5_walkforward_dsr.parquet",
+        help="Output parquet path",
     )
     ap.add_argument(
-        "--n-trials", type=int, default=10, help="Number of trials for selection bias context"
+        "--note",
+        default="reports/promotion_decision.txt",
+        help="Decision note path (ASCII/UTF-8)",
     )
-    ap.add_argument("--min-dsr", type=float, default=0.00, help="Minimum DSR threshold to promote")
     ap.add_argument(
-        "--max-pbo", type=float, default=0.20, help="Maximum PBO to promote (ignored if NA)"
+        "--n-trials",
+        type=int,
+        default=10,
+        help="Number of trials for selection bias context",
+    )
+    ap.add_argument(
+        "--min-dsr", type=float, default=0.00, help="Minimum DSR threshold to promote"
+    )
+    ap.add_argument(
+        "--max-pbo",
+        type=float,
+        default=0.20,
+        help="Maximum PBO to promote (ignored if NA)",
     )
     ap.add_argument(
         "candidates",

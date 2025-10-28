@@ -37,7 +37,9 @@ def load_price_series(path: Path) -> pd.Series:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Audit overlap between prices and exogenous CSV.")
+    ap = argparse.ArgumentParser(
+        description="Audit overlap between prices and exogenous CSV."
+    )
     ap.add_argument("--data-glob", default="data/csv/*.csv")
     ap.add_argument("--exog-csv", required=True)
     ap.add_argument("--out", default="reports/w10_exog_overlap_audit.csv")

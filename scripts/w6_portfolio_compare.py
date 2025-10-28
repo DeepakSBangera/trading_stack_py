@@ -123,11 +123,18 @@ def compute_allocations(rets: pd.DataFrame, shrink_alpha: float = 0.2) -> pd.Dat
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="W6: Portfolio compare (EW vs shrinkage MV)")
+    ap = argparse.ArgumentParser(
+        description="W6: Portfolio compare (EW vs shrinkage MV)"
+    )
     ap.add_argument("--data-glob", default="data/csv/*.csv", help="Input CSV glob")
-    ap.add_argument("--out", default="reports/wk6_portfolio_compare.csv", help="Output CSV path")
     ap.add_argument(
-        "--shrink-alpha", type=float, default=0.2, help="Diagonal shrinkage intensity [0,1]"
+        "--out", default="reports/wk6_portfolio_compare.csv", help="Output CSV path"
+    )
+    ap.add_argument(
+        "--shrink-alpha",
+        type=float,
+        default=0.2,
+        help="Diagonal shrinkage intensity [0,1]",
     )
     args = ap.parse_args()
 

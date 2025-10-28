@@ -89,7 +89,9 @@ def main():
         p.to_parquet(pf, compression="snappy", index=False)
         f.to_parquet(ff, compression="snappy", index=False)
 
-    print(f"✓ Wrote {len(tickers)} price files to {prices_dir} and fundamentals to {funda_dir}")
+    print(
+        f"✓ Wrote {len(tickers)} price files to {prices_dir} and fundamentals to {funda_dir}"
+    )
 
 
 if __name__ == "__main__":

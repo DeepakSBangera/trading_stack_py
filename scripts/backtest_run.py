@@ -32,7 +32,10 @@ for sym in symbols:
         prices = data_io.fetch_ohlcv(sym, start=start)
     if prices.empty:
         print(f"[WARN] No data for {sym}")
-        results[sym] = {"daily": pd.DataFrame(), "summary": {"ok": False, "reason": "no_data"}}
+        results[sym] = {
+            "daily": pd.DataFrame(),
+            "summary": {"ok": False, "reason": "no_data"},
+        }
         continue
 
     # signals across full history
@@ -56,7 +59,9 @@ print(f"Wrote {summ_path}")
 if daily_eq:
     df_all = pd.concat(daily_eq, ignore_index=True).set_index("date")
     # pivot to wide returns, average across symbols daily (equal-weight)
-    wide = df_all.pivot_table(index=df_all.index, columns="symbol", values="net").sort_index()
+    wide = df_all.pivot_table(
+        index=df_all.index, columns="symbol", values="net"
+    ).sort_index()
     wide = wide.fillna(0.0)
     port_ret = wide.mean(axis=1)
     port_eq = (1 + port_ret).cumprod()

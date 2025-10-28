@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from __future__ import annotations
 
 import pathlib
@@ -45,7 +46,11 @@ def metrics_from_equity(eq: pd.DataFrame, ann_factor: float = 252.0) -> dict:
     max_dd = float(dd.min())
 
     return dict(
-        days=days, cagr=float(cagr), sharpe=float(sr), max_dd=max_dd, total_ret=float(total_ret)
+        days=days,
+        cagr=float(cagr),
+        sharpe=float(sr),
+        max_dd=max_dd,
+        total_ret=float(total_ret),
     )
 
 

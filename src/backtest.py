@@ -12,7 +12,9 @@ def _trailing_stop(close: pd.Series, atr: pd.Series, mult: float) -> pd.Series:
     return base.cummax()
 
 
-def backtest_symbol(prices: pd.DataFrame, sig: pd.DataFrame, cfg: dict, bt: dict) -> dict:
+def backtest_symbol(
+    prices: pd.DataFrame, sig: pd.DataFrame, cfg: dict, bt: dict
+) -> dict:
     """
     prices: [open, high, low, close, volume] indexed by date
     sig:    features + columns [buy, score, sma_f, sma_s, atr, rsi, atr_pct]
@@ -94,7 +96,9 @@ def summarize_universe(results: dict, gates: dict, ppyr: int) -> pd.DataFrame:
     df["pass_mdd"] = df["mdd"] >= float(gates.get("max_mdd", -0.25))
     df["pass_sharpe"] = df["sharpe"] >= float(gates.get("min_sharpe", 1.0))
     df["pass_pf"] = df["profit_factor"] >= float(gates.get("min_profit_factor", 1.3))
-    df["pass_all"] = df[["pass_years", "pass_cagr", "pass_mdd", "pass_sharpe", "pass_pf"]].all(
-        axis=1
+    df["pass_all"] = df[
+        ["pass_years", "pass_cagr", "pass_mdd", "pass_sharpe", "pass_pf"]
+    ].all(axis=1)
+    return df.sort_values(
+        by=["pass_all", "net_cagr", "sharpe"], ascending=[False, False, False]
     )
-    return df.sort_values(by=["pass_all", "net_cagr", "sharpe"], ascending=[False, False, False])

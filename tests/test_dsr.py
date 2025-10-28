@@ -1,6 +1,9 @@
 import numpy as np
 
-from trading_stack_py.metrics.dsr import deflated_sharpe_ratio, probabilistic_sharpe_ratio
+from trading_stack_py.metrics.dsr import (
+    deflated_sharpe_ratio,
+    probabilistic_sharpe_ratio,
+)
 
 
 def test_psr_monotonicity():

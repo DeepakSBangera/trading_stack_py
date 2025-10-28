@@ -35,7 +35,9 @@ def load_policy(path: Path) -> dict[str, Any]:
 
 
 def latest_backtest_dir(base: Path) -> Path:
-    runs = sorted([d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime)
+    runs = sorted(
+        [d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime
+    )
     if not runs:
         raise SystemExit("No backtest runs found. Run: python -m scripts.w2_backtest")
     return runs[-1]
@@ -67,7 +69,9 @@ def _load_turnover_csv(tfile: Path) -> pd.DataFrame:
                 except Exception:
                     pass
     if date_col is None:
-        raise SystemExit(f"Could not find a date column in {tfile}. Headers were: {orig_cols}")
+        raise SystemExit(
+            f"Could not find a date column in {tfile}. Headers were: {orig_cols}"
+        )
     df["rebalance_date"] = pd.to_datetime(df[date_col], errors="coerce")
 
     # --- locate/normalize turnover ---
@@ -94,7 +98,9 @@ def _load_turnover_csv(tfile: Path) -> pd.DataFrame:
         df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0).astype(int)
 
     out = df[["rebalance_date", "turnover_bps", "adds", "drops"]].copy()
-    out = out.dropna(subset=["rebalance_date", "turnover_bps"]).sort_values("rebalance_date")
+    out = out.dropna(subset=["rebalance_date", "turnover_bps"]).sort_values(
+        "rebalance_date"
+    )
     return out
 
 
@@ -106,7 +112,9 @@ def main() -> None:
     latest = latest_backtest_dir(BT_BASE)
     tfile = latest / "turnover_by_rebalance.csv"
     if not tfile.exists():
-        raise SystemExit(f"{tfile} not found. Run: python -m scripts.w3_turnover first.")
+        raise SystemExit(
+            f"{tfile} not found. Run: python -m scripts.w3_turnover first."
+        )
 
     df = _load_turnover_csv(tfile)
 
@@ -155,7 +163,9 @@ def main() -> None:
                 }
             )
     if warn_cap is not None:
-        m = (df["turnover_bps"] > warn_cap) & (~(df["turnover_bps"] > (hard_cap or 9e9)))
+        m = (df["turnover_bps"] > warn_cap) & (
+            ~(df["turnover_bps"] > (hard_cap or 9e9))
+        )
         for _, row in df.loc[m].iterrows():
             conds.append(
                 {
@@ -205,8 +215,12 @@ def main() -> None:
     print("Turnover guard summary")
     print("----------------------")
     print(f"Latest run: {latest.name}")
-    print(f"Avg turnover (bps): {avg_turnover:.1f}  | target ≤ {pol['avg_turnover_bps'] or 'N/A'}")
-    print(f"P95 turnover (bps): {p95_turnover:.1f} | target ≤ {pol['p95_turnover_bps'] or 'N/A'}")
+    print(
+        f"Avg turnover (bps): {avg_turnover:.1f}  | target ≤ {pol['avg_turnover_bps'] or 'N/A'}"
+    )
+    print(
+        f"P95 turnover (bps): {p95_turnover:.1f} | target ≤ {pol['p95_turnover_bps'] or 'N/A'}"
+    )
     print(f"Violations: {len(conds)}  → {OUT}")
 
 

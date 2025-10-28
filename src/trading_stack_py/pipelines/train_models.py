@@ -57,7 +57,9 @@ def train_regression_per_segment(records, w6_dir: Path | None = None):
             except Exception:
                 pass
 
-        rows.append({"segment": seg, "mse": mse, "r2": r2, "pnl_proxy": pnl, "n_test": len(yte)})
+        rows.append(
+            {"segment": seg, "mse": mse, "r2": r2, "pnl_proxy": pnl, "n_test": len(yte)}
+        )
     return pd.DataFrame(rows)
 
 
@@ -88,7 +90,11 @@ def train_classification_per_segment(records):
         model.fit(Xtr, ytr_bin)
         proba = model.predict_proba(Xte)[:, 1]
         pred_cls = (proba > 0.5).astype(int)
-        auc = roc_auc_score(yte_bin, proba) if len(np.unique(yte_bin)) > 1 else float("nan")
+        auc = (
+            roc_auc_score(yte_bin, proba)
+            if len(np.unique(yte_bin)) > 1
+            else float("nan")
+        )
         acc = accuracy_score(yte_bin, pred_cls)
         prec = precision_score(yte_bin, pred_cls, zero_division=0)
         rec = recall_score(yte_bin, pred_cls, zero_division=0)
@@ -112,7 +118,9 @@ def main():
         description="W7: Train models per walk-forward segment and write metrics."
     )
     ap.add_argument("--w6-dir", required=True, help="Path to W6 output folder")
-    ap.add_argument("--task", choices=["regression", "classification"], default="regression")
+    ap.add_argument(
+        "--task", choices=["regression", "classification"], default="regression"
+    )
     ap.add_argument("--tag", default="W7")
     ap.add_argument("--outdir", default="reports/W7")
     args = ap.parse_args()

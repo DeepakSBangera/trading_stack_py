@@ -8,7 +8,10 @@ import numpy as np
 import pandas as pd
 
 from trading_stack_py.cv.walkforward import WalkForwardCV
-from trading_stack_py.metrics.dsr import deflated_sharpe_ratio, probabilistic_sharpe_ratio
+from trading_stack_py.metrics.dsr import (
+    deflated_sharpe_ratio,
+    probabilistic_sharpe_ratio,
+)
 from trading_stack_py.metrics.mtl import minimum_track_record_length
 from trading_stack_py.utils.returns import to_excess_returns
 
@@ -30,7 +33,9 @@ def _infer_returns(df: pd.DataFrame, price_col: str | None) -> tuple[np.ndarray,
             p = pd.to_numeric(df[cand], errors="coerce").ffill()
             r = p.pct_change().to_numpy()
             return r, f"{cand}_pct_change"
-    raise ValueError("Could not infer returns. Provide a 'returns' column or a valid --price-col.")
+    raise ValueError(
+        "Could not infer returns. Provide a 'returns' column or a valid --price-col."
+    )
 
 
 def _segment_sr(x: np.ndarray) -> float:
@@ -43,14 +48,21 @@ def _segment_sr(x: np.ndarray) -> float:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Walk-forward CV report with Embargo + DSR + MTL")
+    ap = argparse.ArgumentParser(
+        description="Walk-forward CV report with Embargo + DSR + MTL"
+    )
     ap.add_argument("--csv", required=True, help="Input CSV with 'returns' or prices.")
     ap.add_argument("--date-col", default=None, help="Name of date column (optional).")
     ap.add_argument(
-        "--price-col", default=None, help="If no returns column, compute from this price column."
+        "--price-col",
+        default=None,
+        help="If no returns column, compute from this price column.",
     )
     ap.add_argument(
-        "--rf", type=float, default=0.0, help="Annual risk-free rate (e.g., 0.05 for 5%)."
+        "--rf",
+        type=float,
+        default=0.0,
+        help="Annual risk-free rate (e.g., 0.05 for 5%).",
     )
     ap.add_argument(
         "--freq",
@@ -60,9 +72,13 @@ def main():
     )
     ap.add_argument("--train", type=int, default=378, help="Train size (observations).")
     ap.add_argument("--test", type=int, default=63, help="Test size (observations).")
-    ap.add_argument("--step", type=int, default=None, help="Step size (default: == test).")
     ap.add_argument(
-        "--expanding", action="store_true", help="Use expanding window (default: rolling)."
+        "--step", type=int, default=None, help="Step size (default: == test)."
+    )
+    ap.add_argument(
+        "--expanding",
+        action="store_true",
+        help="Use expanding window (default: rolling).",
     )
     ap.add_argument(
         "--min-train",
@@ -71,12 +87,20 @@ def main():
         help="Minimum allowed training size (default: == train).",
     )
     ap.add_argument(
-        "--embargo", type=int, default=5, help="Embargo between train end and test start."
+        "--embargo",
+        type=int,
+        default=5,
+        help="Embargo between train end and test start.",
     )
     ap.add_argument(
-        "--pstar", type=float, default=0.95, help="Confidence level for MTL (e.g., 0.95)."
+        "--pstar",
+        type=float,
+        default=0.95,
+        help="Confidence level for MTL (e.g., 0.95).",
     )
-    ap.add_argument("--tag", default="default", help="Run tag to name the report folder.")
+    ap.add_argument(
+        "--tag", default="default", help="Run tag to name the report folder."
+    )
     ap.add_argument("--outdir", default="reports/W5", help="Root output dir.")
     args = ap.parse_args()
 
@@ -148,7 +172,9 @@ def main():
     md_path = os.path.join(outdir, "README.md")
     with open(md_path, "w", encoding="utf-8") as f:
         f.write("# W5 Walk-Forward Report\n\n")
-        f.write(f"- Data source: **{os.path.basename(args.csv)}** (returns source: **{source}**)\n")
+        f.write(
+            f"- Data source: **{os.path.basename(args.csv)}** (returns source: **{source}**)\n"
+        )
         f.write(f"- Observations used: **{n}**\n")
         f.write(
             f"- Train/Test/Step/Expanding/Embargo: **{args.train} / {args.test} / {args.step or args.test} / {args.expanding} / {args.embargo}**\n"

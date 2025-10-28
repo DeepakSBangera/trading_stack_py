@@ -26,7 +26,11 @@ def infer_equity(df: pd.DataFrame) -> pd.Series:
             s = pd.to_numeric(df[c], errors="coerce")
             if s.notna().sum() > 3:
                 # looks like returns? convert to equity
-                if s.max() <= 2.0 and s.min() > -0.95 and (s.head(10).abs().max() < 0.6):
+                if (
+                    s.max() <= 2.0
+                    and s.min() > -0.95
+                    and (s.head(10).abs().max() < 0.6)
+                ):
                     return (1.0 + s.fillna(0)).cumprod()
                 return s
 
@@ -37,7 +41,11 @@ def infer_equity(df: pd.DataFrame) -> pd.Series:
             return (1.0 + s).cumprod()
 
     # fallback: normalize a price-like column
-    price_like = [c for c in df.columns if c.lower() in ("close", "adjclose", "adj_close", "price")]
+    price_like = [
+        c
+        for c in df.columns
+        if c.lower() in ("close", "adjclose", "adj_close", "price")
+    ]
     if not price_like:
         numerics = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
         price_like = numerics[:1] if numerics else []

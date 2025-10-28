@@ -8,11 +8,13 @@ import yfinance as yf
 
 
 def fetch_ohlcv(symbol: str, start: str) -> pd.DataFrame:
-    df = yf.download(symbol, start=start, progress=False, auto_adjust=False, threads=False)
+    df = yf.download(
+        symbol, start=start, progress=False, auto_adjust=False, threads=False
+    )
     if df.empty:
-        return pd.DataFrame(columns=["date", "open", "high", "low", "close", "volume"]).set_index(
-            pd.DatetimeIndex([])
-        )
+        return pd.DataFrame(
+            columns=["date", "open", "high", "low", "close", "volume"]
+        ).set_index(pd.DatetimeIndex([]))
     df = df.rename(columns=str.lower)[["open", "high", "low", "close", "volume"]]
     df.index.name = "date"
     return df

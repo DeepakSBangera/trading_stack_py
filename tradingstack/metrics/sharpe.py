@@ -34,7 +34,9 @@ def sharpe_annual(
     r = _to_series(rets).astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
     # convert annual RF to daily, subtract
     rf_daily = (
-        (1.0 + float(risk_free_annual)) ** (1.0 / ann_factor) - 1.0 if risk_free_annual else 0.0
+        (1.0 + float(risk_free_annual)) ** (1.0 / ann_factor) - 1.0
+        if risk_free_annual
+        else 0.0
     )
     r = r - rf_daily
     mu = r.mean()

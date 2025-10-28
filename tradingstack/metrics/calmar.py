@@ -6,7 +6,9 @@ from .drawdown import max_drawdown
 
 
 def _as_clean_nav(nav: pd.Series) -> pd.Series:
-    s = pd.to_numeric(pd.Series(nav), errors="coerce").replace([np.inf, -np.inf], np.nan)
+    s = pd.to_numeric(pd.Series(nav), errors="coerce").replace(
+        [np.inf, -np.inf], np.nan
+    )
     s = s.ffill().fillna(1.0)
     return s
 

@@ -4,7 +4,9 @@ import pandas as pd
 
 base = Path("reports/backtests")
 runs = sorted(
-    [d for d in base.iterdir() if d.is_dir()], key=lambda d: d.stat().st_mtime, reverse=True
+    [d for d in base.iterdir() if d.is_dir()],
+    key=lambda d: d.stat().st_mtime,
+    reverse=True,
 )
 if not runs:
     raise SystemExit("No backtest runs found in reports/backtests")
@@ -24,7 +26,9 @@ else:
     folder = runs[0]
     px_path = folder / "px.csv"
     if not px_path.exists():
-        raise SystemExit(f"No monthly_weights.csv in any run, and {px_path} not found to rebuild.")
+        raise SystemExit(
+            f"No monthly_weights.csv in any run, and {px_path} not found to rebuild."
+        )
 
     px = pd.read_csv(px_path, index_col=0, parse_dates=True)
     # Month-end prices

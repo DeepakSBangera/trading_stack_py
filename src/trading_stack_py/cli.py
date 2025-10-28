@@ -54,7 +54,7 @@ def _cfg_use_crossover(cfg) -> bool:
     # flat structure
     if hasattr(cfg, "use_crossover"):
         try:
-            return bool(getattr(cfg, "use_crossover"))
+            return bool(cfg.use_crossover)
         except Exception:
             pass
     # safest default

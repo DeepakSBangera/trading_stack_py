@@ -40,7 +40,9 @@ def main() -> None:
     slow = int(ma_cfg.get("slow", 100))
 
     sig_cfg = getattr(cfg, "signals", {}) or {}
-    use_crossover_effective = bool(sig_cfg.get("use_crossover", False)) or args.use_crossover
+    use_crossover_effective = (
+        bool(sig_cfg.get("use_crossover", False)) or args.use_crossover
+    )
 
     df = get_prices(
         args.ticker,
@@ -50,7 +52,9 @@ def main() -> None:
         force_refresh=args.force_refresh,
     )
 
-    sig = basic_long_signal(df, use_crossover=use_crossover_effective, fast=fast, slow=slow)
+    sig = basic_long_signal(
+        df, use_crossover=use_crossover_effective, fast=fast, slow=slow
+    )
 
     bt = run_long_only(sig, entry_col="ENTRY", exit_col="EXIT", cost_bps=args.cost_bps)
 

@@ -11,7 +11,7 @@ WANT = ["CAGR", "Sharpe", "MaxDD", "VolAnn"]  # extend if you add more
 def fmt_pct(x):
     try:
         return f"{100*x:.2f}%"
-    except:
+    except Exception:
         return str(x)
 
 
@@ -28,8 +28,12 @@ def main():
     ap.add_argument("--decision-out", default=r"reports\promotion_decision.txt")
     # simple gates
     ap.add_argument("--min-calmar", type=float, default=0.60)
-    ap.add_argument("--max-dd", type=float, default=-0.40)  # e.g. -40% floor (higher is better)
-    ap.add_argument("--prefer", default="CAGR,Sharpe")  # metrics to require improvement on
+    ap.add_argument(
+        "--max-dd", type=float, default=-0.40
+    )  # e.g. -40% floor (higher is better)
+    ap.add_argument(
+        "--prefer", default="CAGR,Sharpe"
+    )  # metrics to require improvement on
     args = ap.parse_args()
 
     p = pathlib.Path(args.compare)

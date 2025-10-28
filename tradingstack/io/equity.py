@@ -28,7 +28,9 @@ def _ensure_utc(s: pd.Series) -> pd.Series:
 
 
 def _nav_from_returns(rets: pd.Series, start_nav: float = 1.0) -> pd.Series:
-    rets = pd.to_numeric(rets, errors="coerce").fillna(0.0).replace([np.inf, -np.inf], 0.0)
+    rets = (
+        pd.to_numeric(rets, errors="coerce").fillna(0.0).replace([np.inf, -np.inf], 0.0)
+    )
     nav = (1.0 + rets).cumprod() * float(start_nav)
     # Safety for flat series
     nav = nav.replace([np.inf, -np.inf], np.nan).ffill().fillna(start_nav)
@@ -120,6 +122,8 @@ def load_equity(path: str | pathlib.Path) -> pd.DataFrame:
     )
     # drop duplicate dates; keep last
     out = (
-        out.sort_values("date").drop_duplicates(subset=["date"], keep="last").reset_index(drop=True)
+        out.sort_values("date")
+        .drop_duplicates(subset=["date"], keep="last")
+        .reset_index(drop=True)
     )
     return out

@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from __future__ import annotations
 
 import pathlib
@@ -46,7 +47,11 @@ def metrics_from_equity(eq: pd.DataFrame, ann_factor: float = 252.0) -> dict:
     max_dd = float(dd.min())
 
     return dict(
-        days=days, cagr=float(cagr), sharpe=float(sr), max_dd=max_dd, total_ret=float(total_ret)
+        days=days,
+        cagr=float(cagr),
+        sharpe=float(sr),
+        max_dd=max_dd,
+        total_ret=float(total_ret),
     )
 
 
@@ -60,12 +65,19 @@ def compare(a_path: str, b_path: str) -> pd.DataFrame:
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Compare two equity Parquets and write compare_runs.*")
+    ap = argparse.ArgumentParser(
+        description="Compare two equity Parquets and write compare_runs.*"
+    )
     ap.add_argument("--a", required=True, help="older portfolio_v2 parquet")
     ap.add_argument("--b", required=True, help="newer portfolio_v2 parquet")
-    ap.add_argument("--out", default="./reports", help="output directory (default: ./reports)")
     ap.add_argument(
-        "--ann-factor", type=float, default=252.0, help="trading days per year (default 252)"
+        "--out", default="./reports", help="output directory (default: ./reports)"
+    )
+    ap.add_argument(
+        "--ann-factor",
+        type=float,
+        default=252.0,
+        help="trading days per year (default 252)",
     )
     args = ap.parse_args()
 

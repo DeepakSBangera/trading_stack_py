@@ -22,7 +22,14 @@ def make_series(seed, n=N_DAYS, start_price=250.0):
     open_ = np.r_[close[0], close[:-1]]  # prev close as open
     vol = rng.integers(150_000, 450_000, size=n)
     df = pd.DataFrame(
-        {"date": dates, "open": open_, "high": high, "low": low, "close": close, "volume": vol}
+        {
+            "date": dates,
+            "open": open_,
+            "high": high,
+            "low": low,
+            "close": close,
+            "volume": vol,
+        }
     )
     return df
 

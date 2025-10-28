@@ -7,10 +7,15 @@ import yfinance as yf
 
 def try_download(ticker, start, end, attempts=6, sleep_s=10):
     last_err = None
-    for k in range(1, attempts + 1):
+    for _k in range(1, attempts + 1):
         try:
             df = yf.download(
-                ticker, start=start, end=end, progress=False, threads=False, interval="1d"
+                ticker,
+                start=start,
+                end=end,
+                progress=False,
+                threads=False,
+                interval="1d",
             )
             if not df.empty:
                 return df
@@ -32,9 +37,13 @@ def main():
     ap.add_argument("--sleep", type=int, default=10)
     args = ap.parse_args()
 
-    df = try_download(args.ticker, args.start, args.end, attempts=args.attempts, sleep_s=args.sleep)
+    df = try_download(
+        args.ticker, args.start, args.end, attempts=args.attempts, sleep_s=args.sleep
+    )
     if df.empty:
-        raise SystemExit(f"No data for {args.ticker}. Possibly rate-limited; try later.")
+        raise SystemExit(
+            f"No data for {args.ticker}. Possibly rate-limited; try later."
+        )
     df = df[["Close"]].reset_index()
     df.columns = ["date", "close"]
     df.to_csv(args.out, index=False)

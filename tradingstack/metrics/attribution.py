@@ -109,7 +109,9 @@ def _load_one_price_series(prq: pathlib.Path) -> pd.Series:
     else:
         # Try to compute from close-like columns
         close_candidates = [
-            c for c in df.columns if c.lower() in ("close", "adj_close", "adjclose", "price")
+            c
+            for c in df.columns
+            if c.lower() in ("close", "adj_close", "adjclose", "price")
         ]
         if close_candidates:
             px = (
@@ -129,7 +131,9 @@ def _load_one_price_series(prq: pathlib.Path) -> pd.Series:
     return s
 
 
-def build_returns_from_prices(root: pathlib.Path, tickers: Iterable[str]) -> pd.DataFrame:
+def build_returns_from_prices(
+    root: pathlib.Path, tickers: Iterable[str]
+) -> pd.DataFrame:
     """
     Given a directory with parquet files per ticker, return a wide
     DataFrame of daily returns indexed by date (tz-naive), columns=tickers.
@@ -204,7 +208,9 @@ def align_weights_and_returns(
 # ---------- Contribution / Grouping ----------
 
 
-def contribution_by_ticker(W: pd.DataFrame, R: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+def contribution_by_ticker(
+    W: pd.DataFrame, R: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.Series]:
     """
     Per-ticker contributions = W.shift(1) * R
     Portfolio return = row-wise sum of contributions.
@@ -223,7 +229,9 @@ def contribution_by_ticker(W: pd.DataFrame, R: pd.DataFrame) -> tuple[pd.DataFra
 
 
 def group_contribution(
-    contrib_by_ticker: pd.DataFrame, mapping_csv: pathlib.Path, group_col: str = "sector"
+    contrib_by_ticker: pd.DataFrame,
+    mapping_csv: pathlib.Path,
+    group_col: str = "sector",
 ) -> pd.DataFrame:
     """
     Sum contributions by a group mapping CSV with columns: ticker,<group_col>.

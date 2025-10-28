@@ -13,9 +13,13 @@ OUT = ROOT / "reports" / "wk4_atr_stops.csv"
 
 
 def latest_backtest_dir(base: Path) -> Path:
-    runs = sorted([d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime)
+    runs = sorted(
+        [d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime
+    )
     if not runs:
-        raise SystemExit("No backtest runs found. Run: python -m scripts.w2_backtest first.")
+        raise SystemExit(
+            "No backtest runs found. Run: python -m scripts.w2_backtest first."
+        )
     return runs[-1]
 
 
@@ -55,7 +59,9 @@ def main() -> None:
         raise SystemExit("No non-zero weights in the latest run's last_weights.csv.")
 
     # Compute ATR proxy per asset (on price)
-    atr_df = pd.DataFrame({c: atr_proxy(px[c], window=w) for c in last_w.index}).dropna(how="all")
+    atr_df = pd.DataFrame({c: atr_proxy(px[c], window=w) for c in last_w.index}).dropna(
+        how="all"
+    )
 
     # Build stop table for currently held names
     rows = []
@@ -66,18 +72,24 @@ def main() -> None:
         atr = atr_df[c].reindex(s.index).fillna(method="ffill")
 
         price = float(s.iloc[-1])
-        atr_now = float(atr.iloc[-1]) if not math.isnan(float(atr.iloc[-1])) else float("nan")
+        atr_now = (
+            float(atr.iloc[-1]) if not math.isnan(float(atr.iloc[-1])) else float("nan")
+        )
 
         if trailing:
             # trailing stop from rolling max close
             roll_max = s.cummax()
             # ‘distance’ from recent high; suggested stop is rolling max - k*ATR
             stop_level = (
-                float(roll_max.iloc[-1] - k * atr_now) if atr_now == atr_now else float("nan")
+                float(roll_max.iloc[-1] - k * atr_now)
+                if atr_now == atr_now
+                else float("nan")
             )
         else:
             # fixed stop from current price
-            stop_level = float(price - k * atr_now) if atr_now == atr_now else float("nan")
+            stop_level = (
+                float(price - k * atr_now) if atr_now == atr_now else float("nan")
+            )
 
         rows.append(
             {

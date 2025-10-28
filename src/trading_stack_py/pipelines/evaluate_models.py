@@ -36,7 +36,9 @@ def _join_w6_w7(w6_dir: Path, w7_dir: Path) -> pd.DataFrame:
     )
 
 
-def _write_report(out_root: Path, merged: pd.DataFrame, w6_dir: Path, w7_dir: Path) -> None:
+def _write_report(
+    out_root: Path, merged: pd.DataFrame, w6_dir: Path, w7_dir: Path
+) -> None:
     out_root.mkdir(parents=True, exist_ok=True)
     merged.to_csv(out_root / "joined.csv", index=False)
 
@@ -47,7 +49,9 @@ def _write_report(out_root: Path, merged: pd.DataFrame, w6_dir: Path, w7_dir: Pa
     lines.append("")
 
     preview_cols = [
-        c for c in merged.columns if c in ("segment", "mse", "r2", "auc", "acc", "pnl_proxy")
+        c
+        for c in merged.columns
+        if c in ("segment", "mse", "r2", "auc", "acc", "pnl_proxy")
     ]
     if preview_cols:
         try:
@@ -63,7 +67,9 @@ def _write_report(out_root: Path, merged: pd.DataFrame, w6_dir: Path, w7_dir: Pa
     (out_root / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def evaluate(w6_dir: str | Path, w7_dir: str | Path, outdir: str | Path, tag: str = "W9") -> Path:
+def evaluate(
+    w6_dir: str | Path, w7_dir: str | Path, outdir: str | Path, tag: str = "W9"
+) -> Path:
     """
     Public API used by tests:
       - joins W6+W7
@@ -86,12 +92,18 @@ def main() -> None:
     ap = argparse.ArgumentParser(
         description="W9: Evaluate by joining W6 splits with W7 segment metrics."
     )
-    ap.add_argument("--w6-dir", required=True, help="Path to a W6 output folder (has segments.csv)")
     ap.add_argument(
-        "--w7-dir", required=True, help="Path to a W7 output folder (has segment_metrics.csv)"
+        "--w6-dir", required=True, help="Path to a W6 output folder (has segments.csv)"
+    )
+    ap.add_argument(
+        "--w7-dir",
+        required=True,
+        help="Path to a W7 output folder (has segment_metrics.csv)",
     )
     ap.add_argument("--tag", default="W9", help="Tag prefix for report folder")
-    ap.add_argument("--outdir", default="reports/W9", help="Root output directory for W9 reports")
+    ap.add_argument(
+        "--outdir", default="reports/W9", help="Root output directory for W9 reports"
+    )
     args = ap.parse_args()
 
     out_root = evaluate(args.w6_dir, args.w7_dir, args.outdir, tag=args.tag)

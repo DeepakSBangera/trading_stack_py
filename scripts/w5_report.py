@@ -5,7 +5,10 @@ import numpy as np
 import pandas as pd
 
 from trading_stack_py.cv.walkforward import WalkForwardCV
-from trading_stack_py.metrics.dsr import deflated_sharpe_ratio, probabilistic_sharpe_ratio
+from trading_stack_py.metrics.dsr import (
+    deflated_sharpe_ratio,
+    probabilistic_sharpe_ratio,
+)
 from trading_stack_py.metrics.mtl import minimum_track_record_length
 
 
@@ -24,7 +27,9 @@ def main():
     true_edge = 0.00025
     rets = true_edge + 0.01 * np.random.standard_t(df=6, size=n)
 
-    cv = WalkForwardCV(train_size=378, test_size=63, step_size=21, expanding=True, embargo=5)
+    cv = WalkForwardCV(
+        train_size=378, test_size=63, step_size=21, expanding=True, embargo=5
+    )
     rows = []
     seg = 0
     sr_list = []

@@ -5,7 +5,10 @@ import pandas as pd
 
 from src.trading_stack_py.backtest.engine import run_long_only
 from src.trading_stack_py.data_loader import get_prices
-from src.trading_stack_py.metrics.performance import probabilistic_sharpe_ratio, summarize
+from src.trading_stack_py.metrics.performance import (
+    probabilistic_sharpe_ratio,
+    summarize,
+)
 
 
 def ma_signal(df, fast: int, slow: int):
@@ -28,7 +31,9 @@ def main():
     ap.add_argument("--fast_list", default="10,20,30")
     ap.add_argument("--slow_list", default="100,150,200")
     ap.add_argument("--cost_bps", type=float, default=12.0)
-    ap.add_argument("--source", choices=["auto", "local", "yahoo", "synthetic"], default="auto")
+    ap.add_argument(
+        "--source", choices=["auto", "local", "yahoo", "synthetic"], default="auto"
+    )
     args = ap.parse_args()
 
     df = get_prices(args.ticker, start=args.start, end=args.end, source=args.source)
@@ -45,7 +50,9 @@ def main():
     i = 0
     while True:
         train_years = years[i : i + args.train_years]
-        test_years = years[i + args.train_years : i + args.train_years + args.test_years]
+        test_years = years[
+            i + args.train_years : i + args.train_years + args.test_years
+        ]
         if len(test_years) == 0:
             break
 

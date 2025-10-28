@@ -14,7 +14,9 @@ def fmt(x, n=6):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "--w7", required=True, help="Path to a W7 run directory (contains segment_metrics.csv)"
+        "--w7",
+        required=True,
+        help="Path to a W7 run directory (contains segment_metrics.csv)",
     )
     args = ap.parse_args()
 

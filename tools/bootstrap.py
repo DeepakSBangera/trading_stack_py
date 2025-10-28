@@ -39,7 +39,7 @@ readme = f"""\
 ```bat
 cd /d {BASE_DIR}
 python -m venv .venv
-.\.venv\Scripts\activate
+.\\.venv\\Scripts\activate
 pip install -r requirements.txt
 
 python run_daily.py

@@ -19,7 +19,7 @@ print("EXPECTED DIRS:", ", ".join(EXPECT))
 if missing:
     print("MISSING:", ", ".join(missing))
     sys.exit(1)
-for root, dirs, files in os.walk(".", topdown=True):
+for root, dirs, _files in os.walk(".", topdown=True):
     depth = root.count(os.sep)
     if depth > 2:
         continue

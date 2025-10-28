@@ -8,7 +8,11 @@ import pandas as pd
 
 
 def _as_returns_series(rets_like) -> pd.Series:
-    s = pd.Series(rets_like) if not isinstance(rets_like, pd.Series) else rets_like.copy()
+    s = (
+        pd.Series(rets_like)
+        if not isinstance(rets_like, pd.Series)
+        else rets_like.copy()
+    )
     s = pd.to_numeric(s, errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
     return s.astype(float)
 

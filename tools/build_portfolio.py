@@ -16,7 +16,14 @@ def zscore_rank(df, ascending=False):
 
 
 def rank_and_weight(
-    mom, vol, quality, top_n=30, weight_cap=0.07, min_w=0.01, cash_buffer=0.03, max_holdings=None
+    mom,
+    vol,
+    quality,
+    top_n=30,
+    weight_cap=0.07,
+    min_w=0.01,
+    cash_buffer=0.03,
+    max_holdings=None,
 ):
     score = (
         0.5 * zscore_rank(mom, False)
@@ -38,7 +45,7 @@ def rank_and_weight(
             if w.sum() > 0:
                 w *= target / w.sum()
         weights.append((dt, w))
-    W = pd.DataFrame({dt: w for dt, w in weights}).T
+    W = pd.DataFrame(dict(weights)).T
     return W
 
 
@@ -59,7 +66,10 @@ def main():
     qual = load_factor(root, "quality")
     if any(df.empty for df in [mom, vol, qual]):
         print(
-            json.dumps({"ok": False, "reason": "missing factors; run build_factors.py"}, indent=2)
+            json.dumps(
+                {"ok": False, "reason": "missing factors; run build_factors.py"},
+                indent=2,
+            )
         )
         return
 

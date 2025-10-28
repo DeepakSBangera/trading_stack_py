@@ -85,7 +85,9 @@ def _load_local(ticker: str) -> pd.DataFrame | None:
 
 
 # -------------------- synthetic --------------------
-def _gen_synth(ticker: str, start: str = "2015-01-01", end: str | None = None) -> pd.DataFrame:
+def _gen_synth(
+    ticker: str, start: str = "2015-01-01", end: str | None = None
+) -> pd.DataFrame:
     # If end is None, use fixed periods; else build between start and end.
     if end is None:
         idx = pd.date_range(start=start, periods=1500, freq="B")
@@ -135,9 +137,13 @@ def _gen_synth(ticker: str, start: str = "2015-01-01", end: str | None = None) -
 def _yahoo_download(ticker: str, start: str | None, end: str | None) -> pd.DataFrame:
     if not _HAS_YF:
         raise RuntimeError("yfinance not installed")
-    df = yf.download(ticker, start=start, end=end, interval="1d", auto_adjust=False, progress=False)
+    df = yf.download(
+        ticker, start=start, end=end, interval="1d", auto_adjust=False, progress=False
+    )
     if df is None or df.empty:
-        df = yf.Ticker(ticker).history(start=start, end=end, interval="1d", auto_adjust=False)
+        df = yf.Ticker(ticker).history(
+            start=start, end=end, interval="1d", auto_adjust=False
+        )
     if df is None or df.empty:
         raise RuntimeError(f"No data for {ticker}")
     if "Date" not in df.columns:
@@ -156,7 +162,13 @@ def _fetch_with_backoff(
             msg = str(e)
             transient = any(
                 k in msg
-                for k in ["Too Many Requests", "rate", "429", "timed out", "Connection aborted"]
+                for k in [
+                    "Too Many Requests",
+                    "rate",
+                    "429",
+                    "timed out",
+                    "Connection aborted",
+                ]
             )
             if transient:
                 sleep_s = base**attempt + random.uniform(0.0, 1.0)

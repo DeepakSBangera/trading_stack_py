@@ -38,7 +38,9 @@ if cfg_loaded:
     source = (cfg_loaded.get("data", {}) or {}).get("source") or "?"
     st.caption(f"Config: `{cfg_name}` · rule: **{rule}** · data source: **{source}**")
 else:
-    st.caption("No config found (looked for `config/config.yaml` and `config/policy_w1.yaml`).")
+    st.caption(
+        "No config found (looked for `config/config.yaml` and `config/policy_w1.yaml`)."
+    )
 
 # ---------- Latest BUY list ----------
 buylist_files = sorted(glob.glob(str(REPORTS / "buylist_*.csv")))
@@ -87,7 +89,9 @@ with col2:
         except Exception as e:
             st.error(f"Could not read `{pf_path}`: {type(e).__name__}: {e}")
     else:
-        st.write("No portfolio snapshots yet. Create `db/portfolio.csv` to chart equity.")
+        st.write(
+            "No portfolio snapshots yet. Create `db/portfolio.csv` to chart equity."
+        )
 
 # ---------- Sidebar (quick diagnostics) ----------
 with st.sidebar:
@@ -95,5 +99,9 @@ with st.sidebar:
     st.write("**Reports dir**", f"`{REPORTS}`")
     st.write("**DB dir**", f"`{DB}`")
     st.write("**Latest buylist found?**", "✅" if buylist_files else "❌")
-    st.write("**Positions.csv present?**", "✅" if (DB / "positions.csv").exists() else "❌")
-    st.write("**Portfolio.csv present?**", "✅" if (DB / "portfolio.csv").exists() else "❌")
+    st.write(
+        "**Positions.csv present?**", "✅" if (DB / "positions.csv").exists() else "❌"
+    )
+    st.write(
+        "**Portfolio.csv present?**", "✅" if (DB / "portfolio.csv").exists() else "❌"
+    )

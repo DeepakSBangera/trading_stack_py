@@ -245,16 +245,27 @@ def eval_symbol(
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="W10 — ARIMAX/SARIMAX forecast evaluation (hardened)")
-    ap.add_argument("--data-glob", default="data/csv/*.csv", help="Glob for input price CSV files")
-    ap.add_argument("--out", default="reports/wk10_forecast_eval.csv", help="Output CSV path")
+    ap = argparse.ArgumentParser(
+        description="W10 — ARIMAX/SARIMAX forecast evaluation (hardened)"
+    )
+    ap.add_argument(
+        "--data-glob", default="data/csv/*.csv", help="Glob for input price CSV files"
+    )
+    ap.add_argument(
+        "--out", default="reports/wk10_forecast_eval.csv", help="Output CSV path"
+    )
     ap.add_argument("--order", default="1,1,1", help="ARIMA(p,d,q) e.g. 1,1,1")
     ap.add_argument(
-        "--test-frac", type=float, default=0.2, help="Fraction of samples for test split"
+        "--test-frac",
+        type=float,
+        default=0.2,
+        help="Fraction of samples for test split",
     )
 
     # Exogenous controls (optional)
-    ap.add_argument("--exog-csv", default=None, help="CSV containing exogenous variables")
+    ap.add_argument(
+        "--exog-csv", default=None, help="CSV containing exogenous variables"
+    )
     ap.add_argument(
         "--exog-cols",
         default=None,
@@ -287,7 +298,9 @@ def main() -> None:
     try:
         p, d, q = (int(x) for x in args.order.split(","))
     except Exception as exc:  # noqa: BLE001
-        print(f"--order must be like '1,1,1' (got {args.order}): {exc}", file=sys.stderr)
+        print(
+            f"--order must be like '1,1,1' (got {args.order}): {exc}", file=sys.stderr
+        )
         sys.exit(2)
 
     # Parse retry orders

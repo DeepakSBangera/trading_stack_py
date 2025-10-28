@@ -44,7 +44,11 @@ def main():
     for f in glob.glob("reports/walkforward_*.csv"):
         try:
             df = pd.read_csv(f)
-            psr_med = float(df["PSR"].median()) if "PSR" in df.columns and not df.empty else None
+            psr_med = (
+                float(df["PSR"].median())
+                if "PSR" in df.columns and not df.empty
+                else None
+            )
             rows.append(
                 {
                     "type": "walkforward",

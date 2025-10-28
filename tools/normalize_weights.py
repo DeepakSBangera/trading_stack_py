@@ -44,7 +44,9 @@ def _renorm_per_day(df):
     return df.groupby(df["date"], group_keys=False).apply(_renorm)
 
 
-def _load_equity_dates(equity_path: pathlib.Path, nrows_expected: int | None = None) -> pd.Series:
+def _load_equity_dates(
+    equity_path: pathlib.Path, nrows_expected: int | None = None
+) -> pd.Series:
     eq = pd.read_parquet(equity_path)
     if "date" not in eq.columns:
         raise ValueError(f"equity file missing 'date': {equity_path}")
@@ -127,8 +129,12 @@ def main():
     ap = argparse.ArgumentParser(
         description="Normalize weights (wide or long) to date,ticker,weight; borrow dates from equity if needed."
     )
-    ap.add_argument("--in", dest="inp", required=True, help="input weights parquet (wide or long)")
-    ap.add_argument("--out", dest="outp", required=True, help="output parquet (date,ticker,weight)")
+    ap.add_argument(
+        "--in", dest="inp", required=True, help="input weights parquet (wide or long)"
+    )
+    ap.add_argument(
+        "--out", dest="outp", required=True, help="output parquet (date,ticker,weight)"
+    )
     ap.add_argument(
         "--equity",
         dest="equity",

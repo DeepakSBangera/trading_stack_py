@@ -9,7 +9,9 @@ TOP_N = 5
 base = Path("reports/backtests")
 base.mkdir(parents=True, exist_ok=True)
 runs = sorted(
-    [d for d in base.iterdir() if d.is_dir()], key=lambda d: d.stat().st_mtime, reverse=True
+    [d for d in base.iterdir() if d.is_dir()],
+    key=lambda d: d.stat().st_mtime,
+    reverse=True,
 )
 
 # 1) Prefer monthly_weights.csv if available in any run (newest first)
@@ -56,9 +58,9 @@ if parqs:
                 df = pd.read_parquet(p)
                 if not isinstance(df.index, pd.DatetimeIndex):
                     if "date" in df.columns:
-                        df = df.set_index(pd.to_datetime(df["date"], errors="coerce")).drop(
-                            columns=["date"]
-                        )
+                        df = df.set_index(
+                            pd.to_datetime(df["date"], errors="coerce")
+                        ).drop(columns=["date"])
                     else:
                         try:
                             df.index = pd.to_datetime(df.index, errors="coerce")

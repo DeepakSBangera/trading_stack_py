@@ -83,7 +83,13 @@ def main():
         df = df.sort_values(args.date_col).reset_index(drop=True)
 
     data = make_dataset(
-        df, args.date_col, args.price_col, args.freq, args.rf, args.target_h, args.target_kind
+        df,
+        args.date_col,
+        args.price_col,
+        args.freq,
+        args.rf,
+        args.target_h,
+        args.target_kind,
     )
 
     feat_cols = [c for c in data.columns if c not in ("date", "target")]
@@ -134,7 +140,9 @@ def main():
         f.write("# W6 Dataset Builder\n\n")
         f.write(f"- Rows after dropna: **{n}**\n")
         f.write(f"- Features: {feat_cols}\n")
-        f.write(f"- Target: **{args.target_kind}** over **{args.target_h}** period(s)\n")
+        f.write(
+            f"- Target: **{args.target_kind}** over **{args.target_h}** period(s)\n"
+        )
         f.write(
             f"- CV: train/test/step/expanding/embargo/min_train = "
             f"{args.train}/{args.test}/{args.step or args.test}/{args.expanding}/{args.embargo}/{args.min_train}\n"

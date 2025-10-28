@@ -36,7 +36,11 @@ except Exception:
                 dt = dt.dt.tz_localize(None)
             except Exception:
                 pass
-            df = df.assign(**{date_col: dt}).dropna(subset=[date_col]).sort_values(date_col)
+            df = (
+                df.assign(**{date_col: dt})
+                .dropna(subset=[date_col])
+                .sort_values(date_col)
+            )
             df = df.drop_duplicates(subset=[date_col]).set_index(date_col)
         else:
             idx = pd.to_datetime(df.index, utc=True, errors="coerce")
@@ -66,7 +70,9 @@ def _to_ret_from_nav(nav: pd.Series) -> pd.Series:
 # ---------- rolling metrics ---------------------------------------------------
 
 
-def rolling_volatility(returns: pd.Series, window: int = 63, annualization: int = 252) -> pd.Series:
+def rolling_volatility(
+    returns: pd.Series, window: int = 63, annualization: int = 252
+) -> pd.Series:
     """
     Annualized rolling volatility over 'window' periods.
     """
@@ -182,13 +188,17 @@ def compute_rolling_metrics_from_nav(
     """
     df = normalize_date_index(df, "date")
     if nav_col not in df.columns:
-        raise KeyError(f"Missing NAV column '{nav_col}' in DataFrame columns: {list(df.columns)}")
+        raise KeyError(
+            f"Missing NAV column '{nav_col}' in DataFrame columns: {list(df.columns)}"
+        )
 
     nav = pd.to_numeric(df[nav_col], errors="coerce").astype("float64")
     rets = _to_ret_from_nav(nav)
 
     out = pd.DataFrame(index=df.index)
-    out["rolling_vol"] = rolling_volatility(rets, window=vol_window, annualization=annualization)
+    out["rolling_vol"] = rolling_volatility(
+        rets, window=vol_window, annualization=annualization
+    )
     out["rolling_sharpe"] = rolling_sharpe(
         rets, window=ret_window_sharpe, annualization=annualization, rf=rf_per_period
     )

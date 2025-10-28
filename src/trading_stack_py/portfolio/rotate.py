@@ -51,7 +51,9 @@ def _build_close_panel(
 ) -> pd.DataFrame:
     closes: list[pd.Series] = []
     for t in tickers:
-        df = get_prices(t, start=start, end=end, source=source, force_refresh=force_refresh)
+        df = get_prices(
+            t, start=start, end=end, source=source, force_refresh=force_refresh
+        )
         closes.append(_close_series(df, t))
     # outer join on all dates, then ffill gaps (different holiday calendars)
     panel = pd.concat(closes, axis=1).sort_index()
@@ -95,13 +97,17 @@ def backtest_top_n_rotation(
 
     Returns a DataFrame with Date, Equity, Return (+ summary row via metrics.summarize()).
     """
-    assert rebal_freq.upper() == "ME", "Only ME (month-end) rebalance supported currently."
+    assert (
+        rebal_freq.upper() == "ME"
+    ), "Only ME (month-end) rebalance supported currently."
 
     # 1) Prices panel and daily returns
     prices = _build_close_panel(tickers, start, end, source, force_refresh)
     rets = prices.pct_change().fillna(0.0)
     if len(rets) == 0:
-        raise RuntimeError("No return data available for the requested period/universe.")
+        raise RuntimeError(
+            "No return data available for the requested period/universe."
+        )
 
     # 2) Rebalance dates (month-ends where lookback is available)
     me_idx = _month_end_index(prices.index)
@@ -126,10 +132,14 @@ def backtest_top_n_rotation(
         # Rebalance on month end
         if dt in next_rebals:
             # Momentum = Close / Close[-L] - 1
-            mom = (prices.loc[dt] / look_close.loc[dt] - 1.0).replace([np.inf, -np.inf], np.nan)
+            mom = (prices.loc[dt] / look_close.loc[dt] - 1.0).replace(
+                [np.inf, -np.inf], np.nan
+            )
             mom = mom.dropna()
             # pick top N among available
-            winners = mom.sort_values(ascending=False).index[: max(1, min(top_n, len(mom)))]
+            winners = mom.sort_values(ascending=False).index[
+                : max(1, min(top_n, len(mom)))
+            ]
             tgt_w = pd.Series(0.0, index=prices.columns)
             if len(winners) > 0:
                 tgt_w.loc[winners] = 1.0 / float(len(winners))
