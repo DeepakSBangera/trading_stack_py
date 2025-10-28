@@ -1,0 +1,10 @@
+# Reporting defaults (Session 6)
+start = "2025-01-01"
+universe_csv = "config/universe.csv"
+rolling_window = 63
+
+# If true, daily runner opens the HTML index at the end
+open_after = true
+
+# Archive reports\* into reports\archive\<YYYYMMDD> after each run
+archive_after = false

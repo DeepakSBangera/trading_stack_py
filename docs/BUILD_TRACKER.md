@@ -170,4 +170,36 @@ Use these names going forward (internals may vary; compat adapts):
 - tradingstack.metrics.sharpe: (actual: _to_series) â†’ **sharpe_ratio**
 - tradingstack.metrics.sortino: (actual: _as_returns_series) â†’ **sortino_ratio**
 - **2025-10-26** — Added RB-S2-002 and plot exporter for rolling metrics
+- **2025-10-26** — Tagged s2-complete; (optional) committed rolling PNG
+
+
+
+## G) Factor Exposures (rolling sector, momentum, quality)
+**Latest snapshot**
+
+```text
+Rows: 261   Start: 2025-01-01   End: 2025-12-31
+
+Last date: 2025-12-31
+  Momentum (12-1) proxy: NaN
+  Quality (inv downside vol): 16.1663
+
+Top sector exposures (rolling avg weights):
+  - sector_Information Technology: 0.5000
+  - sector_Energy: 0.2500
+  - sector_Financials: 0.2500
+```
+
+## H) Tearsheet v2 Snapshot
+**Latest snapshot (Tearsheet v2)**
+
+File: reports\tearsheet_v2.png
+HTML: reports\tearsheet_v2.html
+
+## I) Reporting Layer (Session 5)
+Daily report index: reports\index_daily.html
+RollingWindow: 84
+Start: 2025-01-01
+UniverseCsv: config/universe.csv
+- **2025-10-27** — Session 4: Tearsheet v2 generated
 

@@ -1,131 +1,158 @@
 from __future__ import annotations
 
-import json
-import sys
+import argparse
+import math
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
-from tradingstack.metrics.rolling import compute_rolling_metrics_from_nav
+# ✅ Centralized date utils
+from tradingstack.utils.dates import coerce_date_index
 
 
-def _normalize_date_index(df: pd.DataFrame, date_col: str = "date") -> pd.DataFrame:
-    """Accept tz-aware UTC or tz-naive 'date', set tz-naive DatetimeIndex named 'date'."""
-    if date_col in df.columns:
-        dt = pd.to_datetime(df[date_col], utc=True, errors="coerce")
-        # strip tz → tz-naive
-        try:
-            dt = dt.dt.tz_convert(None)
-        except Exception:
-            pass
-        try:
-            dt = dt.dt.tz_localize(None)
-        except Exception:
-            pass
-        df = df.assign(**{date_col: dt}).dropna(subset=[date_col]).sort_values(date_col)
-        df = df.drop_duplicates(subset=[date_col]).set_index(date_col)
-    else:
-        idx = pd.to_datetime(df.index, utc=True, errors="coerce")
-        try:
-            idx = idx.tz_convert(None)
-        except Exception:
-            pass
-        try:
-            idx = idx.tz_localize(None)
-        except Exception:
-            pass
-        df.index = idx
-        df = df.dropna(axis=0, how="any").sort_index()
-    df.index.name = "date"
-    return df
+# ---------- IO helpers ----------
+def _load_portfolio(p: Path) -> tuple[pd.Series, pd.Series | None]:
+    """
+    Return (nav_series, returns_series or None). Index is daily tz-naive date.
+    - Accepts NAV columns: nav_net, nav_gross, _nav, nav
+    - If only returns are available, synth NAV is built from returns
+    """
+    df = pd.read_parquet(p)
+    df = coerce_date_index(df, date_col="date")  # normalizes index to daily tz-naive
 
-
-DEFAULT_CFG = Path("config/rolling.json")
-
-
-def load_cfg(cfg_path: Path) -> dict:
-    if not cfg_path.exists():
-        raise FileNotFoundError(f"Config not found: {cfg_path}")
-    with cfg_path.open("r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _print_summary(df: pd.DataFrame) -> str:
-    lines = []
-    lines.append(f"Rows: {len(df)}  Start: {df.index.min().date()}  End: {df.index.max().date()}")
-    last = df.dropna().tail(1)
-    if not last.empty:
-        dt = last.index[-1].date()
-        v = last.iloc[-1]
-        lines.append(
-            f"Last ({dt}): Sharpe={v['rolling_sharpe']:.2f}, "
-            f"Sortino={v['rolling_sortino']:.2f}, Vol={v['rolling_vol']:.2%}, "
-            f"MDD={v['rolling_mdd']:.2%}, Regime={int(v['regime'])}"
-        )
-    lines.append("")
-    lines.append("NaN counts:")
-    lines.append(str(df.isna().sum()))
-    return "\n".join(lines)
-
-
-def main(cfg_file: str | None = None):
-    cfg_path = Path(cfg_file) if cfg_file else DEFAULT_CFG
-    cfg = load_cfg(cfg_path)
-
-    nav_path = Path(cfg["nav_file"])
-    if not nav_path.exists():
-        print(f"[ERROR] NAV parquet not found: {nav_path}", file=sys.stderr)
-        sys.exit(2)
-
-    df = pd.read_parquet(nav_path)
-    df = _normalize_date_index(df, "date")
-
-    requested = cfg.get("nav_col", "nav_net")
-    nav_col = None
-    candidates = [requested, "nav_net", "nav_gross", "_nav"]
-    for c in candidates:
-        if c in df.columns:
-            nav_col = c
-            break
-    if nav_col is None:
-        print(
-            f"[ERROR] None of the NAV columns found {candidates} in {nav_path.name}",
-            file=sys.stderr,
-        )
-        sys.exit(3)
-    if nav_col != requested:
-        print(
-            f"[WARN] Requested nav_col '{requested}' not found. Using '{nav_col}' instead.",
-            file=sys.stderr,
-        )
-
-    out = compute_rolling_metrics_from_nav(
-        df=df,
-        nav_col=nav_col,
-        ret_window_sharpe=int(cfg.get("ret_window_sharpe", 252)),
-        ret_window_sortino=int(cfg.get("ret_window_sortino", 252)),
-        vol_window=int(cfg.get("vol_window", 63)),
-        dd_window=int(cfg.get("dd_window", 252)),
-        annualization=int(cfg.get("annualization", 252)),
-        rf_per_period=float(cfg.get("rf_per_period", 0.0)),
-        regime_method=str(cfg.get("regime_method", "sma_crossover")),
-        regime_fast=int(cfg.get("regime_fast", 50)),
-        regime_slow=int(cfg.get("regime_slow", 200)),
+    nav_col = next(
+        (c for c in ("nav_net", "nav_gross", "_nav", "nav") if c in df.columns), None
     )
+    if (
+        nav_col is None
+        and "ret_net" not in df.columns
+        and "ret_gross" not in df.columns
+    ):
+        raise ValueError("portfolio parquet must contain nav_* column or ret_* column")
 
-    out_path = Path(cfg.get("out_parquet", "reports/rolling_metrics.parquet"))
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out.to_parquet(out_path, index=True)
+    if "ret_net" in df.columns:
+        rets = pd.to_numeric(df["ret_net"], errors="coerce")
+    elif "ret_gross" in df.columns:
+        rets = pd.to_numeric(df["ret_gross"], errors="coerce")
+    else:
+        rets = None
 
-    summary = _print_summary(out)
-    sum_path = Path(cfg.get("out_summary", "reports/rolling_metrics_summary.txt"))
-    sum_path.write_text(summary, encoding="utf-8")
+    if nav_col is None:
+        nav = (1.0 + (rets.fillna(0.0) if rets is not None else 0.0)).cumprod()
+    else:
+        nav = pd.to_numeric(df[nav_col], errors="coerce")
 
-    print(f"[OK] Wrote: {out_path}")
-    print(f"[OK] Wrote: {sum_path}")
-    print()
-    print(summary)
+    return nav, rets
+
+
+# ---------- local rolling implementation (fallback) ----------
+def _rolling_vol(rets: pd.Series, win: int) -> pd.Series:
+    return rets.rolling(win).std(ddof=0) * math.sqrt(252.0)
+
+
+def _rolling_sharpe(rets: pd.Series, win: int) -> pd.Series:
+    mu = rets.rolling(win).mean()
+    sd = rets.rolling(win).std(ddof=0)
+    return (mu / sd) * math.sqrt(252.0)
+
+
+def _rolling_sortino(rets: pd.Series, win: int) -> pd.Series:
+    mu = rets.rolling(win).mean()
+    dn = rets.copy()
+    dn[dn > 0] = 0.0
+    dsd = dn.rolling(win).std(ddof=0).replace(0.0, np.nan)
+    return (mu / dsd) * math.sqrt(252.0)
+
+
+def _rolling_mdd_from_nav(nav: pd.Series, win: int) -> pd.Series:
+    def mdd_window(x: np.ndarray) -> float:
+        arr = pd.Series(x)
+        peak = arr.cummax()
+        dd = (arr / peak) - 1.0
+        return float(dd.min())
+
+    return nav.rolling(win).apply(mdd_window, raw=True)
+
+
+def _local_compute(nav: pd.Series, rets: pd.Series | None, win: int) -> pd.DataFrame:
+    if rets is None:
+        rets = nav.pct_change()
+    rets = pd.to_numeric(rets, errors="coerce")
+
+    out = pd.DataFrame(index=nav.index)
+    out["rolling_vol"] = _rolling_vol(rets, win)
+    out["rolling_sharpe"] = _rolling_sharpe(rets, win)
+    out["rolling_sortino"] = _rolling_sortino(rets, win)
+    out["rolling_mdd"] = _rolling_mdd_from_nav(nav, win)
+    rs = out["rolling_sharpe"]
+    out["regime"] = rs.apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Build rolling metrics parquet + summary")
+    ap.add_argument("--portfolio", default="reports/portfolio_v2.parquet")
+    ap.add_argument("--outdir", default="reports")
+    ap.add_argument("--window", type=int, default=252)
+    args = ap.parse_args()
+
+    outdir = Path(args.outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    out_parquet = outdir / "rolling_metrics.parquet"
+    out_summary = outdir / "rolling_metrics_summary.txt"
+
+    nav, rets = _load_portfolio(Path(args.portfolio))
+
+    # Prefer project module if it exists; otherwise local implementation
+    try:
+        from tradingstack.metrics.rolling import (
+            compute_rolling_metrics_from_nav,  # type: ignore
+        )
+
+        try:
+            df_roll = compute_rolling_metrics_from_nav(nav, window=args.window)
+        except TypeError:
+            df_roll = compute_rolling_metrics_from_nav(nav, win=args.window)
+    except Exception:
+        df_roll = _local_compute(nav, rets, args.window)
+
+    df_roll = df_roll.sort_index()
+    df_roll.to_parquet(out_parquet)
+
+    # Summary
+    last_dt = df_roll.index.max()
+    lines = []
+    lines.append(f"Rows: {len(df_roll)}  Start: {df_roll.index.min()}  End: {last_dt}")
+
+    def _last(col: str) -> float | None:
+        if col not in df_roll.columns or not df_roll[col].notna().any():
+            return None
+        return float(df_roll[col].dropna().iloc[-1])
+
+    sr = _last("rolling_sharpe")
+    so = _last("rolling_sortino")
+    rv = _last("rolling_vol")
+    mdd = _last("rolling_mdd")
+    rg = _last("regime")
+
+    def _fmt(x, pct=False):
+        if x is None or (isinstance(x, float) and np.isnan(x)):
+            return "NA"
+        return f"{x:.2%}" if pct else f"{x:.2f}"
+
+    lines.append(
+        f"Last ({str(last_dt)[:10]}): Sharpe={_fmt(sr)}, Sortino={_fmt(so)}, "
+        f"Vol={_fmt(rv)}, MDD={_fmt(mdd, pct=True)}, Regime={int(rg) if rg is not None and not np.isnan(rg) else 'NA'}"
+    )
+    lines.append("\nNaN counts:")
+    lines.append(str(df_roll.isna().sum()))
+
+    out_summary.write_text("\n".join(lines), encoding="utf-8")
+    print(f"[OK] Wrote: {out_parquet}")
+    print(f"[OK] Wrote: {out_summary}")
+    print("\n".join(lines))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else None)
+    main()
