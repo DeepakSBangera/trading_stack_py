@@ -1,0 +1,3 @@
+dates=0
+abs_diff_sum=0.00000000
+note=_nav not found in equity

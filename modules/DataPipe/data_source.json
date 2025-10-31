@@ -1,0 +1,16 @@
+﻿{
+    "mode":  "kite",
+    "synth":  {
+                  "prices_root":  "data_synth/prices",
+                  "fundamentals_root":  "data_synth/fundamentals"
+              },
+    "kite":  {
+                 "enabled":  false,
+                 "dry_run":  true,
+                 "cache_root":  "data_live",
+                 "rate_limit_per_min":  90,
+                 "backoff_seconds":  2.0,
+                 "universe_file":  "config/universe_kite.csv",
+                 "pit_log":  "data_live/_pit/log.jsonl"
+             }
+}

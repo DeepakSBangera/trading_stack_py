@@ -178,16 +178,11 @@ Use these names going forward (internals may vary; compat adapts):
 **Latest snapshot**
 
 ```text
-Rows: 261   Start: 2025-01-01   End: 2025-12-31
-
-Last date: 2025-12-31
-  Momentum (12-1) proxy: NaN
-  Quality (inv downside vol): 16.1663
-
-Top sector exposures (rolling avg weights):
-  - sector_Information Technology: 0.5000
-  - sector_Energy: 0.2500
-  - sector_Financials: 0.2500
+Rows: 7
+Date range: 2025-01-31 → 2025-10-31
+  Momentum (12-1) proxy: nan
+  Quality (inv downside vol): 1.8708
+  Sector weights (last row sum): nan
 ```
 
 ## H) Tearsheet v2 Snapshot
@@ -202,4 +197,9 @@ RollingWindow: 84
 Start: 2025-01-01
 UniverseCsv: config/universe.csv
 - **2025-10-27** — Session 4: Tearsheet v2 generated
+- **2025-10-28** — Session 4: Tearsheet v2 generated
+- **2025-10-28** — Session 4: Tearsheet v2 generated
+- **2025-10-28** — Session 3: Factor exposures generated
+- **2025-10-28** — Session 3: Factor exposures generated
+- **2025-10-31** — Session 3: Factor exposures generated
 

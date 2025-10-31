@@ -1,0 +1,5 @@
+Rows: 6
+Date range: 2025-01-31 → 2025-09-30
+  Momentum (12-1) proxy: nan
+  Quality (inv downside vol): 1.7321
+  Sector weights (last row sum): nan

@@ -1,0 +1,20 @@
+actions:
+  data_gap_days:
+  - halt_adds
+  dd_weekly_pct:
+  - halt_adds
+  - derisk_0p25
+  execution_reject_rate:
+  - manual_review
+  slippage_p95_bps:
+  - derisk_0p25
+  var_breach:
+  - halt_adds
+data_gap_days: 1
+data_gap_days_max: 2
+dd_weekly_pct: 0.08
+execution_reject_rate: 0.02
+slippage_bps_max: 20
+slippage_p95_bps: 50
+var_breach: true
+weekly_dd_max: 0.08

@@ -1,0 +1,25 @@
+﻿modules:
+  - "modules/DataPipe"
+  - "modules/AlphaFactors"
+  - "modules/AlphaSignals"
+  - "modules/Portfolio"
+  - "modules/RiskSizing"
+  - "modules/Testing"
+  - "modules/Regime"
+  - "modules/Execution"
+  - "modules/Governance"
+  - "modules/Monitoring"
+  - "modules/Dashboards"
+  - "modules/Adapters"
+start_date: "2025-01-01"
+end_date: null
+universe_csv: "config/universe.csv"
+reports_dir: "reports"
+data_dirs:
+  - "data"
+  - "data_live"
+  - "data_synth"
+naming:
+  report_prefix: "wk"
+keep_reports_days: 90
+

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Tearsheet v2</title>
+<style>
+body { font-family: Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+h1 { font-size: 18px; margin: 0 0 6px 0; }
+h2 { font-size: 16px; margin: 24px 0 8px; }
+.metric-grid { display:grid; grid-template-columns: repeat(3, minmax(200px,1fr)); gap:10px; margin-top:10px; }
+.card { border:1px solid #ddd; border-radius:8px; padding:10px; }
+.small { color:#666; font-size:12px }
+img { max-width:100%; height:auto; border:1px solid #eee; }
+.note { color:#aa0000; margin-top:6px; }
+</style></head><body>
+<h1>Tearsheet v2</h1>
+<div class="small">Last date: 2025-12-31</div>
+<div class="metric-grid">
+  <div class="card"><div class="small">Last NAV</div><div style="font-size:22px">0.9890</div></div>
+  <div class="card"><div class="small">Rolling Sharpe (last)</div><div style="font-size:22px">-0.31</div></div>
+  <div class="card"><div class="small">Rolling Vol (last)</div><div style="font-size:22px">0.10</div></div>
+  <div class="card"><div class="small">Rolling Max DD (last)</div><div style="font-size:22px">-6.26%</div></div>
+  <div class="card"><div class="small">Regime (last)</div><div style="font-size:22px">-1</div></div>
+  <div class="card"><div class="small">Period Ann. Vol</div><div style="font-size:22px">10.35%</div></div>
+  <div class="card"><div class="small">Momentum 12-1 (last)</div><div style="font-size:22px"></div></div>
+  <div class="card"><div class="small">Quality Inv Down Vol (last)</div><div style="font-size:22px">16.166</div></div>
+  <div class="card"><div class="small">Max Drawdown (period)</div><div style="font-size:22px">-8.67%</div></div>
+</div>
+<h2>Overview</h2>
+<img src="tearsheet_v2.png" alt="Tearsheet v2" />
+
+<h2>Top Sector Exposures (last)</h2><table border="1" class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>sector_Information Technology</th>
+      <td>0.500</td>
+    </tr>
+    <tr>
+      <th>sector_Energy</th>
+      <td>0.250</td>
+    </tr>
+    <tr>
+      <th>sector_Financials</th>
+      <td>0.250</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>
