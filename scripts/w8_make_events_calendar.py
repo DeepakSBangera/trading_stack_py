@@ -49,9 +49,7 @@ def to_iso_date(x) -> str:
 def main():
     pos_pq = REPORTS / "positions_daily.parquet"
     if not pos_pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run W3 bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run W3 bootstrap first.")
     pos = pd.read_parquet(pos_pq).sort_values("date")
     dates = pd.to_datetime(pos["date"].unique())
     if len(dates) == 0:

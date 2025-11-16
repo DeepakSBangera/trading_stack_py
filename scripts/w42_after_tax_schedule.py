@@ -22,8 +22,7 @@ LOT_CANDIDATES = [
 ]
 
 DIV_CANDIDATES = [
-    DATA
-    / "dividends.csv",  # columns: ticker, ex_date (or ex-dividend), amount (optional)
+    DATA / "dividends.csv",  # columns: ticker, ex_date (or ex-dividend), amount (optional)
     REPORTS / "dividends.csv",
 ]
 
@@ -59,9 +58,7 @@ def _normalize_lots(df: pd.DataFrame) -> pd.DataFrame:
     px = _pick(cols, ["mkt_px", "mark_price", "close", "price", "last"])
 
     if any(x is None for x in [dt, tk, q, c]):
-        raise SystemExit(
-            "Lots file missing required columns (need date/ticker/qty/cost)."
-        )
+        raise SystemExit("Lots file missing required columns (need date/ticker/qty/cost).")
 
     out = df[[dt, tk, q, c] + ([px] if px else [])].copy()
     out.rename(
@@ -93,22 +90,16 @@ def _normalize_divs(df: pd.DataFrame) -> pd.DataFrame:
     return out.dropna().reset_index(drop=True)
 
 
-def _best_exdate_after(
-    ticker: str, from_date: pd.Timestamp, divs: pd.DataFrame | None
-) -> pd.Timestamp | None:
+def _best_exdate_after(ticker: str, from_date: pd.Timestamp, divs: pd.DataFrame | None) -> pd.Timestamp | None:
     if divs is None:
         return None
-    d = divs[
-        (divs["ticker"].astype(str) == str(ticker)) & (divs["ex_date"] >= from_date)
-    ]
+    d = divs[(divs["ticker"].astype(str) == str(ticker)) & (divs["ex_date"] >= from_date)]
     if d.empty:
         return None
     return pd.to_datetime(d["ex_date"].min())
 
 
-def _schedule(
-    df: pd.DataFrame, divs: pd.DataFrame | None, today_ist: pd.Timestamp
-) -> pd.DataFrame:
+def _schedule(df: pd.DataFrame, divs: pd.DataFrame | None, today_ist: pd.Timestamp) -> pd.DataFrame:
     df = df.copy()
     df["today"] = today_ist.normalize()
     df["holding_days"] = (df["today"] - df["acquired_date"]).dt.days

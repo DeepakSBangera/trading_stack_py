@@ -91,11 +91,7 @@ def _load_benchmark_series() -> pd.DataFrame | None:
         # fallback to first ticker
         t0 = b[tcol].iloc[0]
         pick = b[b[tcol] == t0][[dcol, ccol]].copy()
-    pick = (
-        pick.rename(columns={dcol: "date", ccol: "mkt_close"})
-        .sort_values("date")
-        .reset_index(drop=True)
-    )
+    pick = pick.rename(columns={dcol: "date", ccol: "mkt_close"}).sort_values("date").reset_index(drop=True)
     return pick
 
 
@@ -134,9 +130,7 @@ def _collect_watchlist() -> tuple[list[str], pd.Timestamp]:
     tcol = cols.get("ticker")
     wcol = cols.get("target_w") or cols.get("base_w")
     if not dcol or not tcol:
-        raise ValueError(
-            "wk11_blend_targets.csv must have columns: date, ticker, target_w"
-        )
+        raise ValueError("wk11_blend_targets.csv must have columns: date, ticker, target_w")
     t[dcol] = pd.to_datetime(t[dcol], errors="coerce")
     t = t.dropna(subset=[dcol, tcol])
     # pick last date snapshot for weights
@@ -208,11 +202,7 @@ def main():
         return
 
     rets = pd.concat(all_rets, ignore_index=True)
-    rets = (
-        rets.dropna(subset=["date"])
-        .sort_values(["ticker", "date"])
-        .reset_index(drop=True)
-    )
+    rets = rets.dropna(subset=["date"]).sort_values(["ticker", "date"]).reset_index(drop=True)
 
     # compute per-ticker features
     rows = []
@@ -227,23 +217,13 @@ def main():
     for tic in tickers:
         r = rets[rets["ticker"] == tic].copy()
         if r.empty:
-            rows.append(
-                {"ticker": tic, "mom_126": np.nan, "vol_21": np.nan, "beta_126": np.nan}
-            )
+            rows.append({"ticker": tic, "mom_126": np.nan, "vol_21": np.nan, "beta_126": np.nan})
             continue
         r = r.sort_values("date").reset_index(drop=True)
         # MOM: cumulative total return over 126d (excluding most recent 1d to avoid micro reversal)
         # safe window slice
-        tail = (
-            r.iloc[-(MOM_WDAYS + 1) :].copy()
-            if r.shape[0] >= (MOM_WDAYS + 1)
-            else r.copy()
-        )
-        mom_126 = (
-            float((1.0 + tail["ret"].iloc[:-1].fillna(0.0)).prod() - 1.0)
-            if tail.shape[0] >= 10
-            else np.nan
-        )
+        tail = r.iloc[-(MOM_WDAYS + 1) :].copy() if r.shape[0] >= (MOM_WDAYS + 1) else r.copy()
+        mom_126 = float((1.0 + tail["ret"].iloc[:-1].fillna(0.0)).prod() - 1.0) if tail.shape[0] >= 10 else np.nan
 
         # VOL: realized stdev over 21d
         vtail = r.iloc[-VOL_WDAYS:].copy() if r.shape[0] >= VOL_WDAYS else r.copy()
@@ -255,22 +235,14 @@ def main():
             m = pd.merge(r[["date", "ret"]], bm, on="date", how="inner")
             if not m.empty:
                 beta_126 = _rolling_beta(m["ret"], m["mkt_ret"], window=BETA_WDAYS)
-        if bm is None or (
-            not math.isfinite(beta_126) if isinstance(beta_126, float) else True
-        ):
+        if bm is None or (not math.isfinite(beta_126) if isinstance(beta_126, float) else True):
             # fallback synthetic market: mean of peer returns each day (exclude self)
             peers = rets[rets["ticker"] != tic]
-            mkt = (
-                peers.groupby("date", as_index=False)["ret"]
-                .mean()
-                .rename(columns={"ret": "mkt_ret"})
-            )
+            mkt = peers.groupby("date", as_index=False)["ret"].mean().rename(columns={"ret": "mkt_ret"})
             m2 = pd.merge(r[["date", "ret"]], mkt, on="date", how="inner")
             if not m2.empty:
                 beta_126 = _rolling_beta(m2["ret"], m2["mkt_ret"], window=BETA_WDAYS)
-        rows.append(
-            {"ticker": tic, "mom_126": mom_126, "vol_21": vol_21, "beta_126": beta_126}
-        )
+        rows.append({"ticker": tic, "mom_126": mom_126, "vol_21": vol_21, "beta_126": beta_126})
 
     detail = pd.DataFrame(rows)
     # derive z-scores across current universe (handle NaNs)
@@ -303,11 +275,7 @@ def main():
     t = pd.read_csv(TARGETS_CSV)
     t["date"] = pd.to_datetime(t["date"], errors="coerce")
     snap = t[t["date"] == t["date"].max()].copy()
-    wcol = (
-        "target_w"
-        if "target_w" in snap.columns
-        else ("base_w" if "base_w" in snap.columns else None)
-    )
+    wcol = "target_w" if "target_w" in snap.columns else ("base_w" if "base_w" in snap.columns else None)
     if wcol is None:
         snap[wcol] = 1.0 / max(1, len(tickers))
     snap = snap.rename(columns={"ticker": "ticker"}).merge(
@@ -334,9 +302,7 @@ def main():
         try:
             prev = pd.read_csv(OUT_WEEKLY)
             prev["date"] = pd.to_datetime(prev["date"], errors="coerce").dt.date
-            outw = pd.concat([prev, wk_row], ignore_index=True).drop_duplicates(
-                subset=["date"], keep="last"
-            )
+            outw = pd.concat([prev, wk_row], ignore_index=True).drop_duplicates(subset=["date"], keep="last")
         except Exception:
             outw = wk_row.copy()
     else:

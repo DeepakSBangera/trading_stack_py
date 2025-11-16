@@ -34,19 +34,13 @@ def load_baseline_weights() -> pd.Series:
         pos["date"] = pd.to_datetime(pos["date"])
         d = pos["date"].max()
         snap = pos[pos["date"] == d]
-        if {"ticker", "weight"}.issubset(snap.columns) and snap[
-            "weight"
-        ].abs().sum() > 0:
+        if {"ticker", "weight"}.issubset(snap.columns) and snap["weight"].abs().sum() > 0:
             w = snap.set_index("ticker")["weight"].clip(lower=0.0)
             return w / w.sum() if w.sum() > 0 else w
-    raise SystemExit(
-        "No baseline weights found (need wk6_portfolio_compare.csv or positions_daily.parquet)."
-    )
+    raise SystemExit("No baseline weights found (need wk6_portfolio_compare.csv or positions_daily.parquet).")
 
 
-def renorm_with_locks(
-    target: pd.Series, lock_mask: pd.Series, locked_values: pd.Series
-) -> pd.Series:
+def renorm_with_locks(target: pd.Series, lock_mask: pd.Series, locked_values: pd.Series) -> pd.Series:
     """Keep locked tickers at locked_values; renormalize the rest to sum to (1 - sum_locked)."""
     target = target.copy()
     locked_sum = float(locked_values[lock_mask].sum()) if lock_mask.any() else 0.0
@@ -69,9 +63,7 @@ def renorm_with_locks(
 
 def build_targets():
     if not SCHED.exists():
-        raise SystemExit(
-            "Missing reports\\risk_schedule_blended.csv — run w8_combine_schedules.py first."
-        )
+        raise SystemExit("Missing reports\\risk_schedule_blended.csv — run w8_combine_schedules.py first.")
     sched = pd.read_csv(SCHED, parse_dates=["date"])
     base_w = load_baseline_weights()
 

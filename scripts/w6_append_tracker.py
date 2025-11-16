@@ -26,9 +26,7 @@ NOW_ISO = dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
 def _git_sha8():
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-        ).strip()
+        return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
     except Exception:
         return "nogit"
 
@@ -38,9 +36,7 @@ def _stats():
     if COMPARE.exists():
         c = pd.read_csv(COMPARE)
         s["schemes"] = c["scheme"].nunique() if "scheme" in c.columns else None
-        s["herf_median"] = (
-            float(c["herfindahl"].median()) if "herfindahl" in c.columns else None
-        )
+        s["herf_median"] = float(c["herfindahl"].median()) if "herfindahl" in c.columns else None
     if CAP.exists():
         cp = pd.read_csv(CAP)
         s["capacity_points"] = int(cp.shape[0])

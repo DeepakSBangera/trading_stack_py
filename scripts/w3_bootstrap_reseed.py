@@ -72,15 +72,11 @@ def make_adv():
         for t in TICKERS:
             adv_val = rng.uniform(10_000_000, 40_000_000)  # ₹1–4Cr
             rows.append((d, t, adv_val))
-    pd.DataFrame(rows, columns=["date", "ticker", "adv_value"]).to_parquet(
-        REPORTS / "adv_value.parquet", index=False
-    )
+    pd.DataFrame(rows, columns=["date", "ticker", "adv_value"]).to_parquet(REPORTS / "adv_value.parquet", index=False)
 
 
 def make_orders():
-    pos = pd.read_parquet(REPORTS / "positions_daily.parquet").sort_values(
-        ["ticker", "date"]
-    )
+    pos = pd.read_parquet(REPORTS / "positions_daily.parquet").sort_values(["ticker", "date"])
     pos["prev_val"] = pos.groupby("ticker")["position_value"].shift(1).fillna(0.0)
     pos["order_value"] = (pos["position_value"] - pos["prev_val"]).abs()
     pos[["date", "ticker", "order_value", "list_tier", "port_value"]].to_parquet(
@@ -91,9 +87,7 @@ def make_orders():
 def main():
     REPORTS.mkdir(parents=True, exist_ok=True)
     if not CONFIG.exists():
-        raise SystemExit(
-            "Missing config\\capacity_policy.yaml — complete Step 1 first."
-        )
+        raise SystemExit("Missing config\\capacity_policy.yaml — complete Step 1 first.")
     make_positions()
     make_adv()
     make_orders()

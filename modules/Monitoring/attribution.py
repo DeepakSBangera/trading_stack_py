@@ -78,9 +78,7 @@ def pivot_weights(weights_long: pd.DataFrame) -> pd.DataFrame:
     df = _ensure_dt_index_on_frame(df, "date")
     df["ticker"] = df["ticker"].astype(str)
 
-    wide = df.pivot_table(
-        index=df.index, columns="ticker", values="weight", aggfunc="last"
-    ).sort_index()
+    wide = df.pivot_table(index=df.index, columns="ticker", values="weight", aggfunc="last").sort_index()
     # Forward-fill weights across days; missing = 0
     wide = wide.ffill().fillna(0.0)
     wide.columns.name = None
@@ -108,17 +106,9 @@ def _load_one_price_series(prq: pathlib.Path) -> pd.Series:
         s = pd.to_numeric(df[ret_cols[0]], errors="coerce")
     else:
         # Try to compute from close-like columns
-        close_candidates = [
-            c
-            for c in df.columns
-            if c.lower() in ("close", "adj_close", "adjclose", "price")
-        ]
+        close_candidates = [c for c in df.columns if c.lower() in ("close", "adj_close", "adjclose", "price")]
         if close_candidates:
-            px = (
-                pd.to_numeric(df[close_candidates[0]], errors="coerce")
-                .replace([np.inf, -np.inf], np.nan)
-                .ffill()
-            )
+            px = pd.to_numeric(df[close_candidates[0]], errors="coerce").replace([np.inf, -np.inf], np.nan).ffill()
             s = px.pct_change().fillna(0.0)
         else:
             # No usable column; return zeros
@@ -131,9 +121,7 @@ def _load_one_price_series(prq: pathlib.Path) -> pd.Series:
     return s
 
 
-def build_returns_from_prices(
-    root: pathlib.Path, tickers: Iterable[str]
-) -> pd.DataFrame:
+def build_returns_from_prices(root: pathlib.Path, tickers: Iterable[str]) -> pd.DataFrame:
     """
     Given a directory with parquet files per ticker, return a wide
     DataFrame of daily returns indexed by date (tz-naive), columns=tickers.
@@ -208,9 +196,7 @@ def align_weights_and_returns(
 # ---------- Contribution / Grouping ----------
 
 
-def contribution_by_ticker(
-    W: pd.DataFrame, R: pd.DataFrame
-) -> tuple[pd.DataFrame, pd.Series]:
+def contribution_by_ticker(W: pd.DataFrame, R: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     """
     Per-ticker contributions = W.shift(1) * R
     Portfolio return = row-wise sum of contributions.
@@ -257,9 +243,7 @@ def group_contribution(
 
     gmap = dict(zip(mp["ticker"], mp[group_col]))
     tmp = contrib_by_ticker[cols].copy()
-    tmp.columns = pd.MultiIndex.from_tuples(
-        [(gmap.get(c, "UNK"), c) for c in tmp.columns], names=[group_col, "ticker"]
-    )
+    tmp.columns = pd.MultiIndex.from_tuples([(gmap.get(c, "UNK"), c) for c in tmp.columns], names=[group_col, "ticker"])
     grp = tmp.groupby(level=0, axis=1).sum()
     grp.index.name = "date"
     return grp

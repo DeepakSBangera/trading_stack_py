@@ -69,9 +69,7 @@ def open_win(p: Path):
             print(f"[hint] open manually: {p}")
 
 
-def write_script_card_inline(
-    script_path: Path, purpose: str, session: str, outputs: list[Path], params: dict
-) -> Path:
+def write_script_card_inline(script_path: Path, purpose: str, session: str, outputs: list[Path], params: dict) -> Path:
     INFO_DIR.mkdir(parents=True, exist_ok=True)
     name = script_path.name
     now = dt.datetime.now().astimezone().isoformat(timespec="seconds")
@@ -92,9 +90,7 @@ def write_script_card_inline(
     return out
 
 
-def write_script_card(
-    script_path: Path, purpose: str, session: str, outputs: list[Path], params: dict
-) -> Path:
+def write_script_card(script_path: Path, purpose: str, session: str, outputs: list[Path], params: dict) -> Path:
     # Prefer helper if available; else inline
     try:
         sys.path.insert(0, str(ROOT / "scripts"))
@@ -119,9 +115,7 @@ def call_manifest(session_label: str):
     py = ROOT / ".venv" / "Scripts" / "python.exe"
     if runner.exists():
         try:
-            subprocess.run(
-                [str(py), str(runner), session_label], cwd=str(ROOT), check=False
-            )
+            subprocess.run([str(py), str(runner), session_label], cwd=str(ROOT), check=False)
         except Exception:
             pass
 
@@ -130,13 +124,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run a script, auto-log outputs, refresh registry, (optional) manifest."
     )
-    parser.add_argument(
-        "target", help="Path to script (e.g., scripts\\w11_build_targets.py)"
-    )
+    parser.add_argument("target", help="Path to script (e.g., scripts\\w11_build_targets.py)")
     parser.add_argument("--session", default="", help="Session label (e.g., S-W11)")
-    parser.add_argument(
-        "--purpose", default="", help="Override purpose text (else pulled from map)"
-    )
+    parser.add_argument("--purpose", default="", help="Override purpose text (else pulled from map)")
     parser.add_argument(
         "--input",
         action="append",
@@ -163,11 +153,7 @@ def main():
     args = parser.parse_args()
 
     py = str(ROOT / ".venv" / "Scripts" / "python.exe")
-    target = (
-        ROOT / args.target
-        if not args.target.startswith(str(ROOT))
-        else Path(args.target)
-    )
+    target = ROOT / args.target if not args.target.startswith(str(ROOT)) else Path(args.target)
     if not target.exists():
         raise SystemExit(f"Target not found: {target}")
 

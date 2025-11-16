@@ -33,9 +33,7 @@ def main():
         "reports_sample": [],
     }
     try:
-        recent = sorted(
-            glob.glob(os.path.join(args.reports, "*.*")), key=os.path.getmtime
-        )[-10:]
+        recent = sorted(glob.glob(os.path.join(args.reports, "*.*")), key=os.path.getmtime)[-10:]
         for p in recent:
             out["reports_sample"].append({"path": p, "bytes": os.path.getsize(p)})
     except Exception:

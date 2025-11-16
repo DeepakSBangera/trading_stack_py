@@ -147,9 +147,7 @@ def _load_orders() -> pd.DataFrame:
             raise ValueError(f"{FILLS_IN_OPT} missing columns: {missing}")
         df["date"] = pd.to_datetime(df["date"]).dt.date
         df["ticker"] = df["ticker"].astype(str)
-        df["qty"] = (
-            pd.to_numeric(df["qty"], errors="coerce").fillna(0).astype(int).abs()
-        )
+        df["qty"] = pd.to_numeric(df["qty"], errors="coerce").fillna(0).astype(int).abs()
         df["side"] = df["side"].astype(str)
         df["px_ref"] = pd.to_numeric(df["px_ref"], errors="coerce")
         return df[df["qty"] > 0].copy()
@@ -169,9 +167,7 @@ def _load_orders() -> pd.DataFrame:
     raw["date"] = pd.to_datetime(raw[dcol], errors="coerce").dt.date
     raw["ticker"] = raw[tcol].astype(str)
     if qcol:
-        raw["qty"] = (
-            pd.to_numeric(raw[qcol], errors="coerce").fillna(0).abs().astype(int)
-        )
+        raw["qty"] = pd.to_numeric(raw[qcol], errors="coerce").fillna(0).abs().astype(int)
     else:
         # Derive qty from weights + default notional + price
         wcol = _pick_col(
@@ -186,25 +182,19 @@ def _load_orders() -> pd.DataFrame:
         else:
             raw["px_ref"] = np.nan
         for i in raw.index[raw["px_ref"].isna()]:
-            pr = _lookup_price_from_prices_dir(
-                str(raw.at[i, "ticker"]), raw.at[i, "date"]
-            )
+            pr = _lookup_price_from_prices_dir(str(raw.at[i, "ticker"]), raw.at[i, "date"])
             if pr is not None:
                 raw.at[i, "px_ref"] = pr
         raw["w"] = pd.to_numeric(raw[wcol], errors="coerce").fillna(0.0)
         notional = (raw["w"] * DEFAULT_PORTFOLIO_NOTIONAL_INR).abs()
-        raw["qty"] = (
-            (notional / raw["px_ref"].replace(0, np.nan)).round().fillna(0).astype(int)
-        )
+        raw["qty"] = (notional / raw["px_ref"].replace(0, np.nan)).round().fillna(0).astype(int)
 
     if pcol:
         raw["px_ref"] = pd.to_numeric(raw[pcol], errors="coerce")
     else:
         raw["px_ref"] = np.nan
         for i in raw.index[raw["px_ref"].isna()]:
-            pr = _lookup_price_from_prices_dir(
-                str(raw.at[i, "ticker"]), raw.at[i, "date"]
-            )
+            pr = _lookup_price_from_prices_dir(str(raw.at[i, "ticker"]), raw.at[i, "date"])
             if pr is not None:
                 raw.at[i, "px_ref"] = pr
 
@@ -229,9 +219,7 @@ def _impact_bps(participation_pct: float) -> float:
     return BASE_IMPACT_BPS * (rel**IMPACT_EXPONENT)
 
 
-def _schedule_slippage_bps(
-    style: str, side: str, notional_inr: float, adv_inr: float
-) -> float:
+def _schedule_slippage_bps(style: str, side: str, notional_inr: float, adv_inr: float) -> float:
     # participation estimate per style
     if adv_inr <= 0:
         adv_inr = FALLBACK_ADV_INR
@@ -345,9 +333,7 @@ def main():
 
     # Choose winner per order (min tca_cost)
     if not detail.empty:
-        idx = detail.groupby(["date", "ticker"], as_index=False)[
-            "tca_cost_inr"
-        ].idxmin()
+        idx = detail.groupby(["date", "ticker"], as_index=False)["tca_cost_inr"].idxmin()
         winners = detail.loc[idx["tca_cost_inr"]].copy()
     else:
         winners = pd.DataFrame(columns=detail.columns)
@@ -367,9 +353,7 @@ def main():
                 "orders_evaluated": tot_orders,
                 "notional_inr": round(tot_notional, 2),
                 "best_total_tca_inr": round(best_tca, 2),
-                "best_style_portfolio_hint": (
-                    winners["style"].mode().iat[0] if not winners.empty else "NA"
-                ),
+                "best_style_portfolio_hint": (winners["style"].mode().iat[0] if not winners.empty else "NA"),
             }
         ]
     ).to_csv(SUMMARY_CSV, index=False)
@@ -382,9 +366,7 @@ def main():
         "orders_evaluated": tot_orders,
         "notional_inr": round(tot_notional, 2),
         "best_total_tca_inr": round(best_tca, 2),
-        "best_style_portfolio_hint": (
-            winners["style"].mode().iat[0] if not winners.empty else "NA"
-        ),
+        "best_style_portfolio_hint": (winners["style"].mode().iat[0] if not winners.empty else "NA"),
     }
     print(json.dumps(out, indent=2))
 

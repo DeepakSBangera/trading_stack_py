@@ -67,11 +67,7 @@ def run_backtest(
         if picks:
             w_target[picks] = 1.0 / len(picks)
 
-        next_dt = (
-            rebal_dates[i + 1]
-            if i + 1 < len(rebal_dates)
-            else weights.index.max() + pd.Timedelta(days=1)
-        )
+        next_dt = rebal_dates[i + 1] if i + 1 < len(rebal_dates) else weights.index.max() + pd.Timedelta(days=1)
         mask = (weights.index >= dt) & (weights.index < next_dt)
         weights.loc[mask] = w_target.values
 
@@ -88,11 +84,7 @@ def run_backtest(
     # Stats
     n = len(port_ret)
     cagr = (equity.iloc[-1] / equity.iloc[0]) ** (252.0 / max(1, n)) - 1.0
-    sharpe = (
-        (port_ret.mean() / port_ret.std(ddof=0) * np.sqrt(252.0))
-        if port_ret.std(ddof=0) > 0
-        else 0.0
-    )
+    sharpe = (port_ret.mean() / port_ret.std(ddof=0) * np.sqrt(252.0)) if port_ret.std(ddof=0) > 0 else 0.0
 
     roll_max = equity.cummax()
     drawdown = equity / roll_max - 1.0

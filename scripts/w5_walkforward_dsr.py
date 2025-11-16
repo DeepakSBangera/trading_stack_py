@@ -28,9 +28,7 @@ def sharpe_annual(ret: pd.Series, rf_daily: float = 0.0) -> float:
 
 
 # Bailey–Lopez de Prado Deflated Sharpe Ratio (simplified)
-def deflated_sharpe_ratio(
-    sr: float, n: int, trials: int = 10, skew: float = 0.0, kurt: float = 3.0
-) -> float:
+def deflated_sharpe_ratio(sr: float, n: int, trials: int = 10, skew: float = 0.0, kurt: float = 3.0) -> float:
     if n <= 1:
         return 0.0
     # expected max SR from noise (approx)
@@ -43,9 +41,7 @@ def deflated_sharpe_ratio(
     return float(norm.cdf(z))
 
 
-def walk_forward_splits(
-    dates: pd.DatetimeIndex, train_win: int, test_win: int, step: int = None
-):
+def walk_forward_splits(dates: pd.DatetimeIndex, train_win: int, test_win: int, step: int = None):
     step = step or test_win
     i = 0
     n = len(dates)
@@ -62,9 +58,7 @@ def walk_forward_splits(
 def main():
     pos_pq = REPORTS / "positions_daily.parquet"
     if not pos_pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run W3 bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run W3 bootstrap first.")
 
     pos = pd.read_parquet(pos_pq)
     port = (

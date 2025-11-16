@@ -123,9 +123,7 @@ def _read_price(ticker: str) -> pd.DataFrame | None:
         return None
 
 
-def _fwd_return(
-    price_df: pd.DataFrame, d: pd.Timestamp, horizon_days: int
-) -> float | None:
+def _fwd_return(price_df: pd.DataFrame, d: pd.Timestamp, horizon_days: int) -> float | None:
     if price_df is None or price_df.empty:
         return None
     # find index of date d (if absent, use next available after d)
@@ -175,9 +173,7 @@ def _build_dataset(targets: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     # Separate a "current policy" set = last date present (apply to that)
     if data.empty:
         # fall back: zero-weights
-        return data, pd.DataFrame(
-            columns=["date", "ticker", "base_w", "final_mult", "target_w"]
-        )
+        return data, pd.DataFrame(columns=["date", "ticker", "base_w", "final_mult", "target_w"])
     last_day = targets["date"].max()
     current = targets[targets["date"] == last_day].copy()
     current = current[["date", "ticker", "base_w", "final_mult", "target_w"]]
@@ -252,9 +248,7 @@ def main():
         w = np.array([0.0] * (1 + len(features)), dtype=float)
 
     # Apply to most recent date (current)
-    curr_std = (
-        _apply_standardize(current, features, stats) if not current.empty else current
-    )
+    curr_std = _apply_standardize(current, features, stats) if not current.empty else current
     Xc = (
         np.c_[np.ones(len(curr_std)), curr_std[features].values]
         if not curr_std.empty
@@ -290,9 +284,7 @@ def main():
     out.to_csv(OUT_CSV, index=False)
 
     diag = {
-        "as_of": (
-            None if targets.empty else str(pd.to_datetime(targets["date"].max()).date())
-        ),
+        "as_of": (None if targets.empty else str(pd.to_datetime(targets["date"].max()).date())),
         "universe": int(targets["ticker"].nunique()),
         "train_rows": int(len(train)),
         "current_rows": int(len(current)),

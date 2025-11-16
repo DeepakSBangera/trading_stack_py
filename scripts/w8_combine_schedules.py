@@ -22,13 +22,9 @@ def open_win(p: Path):
 
 def main():
     if not SCHED_MACRO.exists():
-        raise SystemExit(
-            "Missing reports\\regime_risk_schedule.csv — run w7_apply_gates.py first."
-        )
+        raise SystemExit("Missing reports\\regime_risk_schedule.csv — run w7_apply_gates.py first.")
     if not FLAGS_EVENT.exists():
-        raise SystemExit(
-            "Missing reports\\events_position_flags.csv — run w8_apply_event_rules.py first."
-        )
+        raise SystemExit("Missing reports\\events_position_flags.csv — run w8_apply_event_rules.py first.")
 
     macro = pd.read_csv(SCHED_MACRO, parse_dates=["date"])
     evt = pd.read_csv(FLAGS_EVENT, parse_dates=["date"])
@@ -63,9 +59,7 @@ def main():
     # Final multiplier = macro/DD multiplier × event multiplier
     df["event_multiplier"] = df["risk_mult"].astype(float)
     df["macro_multiplier"] = df["total_risk_multiplier"].astype(float)
-    df["final_risk_multiplier"] = (
-        df["macro_multiplier"] * df["event_multiplier"]
-    ).clip(lower=0.0)
+    df["final_risk_multiplier"] = (df["macro_multiplier"] * df["event_multiplier"]).clip(lower=0.0)
 
     # Output tidy columns
     out = df[

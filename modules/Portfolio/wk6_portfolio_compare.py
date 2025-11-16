@@ -100,9 +100,7 @@ def week_end_dates(ix: pd.DatetimeIndex) -> pd.DatetimeIndex:
     ix = ix.tz_convert("UTC")
     iso = ix.isocalendar()
     s = pd.Series(0, index=ix)
-    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(
-        lambda x: x.index.max()
-    )
+    we = s.groupby([iso["year"].to_numpy(), iso["week"].to_numpy()]).apply(lambda x: x.index.max())
     return pd.DatetimeIndex(we.to_list(), tz="UTC")
 
 

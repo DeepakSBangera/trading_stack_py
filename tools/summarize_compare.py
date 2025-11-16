@@ -28,12 +28,8 @@ def main():
     ap.add_argument("--decision-out", default=r"reports\promotion_decision.txt")
     # simple gates
     ap.add_argument("--min-calmar", type=float, default=0.60)
-    ap.add_argument(
-        "--max-dd", type=float, default=-0.40
-    )  # e.g. -40% floor (higher is better)
-    ap.add_argument(
-        "--prefer", default="CAGR,Sharpe"
-    )  # metrics to require improvement on
+    ap.add_argument("--max-dd", type=float, default=-0.40)  # e.g. -40% floor (higher is better)
+    ap.add_argument("--prefer", default="CAGR,Sharpe")  # metrics to require improvement on
     args = ap.parse_args()
 
     p = pathlib.Path(args.compare)
@@ -111,9 +107,7 @@ def main():
     if not prefer_ok:
         reasons.append(f"prefer metrics {prefer} not strictly improved")
     if not dd_ok:
-        reasons.append(
-            f"MaxDD {fmt_pct(mdd_B) if mdd_B is not None else 'NA'} below floor {fmt_pct(args.max_dd)}"
-        )
+        reasons.append(f"MaxDD {fmt_pct(mdd_B) if mdd_B is not None else 'NA'} below floor {fmt_pct(args.max_dd)}")
     if not calmar_ok and calmar_B is not None:
         reasons.append(f"Calmar {calmar_B:.2f} < {args.min_calmar:.2f}")
 

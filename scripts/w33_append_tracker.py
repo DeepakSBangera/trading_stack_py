@@ -50,11 +50,7 @@ def main():
                 "git_sha8": "",
             }
         )
-    print(
-        json.dumps(
-            {"tracker_csv": str(TRACKER), "session": "S-W33", "rows": rows}, indent=2
-        )
-    )
+    print(json.dumps({"tracker_csv": str(TRACKER), "session": "S-W33", "rows": rows}, indent=2))
 
 
 if __name__ == "__main__":

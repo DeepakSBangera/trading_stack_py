@@ -43,9 +43,7 @@ def open_win(p: Path):
 def main():
     pq = REPORTS / "positions_daily.parquet"
     if not pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run W3 bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run W3 bootstrap first.")
 
     pos = pd.read_parquet(pq)
     pos["date"] = pd.to_datetime(pos["date"])
@@ -61,13 +59,7 @@ def main():
         .fillna(0.0)
         .sort_index()
     )
-    wk["gross_abs"] = (
-        pos.assign(absw=pos["weight"].abs())
-        .groupby("week")["absw"]
-        .sum()
-        .reindex(wk.index)
-        .fillna(0.0)
-    )
+    wk["gross_abs"] = pos.assign(absw=pos["weight"].abs()).groupby("week")["absw"].sum().reindex(wk.index).fillna(0.0)
     wk.to_csv(OUT, index=True)
 
     print(

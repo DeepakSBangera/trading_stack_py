@@ -35,9 +35,7 @@ def rule_R1_trend_breakout_obv(features: pd.DataFrame, params: dict) -> pd.DataF
     atr_max = float(p.get("atr_max_pct", 0.06))
     avoid_spike = float(p.get("avoid_spike_ret", 0.12))
 
-    cross_up = (features["sma_f"] > features["sma_s"]) & (
-        features["sma_f"].shift(1) <= features["sma_s"].shift(1)
-    )
+    cross_up = (features["sma_f"] > features["sma_s"]) & (features["sma_f"].shift(1) <= features["sma_s"].shift(1))
     breakout = features["close"] >= 0.995 * features["hi52"]
     obv_ok = features["obv_slope"] > 0
     vol_ok = features["atr_pct"].between(atr_min, atr_max)
@@ -74,12 +72,7 @@ def rule_R2_momo_rsi(features: pd.DataFrame, params: dict) -> pd.DataFrame:
     return pd.DataFrame(
         {
             "buy": buy.astype(int),
-            "score": (
-                trend_up.astype(int)
-                + rsi_ok.astype(int)
-                + vol_ok.astype(int)
-                + anti_spk.astype(int)
-            ),
+            "score": (trend_up.astype(int) + rsi_ok.astype(int) + vol_ok.astype(int) + anti_spk.astype(int)),
         },
         index=features.index,
     )

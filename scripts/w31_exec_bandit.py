@@ -69,12 +69,8 @@ def _reward_from_fills(df: pd.DataFrame) -> pd.Series:
     # reward = -(slippage + commission + tax) in bps
     cols = {c.lower(): c for c in df.columns}
     s = pd.to_numeric(df[cols.get("slippage_bps", "slippage_bps")], errors="coerce")
-    com = pd.to_numeric(
-        df.get(cols.get("commission_bps", "commission_bps"), 0.0), errors="coerce"
-    ).fillna(0.0)
-    tax = pd.to_numeric(
-        df.get(cols.get("tax_bps", "tax_bps"), 0.0), errors="coerce"
-    ).fillna(0.0)
+    com = pd.to_numeric(df.get(cols.get("commission_bps", "commission_bps"), 0.0), errors="coerce").fillna(0.0)
+    tax = pd.to_numeric(df.get(cols.get("tax_bps", "tax_bps"), 0.0), errors="coerce").fillna(0.0)
     return -(s.fillna(s.median())) - com - tax
 
 
@@ -85,9 +81,7 @@ def _prep_historical_rewards() -> pd.DataFrame:
     """
     df = _safe_read_csv(FILLS_CSV)
     if df is None or df.empty:
-        return pd.DataFrame(
-            columns=["ticker", "arm", "reward_bps", "notional", "tod_bucket", "ts"]
-        )
+        return pd.DataFrame(columns=["ticker", "arm", "reward_bps", "notional", "tod_bucket", "ts"])
 
     cols = {c.lower(): c for c in df.columns}
     tic = cols.get("ticker", "ticker")
@@ -106,11 +100,7 @@ def _prep_historical_rewards() -> pd.DataFrame:
             "ticker": df[tic].astype(str),
             "arm": df[arm_col].astype(str) if arm_col else "VWAP",
             "reward_bps": rewards,
-            "notional": (
-                pd.to_numeric(df[notional_col], errors="coerce")
-                if notional_col
-                else np.nan
-            ),
+            "notional": (pd.to_numeric(df[notional_col], errors="coerce") if notional_col else np.nan),
             "ts": pd.to_datetime(df[ts_col], errors="coerce") if ts_col else pd.NaT,
         }
     )
@@ -170,9 +160,9 @@ def _load_orders() -> pd.DataFrame:
     ):
         pcol = cols.get("limit_price") or cols.get("px_ref") or cols.get("price")
         qcol = cols.get("qty") or cols.get("quantity")
-        df["notional"] = pd.to_numeric(df[pcol], errors="coerce").fillna(
-            0.0
-        ) * pd.to_numeric(df[qcol], errors="coerce").fillna(0.0)
+        df["notional"] = pd.to_numeric(df[pcol], errors="coerce").fillna(0.0) * pd.to_numeric(
+            df[qcol], errors="coerce"
+        ).fillna(0.0)
     else:
         df["notional"] = np.nan
     # default TOD to MID (end-of-day workflow)
@@ -210,9 +200,7 @@ def _update_bandit_from_history(btab: pd.DataFrame, hist: pd.DataFrame):
     hist = hist.copy()
     hist["symbol_bucket"] = sb
     g = (
-        hist.groupby(["symbol_bucket", "tod_bucket", "arm"], as_index=False)[
-            "reward_bps"
-        ]
+        hist.groupby(["symbol_bucket", "tod_bucket", "arm"], as_index=False)["reward_bps"]
         .agg(["count", "mean"])
         .reset_index()
     )
@@ -229,9 +217,7 @@ def _update_bandit_from_history(btab: pd.DataFrame, hist: pd.DataFrame):
     return btab
 
 
-def _merge_existing_log(
-    btab: pd.DataFrame, log_df: pd.DataFrame | None
-) -> pd.DataFrame:
+def _merge_existing_log(btab: pd.DataFrame, log_df: pd.DataFrame | None) -> pd.DataFrame:
     if log_df is None or log_df.empty:
         return btab
     # bring forward prior n/mean
@@ -284,9 +270,7 @@ def _append_log(log_df: pd.DataFrame | None, updates: list[dict]) -> pd.DataFram
         out = pd.concat([log_df, add], ignore_index=True)
     # roll-up to maintain summary table per (sb,tb,arm): n & mean
     roll = (
-        out.groupby(["symbol_bucket", "tod_bucket", "arm"], as_index=False)[
-            "reward_bps"
-        ]
+        out.groupby(["symbol_bucket", "tod_bucket", "arm"], as_index=False)["reward_bps"]
         .agg(["count", "mean"])
         .reset_index()
     )
@@ -321,11 +305,7 @@ def main():
             {
                 "order_id": r["order_id"],
                 "ticker": str(r["ticker"]),
-                "qty": int(
-                    pd.to_numeric(
-                        r.get("qty", r.get("quantity", 0)), errors="coerce"
-                    ).fillna(0)
-                ),
+                "qty": int(pd.to_numeric(r.get("qty", r.get("quantity", 0)), errors="coerce").fillna(0)),
                 "tod_bucket": r["tod_bucket"],
                 "symbol_bucket": r["symbol_bucket"],
                 "chosen_arm": arm,
@@ -361,11 +341,7 @@ def main():
         "notes": "Assigns an execution style per order using ε-greedy + UCB tie-break. Rewards are negative total bps drag. Update bandit_log after fills.",
     }
     OUT_DIAG.write_text(json.dumps(diag, indent=2), encoding="utf-8")
-    print(
-        json.dumps(
-            {"assignments_csv": str(OUT_ASSIGN), "diag_json": str(OUT_DIAG)}, indent=2
-        )
-    )
+    print(json.dumps({"assignments_csv": str(OUT_ASSIGN), "diag_json": str(OUT_DIAG)}, indent=2))
 
 
 if __name__ == "__main__":

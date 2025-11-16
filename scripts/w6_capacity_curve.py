@@ -46,11 +46,7 @@ def main():
     )
 
     # simple curve: percentiles of per-name caps (cross-section) each day
-    pc = (
-        adv.groupby("date")["per_name_cap_value"]
-        .quantile([0.5, 0.75, 0.9, 0.95])
-        .unstack()
-    )
+    pc = adv.groupby("date")["per_name_cap_value"].quantile([0.5, 0.75, 0.9, 0.95]).unstack()
     pc.columns = [f"p{int(q * 100)}_per_name_cap" for q in pc.columns]
     curve = daily.merge(pc.reset_index(), on="date", how="left").sort_values("date")
 

@@ -19,9 +19,7 @@ def open_win(p: Path):
 def ensure_header():
     DOCS.mkdir(parents=True, exist_ok=True)
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
 
 
 def main():
@@ -39,9 +37,7 @@ def main():
     )
     gates = "Final schedule = macro/DD × event; gate FAIL blocks adds/rebalance"
     risks = "Synthetic events & proxy regimes; replace with vendor feeds before prod"
-    decisions = (
-        "Use final_risk_multiplier and *_final flags in sizing; archive W8 bundle"
-    )
+    decisions = "Use final_risk_multiplier and *_final flags in sizing; archive W8 bundle"
 
     line = f'{today},S-W8,~0.3h,"{artifacts}","{gates}","{risks}","{decisions}"\n'
 

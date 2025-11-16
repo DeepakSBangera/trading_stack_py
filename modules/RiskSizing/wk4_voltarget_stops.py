@@ -21,11 +21,7 @@ def find_latest_equity(reports: pathlib.Path) -> pathlib.Path:
 
 
 def load_equity(path: pathlib.Path) -> pd.DataFrame:
-    df = (
-        pd.read_parquet(path)
-        if path.suffix.lower() == ".parquet"
-        else pd.read_csv(path)
-    )
+    df = pd.read_parquet(path) if path.suffix.lower() == ".parquet" else pd.read_csv(path)
     if "date" not in df.columns:
         raise SystemExit("equity-like file missing 'date'")
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
@@ -34,18 +30,12 @@ def load_equity(path: pathlib.Path) -> pd.DataFrame:
     prefer = ["equity", "nav", "portfolio", "value", "equity_curve", "equity_nav"]
     eq_col = next((c for c in prefer if c in df.columns), None)
     if eq_col is None:
-        num_cols = [
-            c
-            for c in df.columns
-            if c != "date" and pd.api.types.is_numeric_dtype(df[c])
-        ]
+        num_cols = [c for c in df.columns if c != "date" and pd.api.types.is_numeric_dtype(df[c])]
         if not num_cols:
             raise SystemExit("No numeric equity-like column found.")
         eq_col = num_cols[-1]
     df["equity"] = pd.to_numeric(df[eq_col], errors="coerce")
-    df["equity"] = (
-        df["equity"].replace([np.inf, -np.inf], np.nan).interpolate().bfill().ffill()
-    )
+    df["equity"] = df["equity"].replace([np.inf, -np.inf], np.nan).interpolate().bfill().ffill()
     return df[["date", "equity"]]
 
 
@@ -59,9 +49,7 @@ def main():
     ap.add_argument("--reports", default="reports")
     ap.add_argument("--equity", default="")  # optional override
     ap.add_argument("--vol-wins", default="20,63,126")  # rolling windows (days)
-    ap.add_argument(
-        "--target-vol", type=float, default=0.0
-    )  # 0 = compute, but don't size
+    ap.add_argument("--target-vol", type=float, default=0.0)  # 0 = compute, but don't size
     args = ap.parse_args()
 
     reports = pathlib.Path(args.reports)

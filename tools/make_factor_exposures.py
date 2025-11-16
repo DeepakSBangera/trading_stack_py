@@ -121,9 +121,7 @@ def _scalar(x, default=float("nan")) -> float:
         return default
 
 
-def _safe_write_csv(
-    df: pd.DataFrame, path: Path, retries: int = 5, sleep_s: float = 0.6
-) -> Path:
+def _safe_write_csv(df: pd.DataFrame, path: Path, retries: int = 5, sleep_s: float = 0.6) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
@@ -159,30 +157,14 @@ def main() -> None:
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    port_csv = (
-        Path(args.portfolio_csv)
-        if args.portfolio_csv
-        else _find_latest("reports/portfolioV2_*.csv")
-    )
-    weights_csv = (
-        Path(args.weights_csv)
-        if args.weights_csv
-        else _find_latest("reports/portfolioV2_*_weights.csv")
-    )
-    mapping_csv = (
-        Path(args.mapping_csv)
-        if args.mapping_csv
-        else Path("config/sector_mapping.csv")
-    )
+    port_csv = Path(args.portfolio_csv) if args.portfolio_csv else _find_latest("reports/portfolioV2_*.csv")
+    weights_csv = Path(args.weights_csv) if args.weights_csv else _find_latest("reports/portfolioV2_*_weights.csv")
+    mapping_csv = Path(args.mapping_csv) if args.mapping_csv else Path("config/sector_mapping.csv")
 
     if port_csv is None or not port_csv.exists():
-        raise FileNotFoundError(
-            "Portfolio CSV not found. Provide --portfolio-csv or run Report-PortfolioV2 first."
-        )
+        raise FileNotFoundError("Portfolio CSV not found. Provide --portfolio-csv or run Report-PortfolioV2 first.")
     if weights_csv is None or not weights_csv.exists():
-        raise FileNotFoundError(
-            "Weights CSV not found. Provide --weights-csv or run Report-PortfolioV2 first."
-        )
+        raise FileNotFoundError("Weights CSV not found. Provide --weights-csv or run Report-PortfolioV2 first.")
     if not mapping_csv.exists():
         raise FileNotFoundError(f"Sector mapping CSV not found at '{mapping_csv}'.")
 
@@ -197,13 +179,8 @@ def main() -> None:
     weights = _dedupe_index_last(_ensure_utc_index(weights.loc[common_idx]))
 
     mapping: dict[str, str] = load_sector_mapping(mapping_csv)
-    sector_roll = rolling_sector_exposures_from_weights(
-        weights, mapping, window=args.window
-    )
-    if (
-        isinstance(sector_roll.index, pd.DatetimeIndex)
-        and sector_roll.index.tz is not None
-    ):
+    sector_roll = rolling_sector_exposures_from_weights(weights, mapping, window=args.window)
+    if isinstance(sector_roll.index, pd.DatetimeIndex) and sector_roll.index.tz is not None:
         sector_roll.index = sector_roll.index.tz_localize(None)
     nav = _get_nav_series(port)
     nav = pd.Series(pd.to_numeric(nav, errors="coerce").values, index=port.index)
@@ -215,11 +192,7 @@ def main() -> None:
     qual.name = "quality_inv_downside_vol"
 
     base_idx = (
-        pd.DatetimeIndex(
-            sector_roll.index.tz_localize(
-                "UTC", nonexistent="shift_forward", ambiguous="NaT"
-            )
-        )
+        pd.DatetimeIndex(sector_roll.index.tz_localize("UTC", nonexistent="shift_forward", ambiguous="NaT"))
         .union(mom.index)
         .union(qual.index)
     )
@@ -242,15 +215,9 @@ def main() -> None:
     last_row = out.iloc[-1]
     mom_last = _scalar(last_row.get("mom_12_1_proxy"))
     qlt_last = _scalar(last_row.get("quality_inv_downside_vol"))
-    sector_cols = [
-        c
-        for c in out.columns
-        if c.lower() not in ("mom_12_1_proxy", "quality_inv_downside_vol")
-    ]
+    sector_cols = [c for c in out.columns if c.lower() not in ("mom_12_1_proxy", "quality_inv_downside_vol")]
     sector_sum_last = (
-        _scalar(pd.to_numeric(last_row[sector_cols], errors="coerce").sum())
-        if sector_cols
-        else float("nan")
+        _scalar(pd.to_numeric(last_row[sector_cols], errors="coerce").sum()) if sector_cols else float("nan")
     )
 
     with open(out_txt, "w", encoding="utf-8") as fh:

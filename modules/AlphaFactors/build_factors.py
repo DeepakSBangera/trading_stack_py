@@ -26,9 +26,7 @@ def calc_factors(prices: pd.DataFrame):
     rets = prices.pct_change()
     panel = {}
     # 6m momentum (total return)
-    panel["mom126"] = (
-        (1 + rets).rolling(126).apply(lambda x: np.prod(1 + x) - 1, raw=False)
-    )
+    panel["mom126"] = (1 + rets).rolling(126).apply(lambda x: np.prod(1 + x) - 1, raw=False)
     # 20d volatility
     panel["vol20"] = rets.rolling(20).std()
     # Simple quality proxy

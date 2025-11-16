@@ -11,9 +11,7 @@ def sr0_from_var_and_trials(sr_var: float, N: int) -> float:
         return 0.0
     q1 = norm.ppf(1.0 - 1.0 / float(N))
     q2 = norm.ppf(1.0 - 1.0 / (float(N) * np.e))
-    return float(
-        np.sqrt(sr_var) * ((1.0 - EULER_MASCHERONI) * q1 + EULER_MASCHERONI * q2)
-    )
+    return float(np.sqrt(sr_var) * ((1.0 - EULER_MASCHERONI) * q1 + EULER_MASCHERONI * q2))
 
 
 def asymptotic_sr_variance(sr_hat: float, n: int, g3: float, g4: float) -> float:

@@ -19,9 +19,7 @@ def pick(cols: Iterable[str], cands: Iterable[str]) -> str | None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="Extend/align exog over the price date range."
-    )
+    ap = argparse.ArgumentParser(description="Extend/align exog over the price date range.")
     ap.add_argument("--data-glob", default="data/csv/*.csv")
     ap.add_argument("--exog-in", default="data/factors/nifty_macro.csv")
     ap.add_argument("--exog-out", default="data/factors/nifty_macro_extended.csv")
@@ -68,10 +66,7 @@ def main() -> None:
 
     ex_out = ex[cols].reset_index().rename(columns={"index": "date"})
     ex_out.to_csv(args.exog_out, index=False)
-    print(
-        f"Wrote {args.exog_out} spanning {full_idx.min().date()}.."
-        f"{full_idx.max().date()} ({len(full_idx)} rows)"
-    )
+    print(f"Wrote {args.exog_out} spanning {full_idx.min().date()}.." f"{full_idx.max().date()} ({len(full_idx)} rows)")
 
 
 if __name__ == "__main__":

@@ -10,16 +10,12 @@ def true_range(high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
     return tr
 
 
-def atr(
-    high: pd.Series, low: pd.Series, close: pd.Series, period: int = 10
-) -> pd.Series:
+def atr(high: pd.Series, low: pd.Series, close: pd.Series, period: int = 10) -> pd.Series:
     tr = true_range(high, low, close)
     return tr.rolling(period, min_periods=period).mean()
 
 
-def supertrend(
-    df: pd.DataFrame, period: int = 10, multiplier: float = 3.0
-) -> pd.Series:
+def supertrend(df: pd.DataFrame, period: int = 10, multiplier: float = 3.0) -> pd.Series:
     """
     Returns a boolean Series 'in_uptrend' (True for uptrend)
     """

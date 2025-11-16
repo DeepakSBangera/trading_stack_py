@@ -137,9 +137,7 @@ def _load_log() -> pd.DataFrame:
     mask = ts_utc.notna()
     df = df[mask].copy()
     ts_utc = ts_utc[mask]
-    df["ts"] = ts_utc.dt.tz_convert(IST).dt.tz_localize(
-        None
-    )  # <-- FIX: use .dt on Series
+    df["ts"] = ts_utc.dt.tz_convert(IST).dt.tz_localize(None)  # <-- FIX: use .dt on Series
     df["day"] = df["ts"].dt.date
     df = df.sort_values("ts")
     keep = ["ts", "day", "check", "status"]
@@ -193,11 +191,7 @@ def _build_html(daily: pd.DataFrame, recent: pd.DataFrame) -> tuple[str, dict]:
         rows = []
         for _, r in recent.tail(50).iloc[::-1].iterrows():
             status = str(r["status"])
-            color = (
-                "#16a34a"
-                if status == "PASS"
-                else ("#ca8a04" if status == "WARN" else "#dc2626")
-            )
+            color = "#16a34a" if status == "PASS" else ("#ca8a04" if status == "WARN" else "#dc2626")
             ts = pd.to_datetime(r["ts"]).strftime("%Y-%m-%d %H:%M:%S")
             ck = html.escape(str(r["check"]))
             det = html.escape(str(r.get("detail", "")))
@@ -212,11 +206,7 @@ def _build_html(daily: pd.DataFrame, recent: pd.DataFrame) -> tuple[str, dict]:
         checks_7d = int(recent7.shape[0])
         fails_7d = int((recent7["status"] == "FAIL").sum())
 
-    color_now = (
-        "#16a34a"
-        if last_rate >= 0.95
-        else ("#ca8a04" if last_rate >= 0.8 else "#dc2626")
-    )
+    color_now = "#16a34a" if last_rate >= 0.95 else ("#ca8a04" if last_rate >= 0.8 else "#dc2626")
     head = f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8" />
@@ -289,11 +279,7 @@ def main():
         "outputs": {"html": str(DASH_HTML), "summary_csv": str(SUM_CSV)},
     }
     DIAG_JSON.write_text(json.dumps(diag, indent=2), encoding="utf-8")
-    print(
-        json.dumps(
-            {"html": str(DASH_HTML), "summary_csv": str(SUM_CSV), "kpi": kpi}, indent=2
-        )
-    )
+    print(json.dumps({"html": str(DASH_HTML), "summary_csv": str(SUM_CSV), "kpi": kpi}, indent=2))
 
 
 if __name__ == "__main__":

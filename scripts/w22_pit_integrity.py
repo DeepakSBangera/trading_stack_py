@@ -121,11 +121,7 @@ def main():
             continue
 
         # Basic hygiene
-        df = (
-            df.dropna(subset=["date", "close"])
-            .sort_values("date")
-            .reset_index(drop=True)
-        )
+        df = df.dropna(subset=["date", "close"]).sort_values("date").reset_index(drop=True)
         rows_count = int(df.shape[0])
         first_date = df["date"].iloc[0] if rows_count else None
         last_date = df["date"].iloc[-1] if rows_count else None
@@ -141,9 +137,7 @@ def main():
         # Coverage vs target window
         window = df[(df["date"] >= dmin) & (df["date"] <= dmax)].copy()
         has_close_on_window = not window.empty
-        covers_targets_window = (
-            bool((first_date <= dmin) and (last_date >= dmax)) if rows_count else False
-        )
+        covers_targets_window = bool((first_date <= dmin) and (last_date >= dmax)) if rows_count else False
 
         # Record gaps (limit to top 50 per ticker so CSV stays manageable)
         top_gaps = gaps[:50]
@@ -169,12 +163,8 @@ def main():
             {
                 "ticker": tic,
                 "rows": rows_count,
-                "first_date": (
-                    None if first_date is None else str(pd.Timestamp(first_date).date())
-                ),
-                "last_date": (
-                    None if last_date is None else str(pd.Timestamp(last_date).date())
-                ),
+                "first_date": (None if first_date is None else str(pd.Timestamp(first_date).date())),
+                "last_date": (None if last_date is None else str(pd.Timestamp(last_date).date())),
                 "dup_dates": dup_dates,
                 "non_monotonic": non_mono,
                 "missing_bd_days": gaps_count,
@@ -191,11 +181,7 @@ def main():
     df_sum.to_csv(OUT_SUMMARY, index=False)
     df_gaps.to_csv(OUT_GAPS, index=False)
 
-    passed = (
-        int(df_sum["pass_pit"].sum())
-        if not df_sum.empty and "pass_pit" in df_sum
-        else 0
-    )
+    passed = int(df_sum["pass_pit"].sum()) if not df_sum.empty and "pass_pit" in df_sum else 0
     total = int(df_sum.shape[0])
     out = {
         "out_summary_csv": str(OUT_SUMMARY),

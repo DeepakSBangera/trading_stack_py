@@ -54,9 +54,7 @@ def _fmt_bytes(n: int) -> str:
             return (
                 f"{n:.0f} {unit}"
                 if unit == "B"
-                else (
-                    f"{n / 1024:.1f} {unit}" if unit in ("KB", "MB", "GB") else f"{n} B"
-                )
+                else (f"{n / 1024:.1f} {unit}" if unit in ("KB", "MB", "GB") else f"{n} B")
             )
         n /= 1024
     return f"{n:.0f} B"
@@ -84,17 +82,12 @@ def main() -> None:
         size_s = _fmt_bytes(size)
         ts = _dt.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
         rows.append(
-            f'<div class="row"><div><a href="{href}">{name}</a></div>'
-            f"<div>{size_s}</div><div>{ts}</div></div>"
+            f'<div class="row"><div><a href="{href}">{name}</a></div>' f"<div>{size_s}</div><div>{ts}</div></div>"
         )
 
     html_out = HTML.format(
         generated_at=_dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        rows=(
-            "\n".join(rows)
-            if rows
-            else '<div class="row"><div>(no files)</div><div></div><div></div></div>'
-        ),
+        rows=("\n".join(rows) if rows else '<div class="row"><div>(no files)</div><div></div><div></div></div>'),
     )
     (REPORTS / "index.html").write_text(html_out, encoding="utf-8")
     print(f"[OK] Wrote: {REPORTS / 'index.html'}")

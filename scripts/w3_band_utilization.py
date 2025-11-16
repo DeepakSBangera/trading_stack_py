@@ -63,12 +63,8 @@ def main():
     # Detailed violations with current policy (if present)
     policy = load_yaml(CONFIG) if CONFIG.exists() else {}
     bands = policy.get("turnover_bands_pct_per_day", {"L1": 0.8, "L2": 1.2, "L3": 1.8})
-    orders["band_pct_current"] = (
-        orders["list_tier"].map(bands).fillna(bands.get("L3", 1.8))
-    )
-    orders["limit_value_current"] = (orders["band_pct_current"] / 100.0) * orders[
-        "port_value"
-    ]
+    orders["band_pct_current"] = orders["list_tier"].map(bands).fillna(bands.get("L3", 1.8))
+    orders["limit_value_current"] = (orders["band_pct_current"] / 100.0) * orders["port_value"]
     orders["violation_current"] = orders["order_value"] > orders["limit_value_current"]
     out_detail = REPORTS / "pretrade_violations_detailed.csv"
     orders.to_csv(out_detail, index=False)

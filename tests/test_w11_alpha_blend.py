@@ -50,9 +50,7 @@ def test_w11_alpha_blend_exists_and_has_core_columns() -> None:
 
     # Ensure metrics are numeric and finite (no NaNs)
     for col in ["blend_ret", "blend_vol", "blend_sharpe", "cor_penalty"]:
-        assert pd.api.types.is_numeric_dtype(
-            df[col]
-        ), f"{col} must be numeric (got {df[col].dtype})"
+        assert pd.api.types.is_numeric_dtype(df[col]), f"{col} must be numeric (got {df[col].dtype})"
         assert df[col].notna().all(), f"{col} has NaNs"
 
     # A small sanity: at least one row should have non-zero metrics

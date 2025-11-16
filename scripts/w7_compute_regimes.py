@@ -34,9 +34,7 @@ def ann_vol_from_daily(std_daily: float) -> float:
 def main():
     pos_pq = REPORTS / "positions_daily.parquet"
     if not pos_pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run W3 bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run W3 bootstrap first.")
     pos = pd.read_parquet(pos_pq)
     port = (
         pos[["date", "port_value"]]
@@ -64,9 +62,7 @@ def main():
     allow_bear = bool(mg.get("policy", {}).get("allow_trade_in_bear", False))
     allow_highvol = bool(mg.get("policy", {}).get("allow_trade_in_high_vol", True))
     max_trailing = float(
-        mg.get("policy", {}).get(
-            "max_trailing_dd_pct", ks.get("policy", {}).get("max_trailing_dd_pct", 30.0)
-        )
+        mg.get("policy", {}).get("max_trailing_dd_pct", ks.get("policy", {}).get("max_trailing_dd_pct", 30.0))
     )
 
     base_mult = float(mg.get("policy", {}).get("base_risk_multiplier", 1.0))
@@ -79,9 +75,7 @@ def main():
     ser = port["port_value"].copy()
     ma = ser.rolling(trend_n, min_periods=1).mean()
     trend_regime = pd.Series(
-        np.where(
-            ser > ma * 1.005, "BULL", np.where(ser < ma * 0.995, "BEAR", "NEUTRAL")
-        ),
+        np.where(ser > ma * 1.005, "BULL", np.where(ser < ma * 0.995, "BEAR", "NEUTRAL")),
         index=ser.index,
     )
 
@@ -99,12 +93,7 @@ def main():
     dd_regime = pd.cut(
         dd_abs,
         bins=[-1] + dd_lvls + [1000],
-        labels=[
-            f"{a}-{b}%"
-            for a, b in zip(
-                [0] + dd_lvls, dd_lvls + [">" + str(dd_lvls[-1])], strict=False
-            )
-        ],
+        labels=[f"{a}-{b}%" for a, b in zip([0] + dd_lvls, dd_lvls + [">" + str(dd_lvls[-1])], strict=False)],
         include_lowest=True,
     )
 

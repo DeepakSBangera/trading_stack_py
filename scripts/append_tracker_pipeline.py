@@ -10,9 +10,7 @@ from pathlib import Path
 ROOT = Path(r"F:\Projects\trading_stack_py")
 DOCS = ROOT / "docs"
 REPORTS = ROOT / "reports"
-INFO_DIR = (
-    REPORTS / "_run_info"
-)  # per-script snapshots written by run_with_info.py-like wrappers
+INFO_DIR = REPORTS / "_run_info"  # per-script snapshots written by run_with_info.py-like wrappers
 
 TRACKER = DOCS / "living_tracker.csv"  # canonical tracker
 
@@ -90,9 +88,7 @@ def _decision_line() -> str:
     return ""
 
 
-def write_script_info(
-    name: str, session: str, purpose: str, inputs: list[str], outputs: list[str]
-) -> Path:
+def write_script_info(name: str, session: str, purpose: str, inputs: list[str], outputs: list[str]) -> Path:
     """
     Optional helper: record a small per-script info JSON so lineage feels consistent
     even when not using the full run_manifest wrapper.
@@ -107,9 +103,7 @@ def write_script_info(
         "outputs": outputs,
     }
     out_path = INFO_DIR / f"{name}.json"
-    out_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return out_path
 
 

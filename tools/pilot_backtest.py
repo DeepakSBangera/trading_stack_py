@@ -40,12 +40,7 @@ def load_close_matrix(parquet_root: Path, tickers: list[str]):
 def rebalance_index(index: pd.DatetimeIndex, code: str):
     if code not in FREQ_MAP:
         code = "ME"
-    return (
-        pd.Series(index=index, data=1)
-        .resample(FREQ_MAP[code])
-        .last()
-        .index.intersection(index)
-    )
+    return pd.Series(index=index, data=1).resample(FREQ_MAP[code]).last().index.intersection(index)
 
 
 def apply_constraints(names, cap, min_w, target_sum, max_holdings=None):
@@ -91,20 +86,14 @@ def main():
         # if universe file missing, infer from parquet directory
         tickers = [fp.stem + ".SYN" for fp in Path(args.parquet_root).glob("*.parquet")]
     if not tickers:
-        print(
-            json.dumps(
-                {"ok": False, "reason": "no universe or parquet files found"}, indent=2
-            )
-        )
+        print(json.dumps({"ok": False, "reason": "no universe or parquet files found"}, indent=2))
         return
 
     # Prices
     px = load_close_matrix(Path(args.parquet_root), tickers)
     px = px.loc[px.index >= pd.to_datetime(args.start)]
     if px.empty:
-        print(
-            json.dumps({"ok": False, "reason": "no price data after start"}, indent=2)
-        )
+        print(json.dumps({"ok": False, "reason": "no price data after start"}, indent=2))
         return
     rets = px.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
 
@@ -126,15 +115,12 @@ def main():
         picks = window_ret.nlargest(args.top_n).index.tolist()
 
         target_sum = 1.0 - args.cash_buffer
-        w_cand = apply_constraints(
-            picks, args.weight_cap, args.min_weight, target_sum, args.max_holdings
-        )
+        w_cand = apply_constraints(picks, args.weight_cap, args.min_weight, target_sum, args.max_holdings)
 
         # stickiness via turnover band
         if (
             args.turnover_band > 0
-            and (w_cand.reindex(prev_w.index).fillna(0) - prev_w).abs().sum()
-            <= args.turnover_band
+            and (w_cand.reindex(prev_w.index).fillna(0) - prev_w).abs().sum() <= args.turnover_band
         ):
             w_use = prev_w.copy()
         else:
@@ -150,9 +136,7 @@ def main():
         # transaction costs at boundary
         turnover = (w_use - prev_w).abs().sum()
         if start_loc < len(rets):
-            rets.iloc[start_loc] = (
-                rets.iloc[start_loc] - (args.cost_bps / 1e4) * turnover
-            )
+            rets.iloc[start_loc] = rets.iloc[start_loc] - (args.cost_bps / 1e4) * turnover
 
         prev_w = w_use
 
@@ -176,11 +160,7 @@ def main():
 
     years = max((eq.index[-1] - eq.index[0]).days / 365.25, 1e-9)
     cagr = float(eq.iloc[-1] ** (1 / years) - 1.0) if eq.iloc[-1] > 0 else 0.0
-    sharpe = (
-        float(np.sqrt(252) * port_ret.mean() / port_ret.std())
-        if port_ret.std() > 0
-        else 0.0
-    )
+    sharpe = float(np.sqrt(252) * port_ret.mean() / port_ret.std()) if port_ret.std() > 0 else 0.0
     maxdd = float(dd.min())
     calmar = float(cagr / abs(maxdd)) if maxdd < 0 else 0.0
 
@@ -188,9 +168,9 @@ def main():
     stem = f"pilot_{args.name}_L{args.lookback}_K{args.top_n}_{args.rebalance}_C{int(args.cost_bps)}_F{int(args.mgmt_fee_bps)}_VT{int(args.vol_target)}_TB{args.turnover_band:.2f}"
     csv = Path(args.outdir) / f"{stem}.csv"
     png = Path(args.outdir) / f"{stem}.png"
-    pd.DataFrame({"equity": eq, "drawdown": dd, "port_ret": port_ret}).rename_axis(
-        "date"
-    ).to_csv(csv, float_format="%.10f")
+    pd.DataFrame({"equity": eq, "drawdown": dd, "port_ret": port_ret}).rename_axis("date").to_csv(
+        csv, float_format="%.10f"
+    )
 
     plt.figure(figsize=(10, 5))
     eq.plot()

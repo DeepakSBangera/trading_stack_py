@@ -3,10 +3,10 @@ import os
 
 import pandas as pd
 import yaml
+from src.signals import make_signals
 
 from src import data_io
 from src.backtest import backtest_symbol, summarize_universe
-from src.signals import make_signals
 
 CFG = yaml.safe_load(open("config/config.yaml", encoding="utf-8"))
 ppyr = int(CFG.get("backtest", {}).get("periods_per_year", 252))
@@ -59,9 +59,7 @@ print(f"Wrote {summ_path}")
 if daily_eq:
     df_all = pd.concat(daily_eq, ignore_index=True).set_index("date")
     # pivot to wide returns, average across symbols daily (equal-weight)
-    wide = df_all.pivot_table(
-        index=df_all.index, columns="symbol", values="net"
-    ).sort_index()
+    wide = df_all.pivot_table(index=df_all.index, columns="symbol", values="net").sort_index()
     wide = wide.fillna(0.0)
     port_ret = wide.mean(axis=1)
     port_eq = (1 + port_ret).cumprod()

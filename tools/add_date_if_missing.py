@@ -66,11 +66,7 @@ def main():
 
     # last resort: if the *pandas index* carries timestamps (rare in saved parquet)
     if isinstance(df.index, pd.DatetimeIndex):
-        s = (
-            pd.DatetimeIndex(df.index).tz_convert("UTC")
-            if df.index.tz is not None
-            else df.index.tz_localize("UTC")
-        )
+        s = pd.DatetimeIndex(df.index).tz_convert("UTC") if df.index.tz is not None else df.index.tz_localize("UTC")
         df = df.reset_index(drop=False).rename(columns={"index": "date"})
         df["date"] = pd.to_datetime(df["date"], utc=True, errors="coerce")
         df.to_parquet(dst, index=False)

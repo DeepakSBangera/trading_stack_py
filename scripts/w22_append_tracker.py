@@ -37,9 +37,7 @@ def main():
     with open(TRACK, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if write_header:
-            w.writerow(
-                ["session", "module", "artifact", "rows", "sr_is", "sr_oos", "git_sha8"]
-            )
+            w.writerow(["session", "module", "artifact", "rows", "sr_is", "sr_oos", "git_sha8"])
         w.writerow(
             [
                 "S-W22",

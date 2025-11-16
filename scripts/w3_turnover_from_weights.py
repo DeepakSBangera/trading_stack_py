@@ -26,8 +26,8 @@ else:
     df["weight_prev"] = df.groupby("symbol")["weight"].shift(1)
     df["d_weight"] = (df["weight"] - df["weight_prev"]).fillna(0.0)
     df["turnover_abs"] = df["d_weight"].abs()
-    out = df[
-        ["date", "symbol", "weight_prev", "weight", "d_weight", "turnover_abs"]
-    ].rename(columns={"weight": "weight_curr"})
+    out = df[["date", "symbol", "weight_prev", "weight", "d_weight", "turnover_abs"]].rename(
+        columns={"weight": "weight_curr"}
+    )
     out.to_csv(root / "reports/wk3_turnover_profile.csv", index=False)
     print("Wrote reports/wk3_turnover_profile.csv from", src.name)

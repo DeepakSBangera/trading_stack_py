@@ -2,28 +2,27 @@ from __future__ import annotations
 
 import html
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 
 
-def _fmt_pct(x: Optional[float]) -> str:
+def _fmt_pct(x: float | None) -> str:
     if x is None or (isinstance(x, float) and np.isnan(x)):
         return ""
     return f"{x:.2%}"
 
 
 def render_tearsheet_v2(
-    last_date: Optional[pd.Timestamp],
+    last_date: pd.Timestamp | None,
     last_nav: float,
-    roll_sh_last: Optional[float],
-    roll_vol_last: Optional[float],
-    roll_mdd_last: Optional[float],
-    regime_last: Optional[float],
+    roll_sh_last: float | None,
+    roll_vol_last: float | None,
+    roll_mdd_last: float | None,
+    regime_last: float | None,
     ann_vol: float,
-    mom_last: Optional[float],
-    qual_last: Optional[float],
+    mom_last: float | None,
+    qual_last: float | None,
     max_dd: float,
 ) -> str:
     """Return an HTML string for the Tearsheet v2 dashboard (all lines <= 88 cols)."""
@@ -55,12 +54,10 @@ def render_tearsheet_v2(
         except Exception:
             last_date_txt = "NA"
 
-    head_lines.append(
-        f"<div class='small'>Last date: {html.escape(last_date_txt)}</div>"
-    )
+    head_lines.append(f"<div class='small'>Last date: {html.escape(last_date_txt)}</div>")
 
     # KPI cards (each value rendered safely; empty string if missing)
-    def _num_or_empty(x: Optional[float], fmt: str) -> str:
+    def _num_or_empty(x: float | None, fmt: str) -> str:
         if x is None:
             return ""
         try:
@@ -88,10 +85,7 @@ def render_tearsheet_v2(
 
     kpi_lines = [
         "<div class='metric-grid'>",
-        (
-            "<div class='card'><div class='small'>Last NAV</div>"
-            f"<div style='font-size:22px'>{nav_txt}</div></div>"
-        ),
+        ("<div class='card'><div class='small'>Last NAV</div>" f"<div style='font-size:22px'>{nav_txt}</div></div>"),
         (
             "<div class='card'><div class='small'>Rolling Sharpe (last)</div>"
             f"<div style='font-size:22px'>{sh_txt}</div></div>"
@@ -138,15 +132,15 @@ def render_tearsheet_v2(
 
 def write_tearsheet_file(
     out_path: Path,
-    last_date: Optional[pd.Timestamp],
+    last_date: pd.Timestamp | None,
     last_nav: float,
-    roll_sh_last: Optional[float],
-    roll_vol_last: Optional[float],
-    roll_mdd_last: Optional[float],
-    regime_last: Optional[float],
+    roll_sh_last: float | None,
+    roll_vol_last: float | None,
+    roll_mdd_last: float | None,
+    regime_last: float | None,
     ann_vol: float,
-    mom_last: Optional[float],
-    qual_last: Optional[float],
+    mom_last: float | None,
+    qual_last: float | None,
     max_dd: float,
 ) -> Path:
     """Write the HTML to out_path."""

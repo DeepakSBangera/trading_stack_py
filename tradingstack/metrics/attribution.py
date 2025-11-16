@@ -37,16 +37,10 @@ def build_returns_from_prices(px: pd.DataFrame) -> pd.DataFrame:
     return rets.replace([np.inf, -np.inf], np.nan).fillna(0.0)
 
 
-def align_weights_and_returns(
-    w: pd.DataFrame, r: pd.DataFrame
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+def align_weights_and_returns(w: pd.DataFrame, r: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Align on common dates & tickers."""
     w = pivot_weights(w)
-    r = (
-        build_returns_from_prices(r)
-        if "open" in r.columns or "close" in r.columns
-        else _ensure_dt_index(r)
-    )
+    r = build_returns_from_prices(r) if "open" in r.columns or "close" in r.columns else _ensure_dt_index(r)
     common_cols = sorted(set(w.columns) & set(r.columns))
     common_idx = w.index.intersection(r.index)
     return w.loc[common_idx, common_cols], r.loc[common_idx, common_cols]

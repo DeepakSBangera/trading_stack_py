@@ -15,9 +15,7 @@ def make_names(n):
     return [f"S{str(i + 1).zfill(3)}.SYN" for i in range(n)]
 
 
-def synth_prices(
-    dates, mu_annual=0.10, vol_annual=0.25, n_sectors=5, symbols=None, seed=42
-):
+def synth_prices(dates, mu_annual=0.10, vol_annual=0.25, n_sectors=5, symbols=None, seed=42):
     rng = np.random.default_rng(seed)
     n = len(symbols)
     # Assign sectors
@@ -49,13 +47,9 @@ def synth_prices(
         oc_noise = rng.normal(0, 0.001, size=T)
         open_ = np.concatenate([[close[0]], close[:-1]]) * (1 + oc_noise)
         rng_range = rng.uniform(0.002, 0.02, size=T)
-        high = np.maximum(open_, close) * (
-            1 + rng_range * rng.uniform(0.3, 1.0, size=T)
-        )
+        high = np.maximum(open_, close) * (1 + rng_range * rng.uniform(0.3, 1.0, size=T))
         low = np.minimum(open_, close) * (1 - rng_range * rng.uniform(0.3, 1.0, size=T))
-        vol = (
-            rng.lognormal(mean=12.0, sigma=0.3, size=T) * (1 + 2 * np.abs(r))
-        ).astype(np.int64)
+        vol = (rng.lognormal(mean=12.0, sigma=0.3, size=T) * (1 + 2 * np.abs(r))).astype(np.int64)
 
         df = pd.DataFrame(
             {"open": open_, "high": high, "low": low, "close": close, "volume": vol},
@@ -67,9 +61,7 @@ def synth_prices(
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "--symbols", type=int, default=150, help="number of synthetic symbols"
-    )
+    ap.add_argument("--symbols", type=int, default=150, help="number of synthetic symbols")
     ap.add_argument("--start", default="2016-01-01")
     ap.add_argument("--end", default=pd.Timestamp.today().date().isoformat())
     ap.add_argument("--sectors", type=int, default=8)
@@ -81,9 +73,7 @@ def main():
     dates = business_days(args.start, args.end)
     names = make_names(args.symbols)
 
-    frames, sectors = synth_prices(
-        dates, n_sectors=args.sectors, symbols=names, seed=args.seed
-    )
+    frames, sectors = synth_prices(dates, n_sectors=args.sectors, symbols=names, seed=args.seed)
 
     out_dir = root / "raw" / "synth" / "daily" / "SYN"
     out_dir.mkdir(parents=True, exist_ok=True)

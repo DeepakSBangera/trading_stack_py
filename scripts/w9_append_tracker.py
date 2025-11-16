@@ -24,9 +24,7 @@ NOW_ISO = dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
 def _git_sha8():
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-        ).strip()
+        return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
     except Exception:
         return "nogit"
 
@@ -37,26 +35,14 @@ def _stats():
         s = pd.read_csv(SCHEMA)
         out["tickers_checked"] = int(s.shape[0])
         out["pit_suspect_cols_any"] = (
-            int(s["pit_suspect_cols"].astype(str).str.len().gt(0).sum())
-            if "pit_suspect_cols" in s
-            else 0
+            int(s["pit_suspect_cols"].astype(str).str.len().gt(0).sum()) if "pit_suspect_cols" in s else 0
         )
-        out["missing_date_or_close"] = (
-            int((s["issue"] == "no_date_or_close").sum()) if "issue" in s else 0
-        )
+        out["missing_date_or_close"] = int((s["issue"] == "no_date_or_close").sum()) if "issue" in s else 0
     if MONO.exists():
         m = pd.read_csv(MONO)
-        out["mono_fail"] = (
-            int((~m["is_monotonic_increasing"]).sum())
-            if "is_monotonic_increasing" in m
-            else 0
-        )
-        out["dup_dates_sum"] = (
-            int(m["duplicate_dates"].sum()) if "duplicate_dates" in m else 0
-        )
-        out["gap_windows_sum"] = (
-            int(m["gap_windows_gt5d"].sum()) if "gap_windows_gt5d" in m else 0
-        )
+        out["mono_fail"] = int((~m["is_monotonic_increasing"]).sum()) if "is_monotonic_increasing" in m else 0
+        out["dup_dates_sum"] = int(m["duplicate_dates"].sum()) if "duplicate_dates" in m else 0
+        out["gap_windows_sum"] = int(m["gap_windows_gt5d"].sum()) if "gap_windows_gt5d" in m else 0
     if SURV.exists():
         u = pd.read_csv(SURV)
         out["dates_checked"] = int(u.shape[0])

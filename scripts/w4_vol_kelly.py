@@ -39,14 +39,8 @@ def main():
     # Inputs
     ks = load_yaml(CFG_KS) if CFG_KS.exists() else {"policy": {}}
     pol_main = load_yaml(CFG_MAIN) if CFG_MAIN.exists() else {}
-    vol_target = float(
-        ks.get("policy", {}).get(
-            "vol_target_annual_pct", pol_main.get("vol_target_annual_pct", 12.0)
-        )
-    )
-    kelly_cap = float(
-        ks.get("policy", {}).get("kelly_cap", pol_main.get("kelly_base", 0.25))
-    )
+    vol_target = float(ks.get("policy", {}).get("vol_target_annual_pct", pol_main.get("vol_target_annual_pct", 12.0)))
+    kelly_cap = float(ks.get("policy", {}).get("kelly_cap", pol_main.get("kelly_base", 0.25)))
 
     # Build daily portfolio returns from positions' port_value
     pos = pd.read_parquet(pos_pq)
@@ -66,9 +60,7 @@ def main():
     mu_ann_pct = mu_d * 252 * 100.0
 
     # Scale to target: multiply gross by this factor (clip to [0.25, 2.0] for safety)
-    scale_to_target = float(
-        np.clip((vol_target / vol_ann_pct) if vol_ann_pct > 0 else 1.0, 0.25, 2.0)
-    )
+    scale_to_target = float(np.clip((vol_target / vol_ann_pct) if vol_ann_pct > 0 else 1.0, 0.25, 2.0))
 
     # Kelly suggestion (approx): k = mu/var, clipped to [0, kelly_cap]
     var_d = float(port["ret"].var(ddof=1))

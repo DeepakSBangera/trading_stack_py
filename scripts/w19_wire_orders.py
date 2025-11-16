@@ -104,9 +104,7 @@ def _merge_fills(df: pd.DataFrame) -> pd.DataFrame:
         if need not in c:
             df["px_fill"] = np.nan
             return df
-    f = f.rename(
-        columns={c["date"]: "date", c["ticker"]: "ticker", c["px_fill"]: "px_fill"}
-    )
+    f = f.rename(columns={c["date"]: "date", c["ticker"]: "ticker", c["px_fill"]: "px_fill"})
     f["date"] = pd.to_datetime(f["date"], errors="coerce").dt.date
     return df.merge(f[["date", "ticker", "px_fill"]], on=["date", "ticker"], how="left")
 

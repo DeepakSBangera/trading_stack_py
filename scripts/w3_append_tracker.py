@@ -19,9 +19,7 @@ def open_win(p: Path):
 def ensure_header():
     DOCS.mkdir(parents=True, exist_ok=True)
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
 
 
 def main():

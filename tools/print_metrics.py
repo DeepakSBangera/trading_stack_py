@@ -46,25 +46,16 @@ def main() -> None:
     if "_nav" not in df.columns:
         # derive nav if only ret exists
         if "ret_net" in df.columns:
-            nav = (
-                1.0 + pd.to_numeric(df["ret_net"], errors="coerce").fillna(0.0)
-            ).cumprod()
+            nav = (1.0 + pd.to_numeric(df["ret_net"], errors="coerce").fillna(0.0)).cumprod()
             df["_nav"] = nav
         elif "ret_gross" in df.columns:
-            nav = (
-                1.0 + pd.to_numeric(df["ret_gross"], errors="coerce").fillna(0.0)
-            ).cumprod()
+            nav = (1.0 + pd.to_numeric(df["ret_gross"], errors="coerce").fillna(0.0)).cumprod()
             df["_nav"] = nav
         else:
             raise ValueError("equity file missing _nav and returns (ret_net/ret_gross)")
 
     # clean series
-    nav = (
-        pd.to_numeric(df["_nav"], errors="coerce")
-        .replace([np.inf, -np.inf], np.nan)
-        .ffill()
-        .fillna(1.0)
-    )
+    nav = pd.to_numeric(df["_nav"], errors="coerce").replace([np.inf, -np.inf], np.nan).ffill().fillna(1.0)
     rets = nav.pct_change().fillna(0.0)
 
     out = {

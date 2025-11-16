@@ -31,9 +31,7 @@ def _load_sector_map():
 
 def main():
     if not WE_CAP.exists():
-        raise SystemExit(
-            "Missing wk6_weights_capped.csv. Run w6_optimizer_compare.py first."
-        )
+        raise SystemExit("Missing wk6_weights_capped.csv. Run w6_optimizer_compare.py first.")
     df = pd.read_csv(WE_CAP)
     low = {c.lower(): c for c in df.columns}
     d = low.get("date")

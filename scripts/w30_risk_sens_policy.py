@@ -86,9 +86,7 @@ def _load_baseline(sleeves: list[str]) -> pd.Series:
     scol = cols.get("sleeve")
     wcol = cols.get("weight")
     if scol and wcol:
-        s = pd.Series(
-            pd.to_numeric(df[wcol], errors="coerce").values, index=df[scol].astype(str)
-        )
+        s = pd.Series(pd.to_numeric(df[wcol], errors="coerce").values, index=df[scol].astype(str))
         s = s.reindex(sleeves).fillna(0.0)
         tot = float(s.sum())
         return s / tot if tot > 0 else pd.Series(1.0 / len(sleeves), index=sleeves)
@@ -127,17 +125,11 @@ def _metrics_from_path(rt: np.ndarray) -> dict:
     # CVaR 95% (average of worst 5% tail); if too short, fallback to min-tail mean
     q = np.nanpercentile(rt, 5.0)
     tail = rt[rt <= q]
-    cvar = (
-        float(np.nanmean(tail))
-        if tail.size > 0
-        else float(np.nanmin(rt) if rt.size else 0.0)
-    )
+    cvar = float(np.nanmean(tail)) if tail.size > 0 else float(np.nanmin(rt) if rt.size else 0.0)
     return {"mean": m, "var": v, "semivar": semi, "cvar95": cvar}
 
 
-def _objective_and_grad(
-    w: np.ndarray, R: np.ndarray, lam: float, gam: float
-) -> tuple[float, np.ndarray]:
+def _objective_and_grad(w: np.ndarray, R: np.ndarray, lam: float, gam: float) -> tuple[float, np.ndarray]:
     """
     r_t = (R @ w)
     f = mean(r_t) - lam * var(r_t) - gam * semivar(r_t)
@@ -164,9 +156,7 @@ def _objective_and_grad(
     return f, g
 
 
-def _optimize(
-    w0: np.ndarray, R: np.ndarray, lam: float, gam: float, l1_cap: float
-) -> np.ndarray:
+def _optimize(w0: np.ndarray, R: np.ndarray, lam: float, gam: float, l1_cap: float) -> np.ndarray:
     w = w0.copy()
     lr = LR
     best_w, best_f = w.copy(), -1e99
@@ -233,14 +223,8 @@ def main():
                 }
 
     # Compare best vs baseline; accept if improvement in scalarized score and better (>=) CVaR95
-    accept = best_score > (
-        base_mets["mean"]
-        - LAMBDAS[0] * base_mets["var"]
-        - GAMMAS[0] * base_mets["semivar"]
-    )
-    accept = accept and (
-        best["mets"]["cvar95"] >= base_mets["cvar95"]
-    )  # no worse left-tail
+    accept = best_score > (base_mets["mean"] - LAMBDAS[0] * base_mets["var"] - GAMMAS[0] * base_mets["semivar"])
+    accept = accept and (best["mets"]["cvar95"] >= base_mets["cvar95"])  # no worse left-tail
 
     w_out = best["w"] if accept else w0
     src = "accepted" if accept else "baseline"

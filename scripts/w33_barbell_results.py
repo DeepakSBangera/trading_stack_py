@@ -84,9 +84,7 @@ def _prepare_sleeve(file: Path, tag: str) -> pd.DataFrame:
     wcol = cols.get("weight", "weight")
     out = df[[tcol, wcol]].rename(columns={tcol: "ticker", wcol: "weight"}).dropna()
     out["ticker"] = out["ticker"].astype(str)
-    out["weight"] = (
-        pd.to_numeric(out["weight"], errors="coerce").fillna(0.0).clip(lower=0.0)
-    )
+    out["weight"] = pd.to_numeric(out["weight"], errors="coerce").fillna(0.0).clip(lower=0.0)
     out = _norm_weights(out, "weight")
     out["sleeve"] = tag
     return out
@@ -96,11 +94,7 @@ def main():
     REPORTS.mkdir(parents=True, exist_ok=True)
 
     core = _read_csv(CORE_CSV)
-    if (
-        core is None
-        or core.empty
-        or not all(c in core.columns for c in ["date", "ticker", "target_w"])
-    ):
+    if core is None or core.empty or not all(c in core.columns for c in ["date", "ticker", "target_w"]):
         OUT_RESULTS.write_text("", encoding="utf-8")
         OUT_SUMMARY.write_text(
             json.dumps(
@@ -118,16 +112,10 @@ def main():
     core = core.copy()
     core["date"] = pd.to_datetime(core["date"], errors="coerce").dt.date
     core["ticker"] = core["ticker"].astype(str)
-    core["target_w"] = (
-        pd.to_numeric(core["target_w"], errors="coerce").fillna(0.0).clip(lower=0.0)
-    )
+    core["target_w"] = pd.to_numeric(core["target_w"], errors="coerce").fillna(0.0).clip(lower=0.0)
 
     # Normalize core per-date just in case (wk11 usually already normalized)
-    core = (
-        core.groupby("date", as_index=False)
-        .apply(lambda d: _norm_weights(d, "target_w"))
-        .reset_index(drop=True)
-    )
+    core = core.groupby("date", as_index=False).apply(lambda d: _norm_weights(d, "target_w")).reset_index(drop=True)
 
     # Load sleeves
     l2 = _prepare_sleeve(L2_FILE, "L2")
@@ -183,11 +171,7 @@ def main():
         l3 = _norm_weights(l3, "weight")
 
     for d in dates:
-        cday = (
-            core[core["date"] == d][["ticker", "target_w"]]
-            .rename(columns={"target_w": "w_core"})
-            .copy()
-        )
+        cday = core[core["date"] == d][["ticker", "target_w"]].rename(columns={"target_w": "w_core"}).copy()
         # Apply core split
         cday["w_core"] = cday["w_core"] * s_core
 
@@ -274,9 +258,7 @@ def main():
         else pd.DataFrame(columns=["date", "sleeve", "ticker", "weight"])
     )
     if not sleeves_view.empty:
-        sleeves_view = sleeves_view.rename(
-            columns={"w_list2": "weight", "w_list3": "weight"}
-        )
+        sleeves_view = sleeves_view.rename(columns={"w_list2": "weight", "w_list3": "weight"})
 
     # Save
     out.to_csv(OUT_RESULTS, index=False)
@@ -302,9 +284,7 @@ def main():
         },
     }
     OUT_SUMMARY.write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    print(
-        json.dumps({"results_csv": str(OUT_RESULTS), "rows": summary["rows"]}, indent=2)
-    )
+    print(json.dumps({"results_csv": str(OUT_RESULTS), "rows": summary["rows"]}, indent=2))
 
 
 if __name__ == "__main__":

@@ -45,9 +45,7 @@ def load_prices_from_parquet(dir_path: Path) -> pd.DataFrame:
             # Ensure DatetimeIndex
             if not isinstance(df.index, pd.DatetimeIndex):
                 if "date" in df.columns:
-                    df = df.set_index(pd.to_datetime(df["date"], errors="coerce")).drop(
-                        columns=["date"]
-                    )
+                    df = df.set_index(pd.to_datetime(df["date"], errors="coerce")).drop(columns=["date"])
                 else:
                     # sometimes parquet saved the index as object; try coercion
                     try:
@@ -65,9 +63,7 @@ def load_prices_from_parquet(dir_path: Path) -> pd.DataFrame:
                 price_col = df.columns[0]
 
             if price_col is None:
-                problems.append(
-                    f"{p.name}: no price-like column (had {list(df.columns)})"
-                )
+                problems.append(f"{p.name}: no price-like column (had {list(df.columns)})")
                 continue
             if not isinstance(df.index, pd.DatetimeIndex):
                 problems.append(f"{p.name}: could not determine datetime index")
@@ -85,9 +81,7 @@ def load_prices_from_parquet(dir_path: Path) -> pd.DataFrame:
 
     if not frames:
         hint = "\n".join(problems[:10])
-        raise FileNotFoundError(
-            f"No usable parquet series found in {dir_path}.\nSample diagnostics:\n{hint}"
-        )
+        raise FileNotFoundError(f"No usable parquet series found in {dir_path}.\nSample diagnostics:\n{hint}")
 
     px = pd.concat(frames, axis=1).sort_index()
     return px
@@ -132,9 +126,7 @@ def build_monthly_weights(px: pd.DataFrame, top_n: int) -> pd.DataFrame:
         if INCUMBENT_BONUS_STD:
             sd = float(row.std(ddof=0)) or 0.0
             if sd > 0.0:
-                incumbents = prev_w[prev_w > MIN_HOLD_THRESHOLD].index.intersection(
-                    row.index
-                )
+                incumbents = prev_w[prev_w > MIN_HOLD_THRESHOLD].index.intersection(row.index)
                 if len(incumbents):
                     bonus = INCUMBENT_BONUS_STD * sd
                     row.loc[incumbents] = row.loc[incumbents] + bonus
@@ -214,9 +206,7 @@ def run_backtest(px: pd.DataFrame, top_n: int = TOP_N) -> BacktestResult:
         "P95DailyTurnover": float(turnover.quantile(0.95)),
     }
 
-    return BacktestResult(
-        px=px, w_m=w_m, w_d=w_d, port_ret=port_ret, equity=equity, metrics=metrics
-    )
+    return BacktestResult(px=px, w_m=w_m, w_d=w_d, port_ret=port_ret, equity=equity, metrics=metrics)
 
 
 # ----------------------------
@@ -229,9 +219,7 @@ def save_outputs(res: BacktestResult, outdir: Path) -> None:
     res.px.to_csv(outdir / "px.csv")
     res.w_m.to_csv(outdir / "monthly_weights.csv")
     # 1-row, vertical view of the latest weights
-    (res.w_m.tail(1).T.rename(columns=lambda _: "weight")).to_csv(
-        outdir / "last_weights.csv"
-    )
+    (res.w_m.tail(1).T.rename(columns=lambda _: "weight")).to_csv(outdir / "last_weights.csv")
     res.equity.to_csv(outdir / "equity_curve.csv", header=["equity"])
 
     # Optional plot if matplotlib is available
@@ -257,10 +245,7 @@ def main() -> None:
 
     print(f"Loading prices from: {prices_dir}")
     px = load_prices_from_parquet(prices_dir)
-    print(
-        f"Loaded {px.shape[1]} tickers × {px.shape[0]} rows "
-        f"({px.index.min().date()} → {px.index.max().date()})."
-    )
+    print(f"Loaded {px.shape[1]} tickers × {px.shape[0]} rows " f"({px.index.min().date()} → {px.index.max().date()}).")
 
     res = run_backtest(px, top_n=TOP_N)
 

@@ -121,9 +121,7 @@ def main():
     tcol = _pick(df.columns, TICKER_CANDS)
     wcol = _pick(df.columns, WEIGHT_CANDS) or _auto_weight_col(df)
     if not dcol or not tcol or not wcol:
-        raise SystemExit(
-            f"Missing required columns. date:{dcol} ticker:{tcol} weight:{wcol}"
-        )
+        raise SystemExit(f"Missing required columns. date:{dcol} ticker:{tcol} weight:{wcol}")
 
     diag["mapping"] = {"date": dcol, "ticker": tcol, "weight": wcol}
     df[dcol] = pd.to_datetime(df[dcol], errors="coerce").dt.date
@@ -171,9 +169,7 @@ def main():
             }
         )
 
-    out = pd.DataFrame(
-        rows, columns=["date", "ticker", "side", "qty", "px_ref", "px_source"]
-    )
+    out = pd.DataFrame(rows, columns=["date", "ticker", "side", "qty", "px_ref", "px_source"])
     REPORTS.mkdir(parents=True, exist_ok=True)
     out.to_csv(OUT_CANON, index=False)
     out.to_csv(OUT_LASTDAY, index=False)

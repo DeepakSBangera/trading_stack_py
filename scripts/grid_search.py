@@ -3,9 +3,9 @@ import itertools
 import os
 
 import pandas as pd
+from src.trading_stack_py.data_loader import get_prices
 
 from src.trading_stack_py.backtest.engine import run_long_only
-from src.trading_stack_py.data_loader import get_prices
 from src.trading_stack_py.metrics.performance import summarize
 
 
@@ -26,9 +26,7 @@ def main():
     ap.add_argument("--start", default="2015-01-01")
     ap.add_argument("--end", default=None)
     ap.add_argument("--cost_bps", type=float, default=12.0)
-    ap.add_argument(
-        "--source", choices=["auto", "local", "yahoo", "synthetic"], default="auto"
-    )
+    ap.add_argument("--source", choices=["auto", "local", "yahoo", "synthetic"], default="auto")
     ap.add_argument("--fast", default="5,10,20,30")
     ap.add_argument("--slow", default="50,100,150,200")
     args = ap.parse_args()

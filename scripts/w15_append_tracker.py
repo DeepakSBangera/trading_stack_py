@@ -23,9 +23,7 @@ NOW_ISO = dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
 def _git_sha8():
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-        ).strip()
+        return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
     except Exception:
         return "nogit"
 

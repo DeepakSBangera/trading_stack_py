@@ -100,9 +100,7 @@ def check_file(kind: str, path: str):
 
 def main():
     if len(sys.argv) < 3:
-        print(
-            "Usage: schema_guard.py <prices|fundamentals|equity> <file|dir|glob> [more...]"
-        )
+        print("Usage: schema_guard.py <prices|fundamentals|equity> <file|dir|glob> [more...]")
         sys.exit(1)
 
     kind = sys.argv[1].lower()

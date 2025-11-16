@@ -11,9 +11,7 @@ ROOT = Path(r"F:\Projects\trading_stack_py")
 REPORTS = ROOT / "reports"
 DATA = ROOT / "data" / "prices"
 
-FILLS_CSV = (
-    REPORTS / "wk13_dryrun_fills.csv"
-)  # inputs: qty, side, px_ref, notional_ref, etc.
+FILLS_CSV = REPORTS / "wk13_dryrun_fills.csv"  # inputs: qty, side, px_ref, notional_ref, etc.
 ADV_PARQUET = REPORTS / "adv_value.parquet"  # optional: columns (ticker, adv_value) INR
 CURVES_CSV = REPORTS / "w15_exec_curves_by_ticker.csv"
 SUMMARY_CSV = REPORTS / "w15_exec_summary.csv"
@@ -96,9 +94,7 @@ def _load_fills_lastday():
     last = df[d].max()
 
     df["qty"] = pd.to_numeric(df[q], errors="coerce").fillna(0).astype(int)
-    df["side_sign"] = (
-        df[s].apply(_norm_side) if s in df.columns else np.sign(df["qty"]).astype(int)
-    )
+    df["side_sign"] = df[s].apply(_norm_side) if s in df.columns else np.sign(df["qty"]).astype(int)
     df["px_ref"] = pd.to_numeric(df[p], errors="coerce").fillna(0.0).astype(float)
     df = df[df[d] == last].copy()
 
@@ -116,17 +112,13 @@ def _load_fills_lastday():
     return last, g[["ticker", "qty", "side_sign", "px_ref", "notional_ref"]].copy()
 
 
-def _cost_for_order(
-    notional_inr: float, pov_pct: float, side_sign: int, adv_inr: float
-) -> tuple[float, float, float]:
+def _cost_for_order(notional_inr: float, pov_pct: float, side_sign: int, adv_inr: float) -> tuple[float, float, float]:
     if notional_inr <= 0 or adv_inr <= 0:
         return (0.0, 0.0, 0.0)
     effective_pov = min(float(pov_pct), PARTICIPATION_CAP_PCT)
     rel = max(effective_pov / 1.0, 1e-6)  # normalized
     impact_bps = BASE_IMPACT_BPS * (rel**IMPACT_EXPONENT)
-    slippage_bps = (
-        MIN_SLIPPAGE_BPS + impact_bps + (VWAP_DRIFT_BPS * (1 if side_sign > 0 else -1))
-    )
+    slippage_bps = MIN_SLIPPAGE_BPS + impact_bps + (VWAP_DRIFT_BPS * (1 if side_sign > 0 else -1))
     comm_bps = DEFAULT_COMMISSION_BPS
     tax_bps = DEFAULT_TAX_BPS
     tca_bps = slippage_bps + comm_bps + tax_bps
@@ -245,11 +237,7 @@ def main():
                 "pov_grid": POV_LADDER_PCT,
                 "curves_csv": str(CURVES_CSV),
                 "summary_csv": str(SUMMARY_CSV),
-                "adv_source": (
-                    str(ADV_PARQUET)
-                    if ADV_PARQUET.exists()
-                    else f"fallback:{FALLBACK_ADV_INR} INR"
-                ),
+                "adv_source": (str(ADV_PARQUET) if ADV_PARQUET.exists() else f"fallback:{FALLBACK_ADV_INR} INR"),
             },
             indent=2,
         ),
@@ -261,12 +249,8 @@ def main():
         "curves_csv": str(CURVES_CSV),
         "summary_csv": str(SUMMARY_CSV),
         "tickers": int(orders.shape[0]),
-        "portfolio_best_pov": (
-            float(port_best["pov_pct"]) if port_best is not None else None
-        ),
-        "portfolio_exp_tca_bps": (
-            float(port_best["exp_tca_bps"]) if port_best is not None else None
-        ),
+        "portfolio_best_pov": (float(port_best["pov_pct"]) if port_best is not None else None),
+        "portfolio_exp_tca_bps": (float(port_best["exp_tca_bps"]) if port_best is not None else None),
     }
     print(json.dumps(out, indent=2))
 

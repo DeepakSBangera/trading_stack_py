@@ -72,9 +72,7 @@ def test_w10_forecast_eval_exists_and_has_core_columns() -> None:
 
     # 3) At least one successful fit (allowing 'warn_convergence' as acceptable)
     assert (
-        ((df.get("fit_status") == "ok") | (df.get("fit_status") == "warn_convergence"))
-        .fillna(False)
-        .any()
+        ((df.get("fit_status") == "ok") | (df.get("fit_status") == "warn_convergence")).fillna(False).any()
     ), "no successful fits found (fit_status has neither 'ok' nor 'warn_convergence')"
 
     # 4) Metrics should be numeric and non-negative where applicable

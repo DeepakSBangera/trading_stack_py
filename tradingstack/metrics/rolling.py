@@ -36,11 +36,7 @@ except Exception:
                 dt = dt.dt.tz_localize(None)
             except Exception:
                 pass
-            df = (
-                df.assign(**{date_col: dt})
-                .dropna(subset=[date_col])
-                .sort_values(date_col)
-            )
+            df = df.assign(**{date_col: dt}).dropna(subset=[date_col]).sort_values(date_col)
             df = df.drop_duplicates(subset=[date_col]).set_index(date_col)
         else:
             idx = pd.to_datetime(df.index, utc=True, errors="coerce")
@@ -70,9 +66,7 @@ def _to_ret_from_nav(nav: pd.Series) -> pd.Series:
 # ---------- rolling metrics ---------------------------------------------------
 
 
-def rolling_volatility(
-    returns: pd.Series, window: int = 63, annualization: int = 252
-) -> pd.Series:
+def rolling_volatility(returns: pd.Series, window: int = 63, annualization: int = 252) -> pd.Series:
     """
     Annualized rolling volatility over 'window' periods.
     """
@@ -81,9 +75,7 @@ def rolling_volatility(
     return vol * np.sqrt(annualization)
 
 
-def rolling_sharpe(
-    returns: pd.Series, window: int = 252, annualization: int = 252, rf: float = 0.0
-) -> pd.Series:
+def rolling_sharpe(returns: pd.Series, window: int = 252, annualization: int = 252, rf: float = 0.0) -> pd.Series:
     """
     Rolling Sharpe ratio using mean/std of excess returns in each window.
     """
@@ -95,9 +87,7 @@ def rolling_sharpe(
     return sharpe.replace([np.inf, -np.inf], np.nan)
 
 
-def rolling_sortino(
-    returns: pd.Series, window: int = 252, annualization: int = 252, rf: float = 0.0
-) -> pd.Series:
+def rolling_sortino(returns: pd.Series, window: int = 252, annualization: int = 252, rf: float = 0.0) -> pd.Series:
     """
     Rolling Sortino ratio using downside deviation within each window.
     """
@@ -124,9 +114,7 @@ def rolling_drawdown(nav: pd.Series, window: int = 252) -> pd.Series:
     return x.rolling(window=window, min_periods=window).apply(_window_mdd, raw=False)
 
 
-def trend_regime(
-    nav: pd.Series, fast: int = 50, slow: int = 200, method: str = "sma_crossover"
-) -> pd.Series:
+def trend_regime(nav: pd.Series, fast: int = 50, slow: int = 200, method: str = "sma_crossover") -> pd.Series:
     """
     - 'sma_crossover': +1 if SMA(fast) > SMA(slow), -1 if <, 0 otherwise.
     - 'zscore': sign(zscore(nav, slow)).
@@ -188,17 +176,13 @@ def compute_rolling_metrics_from_nav(
     """
     df = normalize_date_index(df, "date")
     if nav_col not in df.columns:
-        raise KeyError(
-            f"Missing NAV column '{nav_col}' in DataFrame columns: {list(df.columns)}"
-        )
+        raise KeyError(f"Missing NAV column '{nav_col}' in DataFrame columns: {list(df.columns)}")
 
     nav = pd.to_numeric(df[nav_col], errors="coerce").astype("float64")
     rets = _to_ret_from_nav(nav)
 
     out = pd.DataFrame(index=df.index)
-    out["rolling_vol"] = rolling_volatility(
-        rets, window=vol_window, annualization=annualization
-    )
+    out["rolling_vol"] = rolling_volatility(rets, window=vol_window, annualization=annualization)
     out["rolling_sharpe"] = rolling_sharpe(
         rets, window=ret_window_sharpe, annualization=annualization, rf=rf_per_period
     )
@@ -206,7 +190,5 @@ def compute_rolling_metrics_from_nav(
         rets, window=ret_window_sortino, annualization=annualization, rf=rf_per_period
     )
     out["rolling_mdd"] = rolling_drawdown(nav, window=dd_window)
-    out["regime"] = trend_regime(
-        nav, fast=regime_fast, slow=regime_slow, method=regime_method
-    ).astype("int8")
+    out["regime"] = trend_regime(nav, fast=regime_fast, slow=regime_slow, method=regime_method).astype("int8")
     return out

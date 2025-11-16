@@ -69,9 +69,7 @@ def _load_price_df(ticker: str) -> pd.DataFrame | None:
         if dcol is None or ccol is None:
             return None
         x = x[[dcol] + [c for c in [ocol, hcol, lcol, ccol] if c is not None]].copy()
-        x.columns = ["date"] + [
-            c for c in ["open", "high", "low", "close"] if c in x.columns
-        ]
+        x.columns = ["date"] + [c for c in ["open", "high", "low", "close"] if c in x.columns]
         x["date"] = pd.to_datetime(x["date"], errors="coerce")
         x = x.dropna(subset=["date"]).sort_values("date")
         return x
@@ -161,17 +159,9 @@ def main():
                 "ticker": tic,
                 "close": round(close, 6),
                 f"atr_{ATR_LEN}": round(atr, 6) if math.isfinite(atr) else np.nan,
-                "stop_long": (
-                    round(long_stop, 6) if math.isfinite(long_stop) else np.nan
-                ),
-                "stop_short": (
-                    round(short_stop, 6) if math.isfinite(short_stop) else np.nan
-                ),
-                "vol_ann_est": (
-                    round(vol_ann, 6)
-                    if (vol_ann is not None and math.isfinite(vol_ann))
-                    else np.nan
-                ),
+                "stop_long": (round(long_stop, 6) if math.isfinite(long_stop) else np.nan),
+                "stop_short": (round(short_stop, 6) if math.isfinite(short_stop) else np.nan),
+                "vol_ann_est": (round(vol_ann, 6) if (vol_ann is not None and math.isfinite(vol_ann)) else np.nan),
                 "kelly_base": BASE_KELLY,
             }
         )

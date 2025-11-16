@@ -83,9 +83,7 @@ def _load_orders() -> pd.DataFrame:
     qcol = _pick_col(df, REQ_COLS_ORDERS_ANY["qty"])
     pcol = _pick_col(df, REQ_COLS_ORDERS_ANY["px_ref"])
     if not all([dcol, tcol, qcol, pcol]):
-        raise ValueError(
-            f"orders missing required columns; got date={dcol}, ticker={tcol}, qty={qcol}, px={pcol}"
-        )
+        raise ValueError(f"orders missing required columns; got date={dcol}, ticker={tcol}, qty={qcol}, px={pcol}")
 
     out = pd.DataFrame(
         {
@@ -119,11 +117,7 @@ def _load_event_flags() -> pd.DataFrame:
         {
             "date": pd.to_datetime(ev[dcol], errors="coerce").dt.date,
             "ticker": ev[tcol].astype(str),
-            "do_not_trade": ev[fcol]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .isin(["1", "true", "yes", "y", "t"]),
+            "do_not_trade": ev[fcol].astype(str).str.strip().str.lower().isin(["1", "true", "yes", "y", "t"]),
         }
     )
     return out
@@ -150,18 +144,14 @@ def _load_risk_schedule() -> pd.DataFrame:
 
 def _load_targets_lite() -> pd.DataFrame:
     if not TARGETS_CSV.exists():
-        return pd.DataFrame(
-            columns=["date", "ticker", "allow_new_final", "rebalance_allowed_final"]
-        )
+        return pd.DataFrame(columns=["date", "ticker", "allow_new_final", "rebalance_allowed_final"])
     tg = pd.read_csv(TARGETS_CSV)
     dcol = _pick_col(tg, ["date"])
     tcol = _pick_col(tg, ["ticker"])
     anew = _pick_col(tg, ["allow_new_final", "allow_new"])
     rbal = _pick_col(tg, ["rebalance_allowed_final", "rebalance_allowed"])
     if not all([dcol, tcol]):
-        return pd.DataFrame(
-            columns=["date", "ticker", "allow_new_final", "rebalance_allowed_final"]
-        )
+        return pd.DataFrame(columns=["date", "ticker", "allow_new_final", "rebalance_allowed_final"])
     out = pd.DataFrame(
         {
             "date": pd.to_datetime(tg[dcol], errors="coerce").dt.date,
@@ -221,22 +211,12 @@ def main():
 
     # Build lookup maps
     ev_map = (
-        {
-            (d, t): f
-            for d, t, f in zip(
-                events["date"], events["ticker"], events["do_not_trade"], strict=False
-            )
-        }
+        {(d, t): f for d, t, f in zip(events["date"], events["ticker"], events["do_not_trade"], strict=False)}
         if not events.empty
         else {}
     )
     mult_map = (
-        {
-            (d, t): m
-            for d, t, m in zip(
-                sched["date"], sched["ticker"], sched["final_mult"], strict=False
-            )
-        }
+        {(d, t): m for d, t, m in zip(sched["date"], sched["ticker"], sched["final_mult"], strict=False)}
         if not sched.empty
         else {}
     )

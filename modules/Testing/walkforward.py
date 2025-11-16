@@ -21,9 +21,7 @@ class WalkForwardCV:
 
         # Minimum train must reflect the trimmed tail
         default_min = max(1, self.train_size - emb)
-        min_train = (
-            default_min if self.min_train_size is None else max(1, self.min_train_size)
-        )
+        min_train = default_min if self.min_train_size is None else max(1, self.min_train_size)
 
         start_train = 0
         end_train = self.train_size  # nominal train end before trimming

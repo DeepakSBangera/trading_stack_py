@@ -46,15 +46,9 @@ def _safe_num(x, default=0.0) -> float:
 
 
 def _load_orders() -> pd.DataFrame:
-    cand = (
-        ORDERS
-        if ORDERS.exists()
-        else (ORDERS_FALLBACK if ORDERS_FALLBACK.exists() else None)
-    )
+    cand = ORDERS if ORDERS.exists() else (ORDERS_FALLBACK if ORDERS_FALLBACK.exists() else None)
     if cand is None:
-        return pd.DataFrame(
-            columns=["ticker", "side", "qty", "px_ref", "notional_ref", "trade_inr"]
-        )
+        return pd.DataFrame(columns=["ticker", "side", "qty", "px_ref", "notional_ref", "trade_inr"])
 
     raw = pd.read_csv(cand)
     cols_lc = [c.lower() for c in raw.columns]
@@ -63,9 +57,7 @@ def _load_orders() -> pd.DataFrame:
     q_col = _pick(cols_lc, ["qty", "quantity", "shares", "size", "order_qty"])
     s_col = _pick(cols_lc, ["side", "side_sign", "direction", "buy_sell"])
     p_col = _pick(cols_lc, ["px_ref", "price", "px", "limit_price", "ref_price"])
-    n_col = _pick(
-        cols_lc, ["notional_ref", "notional", "order_notional", "value_inr", "amount"]
-    )
+    n_col = _pick(cols_lc, ["notional_ref", "notional", "order_notional", "value_inr", "amount"])
 
     if not t_col or (not q_col and not n_col and not p_col):
         info = {
@@ -79,9 +71,7 @@ def _load_orders() -> pd.DataFrame:
         }
         OUT_SUMMARY.write_text(json.dumps(info, indent=2), encoding="utf-8")
         print(json.dumps(info, indent=2))
-        return pd.DataFrame(
-            columns=["ticker", "side", "qty", "px_ref", "notional_ref", "trade_inr"]
-        )
+        return pd.DataFrame(columns=["ticker", "side", "qty", "px_ref", "notional_ref", "trade_inr"])
 
     lo = {c.lower(): c for c in raw.columns}
 
@@ -93,12 +83,8 @@ def _load_orders() -> pd.DataFrame:
             "ticker": raw[oc(t_col)].astype(str).str.strip(),
             "qty": pd.to_numeric(raw[oc(q_col)], errors="coerce") if q_col else np.nan,
             "side": raw[oc(s_col)] if s_col else 1,
-            "px_ref": (
-                pd.to_numeric(raw[oc(p_col)], errors="coerce") if p_col else np.nan
-            ),
-            "notional_ref": (
-                pd.to_numeric(raw[oc(n_col)], errors="coerce") if n_col else np.nan
-            ),
+            "px_ref": (pd.to_numeric(raw[oc(p_col)], errors="coerce") if p_col else np.nan),
+            "notional_ref": (pd.to_numeric(raw[oc(n_col)], errors="coerce") if n_col else np.nan),
         }
     )
 
@@ -114,9 +100,7 @@ def _load_orders() -> pd.DataFrame:
     q = df["qty"].apply(_safe_num, default=np.nan)
     p = df["px_ref"].apply(_safe_num, default=np.nan)
     trade_from_prod = q * p
-    trade_from_prod = trade_from_prod.where(
-        ~trade_from_prod.isna() & (trade_from_prod > 0)
-    )
+    trade_from_prod = trade_from_prod.where(~trade_from_prod.isna() & (trade_from_prod > 0))
     trade = n.where(~pd.isna(n) & (n > 0), other=trade_from_prod)
     df["trade_inr"] = trade.fillna(0.0)
 
@@ -139,9 +123,7 @@ def _adv_from_prices(ticker: str) -> float | None:
         if not c or not v:
             return None
         s = x[[c, v]].dropna().copy()
-        s["turnover_inr"] = pd.to_numeric(s[c], errors="coerce") * pd.to_numeric(
-            s[v], errors="coerce"
-        )
+        s["turnover_inr"] = pd.to_numeric(s[c], errors="coerce") * pd.to_numeric(s[v], errors="coerce")
         s = s.dropna()
         return float(s["turnover_inr"].tail(60).mean()) if not s.empty else None
     except Exception:
@@ -233,9 +215,7 @@ def main():
     best = df.loc[df["rank"] == 1.0].copy().sort_values(["slippage_bps", "ticker"])
 
     style_means = df.groupby("style")["slippage_bps"].mean().to_dict()
-    port_best_mean = (
-        float(best["slippage_bps"].mean()) if not best.empty else float("nan")
-    )
+    port_best_mean = float(best["slippage_bps"].mean()) if not best.empty else float("nan")
 
     df.sort_values(["ticker", "slippage_bps"], inplace=True)
     df.to_csv(OUT_CSV, index=False)
@@ -244,12 +224,9 @@ def main():
         "as_of_ist": datetime.now().astimezone().isoformat(),
         "orders": int(orders.shape[0]),
         "tickers": int(best["ticker"].nunique()),
-        "portfolio_best_mean_bps": (
-            None if math.isnan(port_best_mean) else round(port_best_mean, 3)
-        ),
+        "portfolio_best_mean_bps": (None if math.isnan(port_best_mean) else round(port_best_mean, 3)),
         "style_means_bps": {
-            k: (None if (v is None or math.isnan(float(v))) else round(float(v), 3))
-            for k, v in style_means.items()
+            k: (None if (v is None or math.isnan(float(v))) else round(float(v), 3)) for k, v in style_means.items()
         },
         "files": {"detail_csv": str(OUT_CSV)},
     }

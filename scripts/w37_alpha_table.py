@@ -215,9 +215,7 @@ def main():
     panel = _load_panel(tickers)
     if panel.empty:
         # Produce empty but valid outputs
-        pd.DataFrame(columns=["date", "signal", "horizon", "ic"]).to_csv(
-            IC_TIMESERIES, index=False
-        )
+        pd.DataFrame(columns=["date", "signal", "horizon", "ic"]).to_csv(IC_TIMESERIES, index=False)
         pd.DataFrame(
             columns=[
                 "signal",
@@ -309,11 +307,7 @@ def main():
         if (
             mean_63 is not None
             and not np.isnan(mean_63)
-            and (
-                mean_63 <= RETIRE_MAX_MEAN_IC_63
-                or hl < RETIRE_MAX_HALFLIFE
-                or coverage < RETIRE_MIN_COVERAGE
-            )
+            and (mean_63 <= RETIRE_MAX_MEAN_IC_63 or hl < RETIRE_MAX_HALFLIFE or coverage < RETIRE_MIN_COVERAGE)
         ):
             action = "Retire"
 
@@ -331,9 +325,7 @@ def main():
             }
         )
 
-    alpha_table = pd.DataFrame(summaries).sort_values(
-        ["action", "mean_ic_63"], ascending=[True, False]
-    )
+    alpha_table = pd.DataFrame(summaries).sort_values(["action", "mean_ic_63"], ascending=[True, False])
     alpha_table.to_csv(ALPHA_TABLE_CSV, index=False)
 
     promote = alpha_table[alpha_table["action"] == "Promote"]["signal"].tolist()

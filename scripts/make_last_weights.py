@@ -26,9 +26,7 @@ else:
     folder = runs[0]
     px_path = folder / "px.csv"
     if not px_path.exists():
-        raise SystemExit(
-            f"No monthly_weights.csv in any run, and {px_path} not found to rebuild."
-        )
+        raise SystemExit(f"No monthly_weights.csv in any run, and {px_path} not found to rebuild.")
 
     px = pd.read_csv(px_path, index_col=0, parse_dates=True)
     # Month-end prices

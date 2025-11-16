@@ -26,9 +26,7 @@ def _safe_returns(df: pd.DataFrame) -> pd.Series:
         ret = px.pct_change()
         return ret.fillna(0.0)
 
-    raise KeyError(
-        "No suitable columns to compute returns (need 'Return' or 'Equity' or 'Close')."
-    )
+    raise KeyError("No suitable columns to compute returns (need 'Return' or 'Equity' or 'Close').")
 
 
 def _safe_equity(df: pd.DataFrame, base: float = 1.0) -> pd.Series:

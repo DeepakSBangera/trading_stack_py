@@ -103,9 +103,7 @@ def main():
     tcol = _pick(df, TICKER_CANDS)
     wcol = _pick(df, WEIGHT_CANDS)
     if not dcol or not tcol or not wcol:
-        raise SystemExit(
-            f"Missing required columns. date:{dcol} ticker:{tcol} weight:{wcol}"
-        )
+        raise SystemExit(f"Missing required columns. date:{dcol} ticker:{tcol} weight:{wcol}")
 
     diag["mapping"] = {"date": dcol, "ticker": tcol, "weight": wcol}
 

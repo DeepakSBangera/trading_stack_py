@@ -19,9 +19,7 @@ def minimum_track_record_length(
     sr = float(sr_hat)
     if sr <= sr_threshold:
         return np.inf
-    numer = norm.ppf(p_star) * np.sqrt(
-        1.0 - skewness * sr + ((kurt - 1.0) / 4.0) * (sr**2)
-    )
+    numer = norm.ppf(p_star) * np.sqrt(1.0 - skewness * sr + ((kurt - 1.0) / 4.0) * (sr**2))
     denom = sr - sr_threshold
     n = 1.0 + (numer / denom) ** 2
     return float(n)

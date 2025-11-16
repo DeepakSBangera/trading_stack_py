@@ -7,9 +7,9 @@ from datetime import datetime
 
 import pandas as pd
 import yaml
+from src.signals import make_signals
 
 from src import data_io
-from src.signals import make_signals
 
 with open("config/config.yaml", encoding="utf-8") as f:
     CFG = yaml.safe_load(f)
@@ -70,7 +70,5 @@ if out_df.empty:
     print("[INFO] No signals today (or no data). Writing empty buylist with headers.")
     out_df.to_csv(buylist_path, index=False)
 else:
-    out_df.sort_values(by=["score", "symbol"], ascending=[False, True]).to_csv(
-        buylist_path, index=False
-    )
+    out_df.sort_values(by=["score", "symbol"], ascending=[False, True]).to_csv(buylist_path, index=False)
 print(f"Wrote {buylist_path}")

@@ -8,13 +8,9 @@ import pandas as pd
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Export a parquet file to HTML table (lightweight viewer)."
-    )
+    ap = argparse.ArgumentParser(description="Export a parquet file to HTML table (lightweight viewer).")
     ap.add_argument("parquet", nargs="?", default="reports/factor_exposures.parquet")
-    ap.add_argument(
-        "--out", default=None, help="Output HTML path (default: alongside parquet)"
-    )
+    ap.add_argument("--out", default=None, help="Output HTML path (default: alongside parquet)")
     ap.add_argument(
         "--limit",
         type=int,

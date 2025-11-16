@@ -82,12 +82,8 @@ def main():
         default=r"data/universe/watchlist.csv",
         help="Path to watchlist CSV with a 'symbol' column",
     )
-    ap.add_argument(
-        "--outdir", default=r"data/csv", help="Output directory for generated CSVs"
-    )
-    ap.add_argument(
-        "--days", type=int, default=750, help="Number of business days to generate"
-    )
+    ap.add_argument("--outdir", default=r"data/csv", help="Output directory for generated CSVs")
+    ap.add_argument("--days", type=int, default=750, help="Number of business days to generate")
     args = ap.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)

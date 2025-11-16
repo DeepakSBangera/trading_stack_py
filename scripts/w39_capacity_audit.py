@@ -47,20 +47,14 @@ def _load_weights() -> pd.DataFrame:
             try:
                 x = pd.read_csv(path, parse_dates=["date"])
                 t = _pick(list(x.columns), ["ticker", "symbol", "name"])
-                w = _pick(
-                    list(x.columns), ["w", "weight", "w_total", "w_capped", "w_norm"]
-                )
+                w = _pick(list(x.columns), ["w", "weight", "w_total", "w_capped", "w_norm"])
                 d = _pick(list(x.columns), ["date", "dt"])
                 if t is None or w is None:
                     continue
                 if d is None and "date" not in x.columns:
                     x["date"] = pd.Timestamp("today").normalize()
                     d = "date"
-                x = (
-                    x[[d, t, w]]
-                    .rename(columns={d: "date", t: "ticker", w: "w"})
-                    .dropna()
-                )
+                x = x[[d, t, w]].rename(columns={d: "date", t: "ticker", w: "w"}).dropna()
                 last = x["date"].max()
                 x = x[x["date"] == last].copy()
                 x["w"] = x["w"].astype(float)
@@ -144,9 +138,7 @@ def _load_panel_close_vol() -> pd.DataFrame:
                 frames.append(d)
 
     if not frames:
-        raise SystemExit(
-            "No price files found in data/prices or data/csv with close/volume."
-        )
+        raise SystemExit("No price files found in data/prices or data/csv with close/volume.")
 
     panel = pd.concat(frames, ignore_index=True)
     panel = panel.dropna(subset=["close"])
@@ -154,10 +146,7 @@ def _load_panel_close_vol() -> pd.DataFrame:
 
     # ✅ FIX: use transform to keep index aligned; then fill remaining with 0
     panel["volume"] = (
-        panel.groupby("ticker", sort=False)["volume"]
-        .transform(lambda s: s.fillna(s.median()))
-        .fillna(0)
-        .astype(float)
+        panel.groupby("ticker", sort=False)["volume"].transform(lambda s: s.fillna(s.median())).fillna(0).astype(float)
     )
     return panel.sort_values(["ticker", "date"]).reset_index(drop=True)
 
@@ -165,9 +154,7 @@ def _load_panel_close_vol() -> pd.DataFrame:
 def _adv_inr(panel: pd.DataFrame, lookback: int) -> pd.Series:
     """20d ADV in INR ≈ mean(close×volume) over trailing window, per ticker."""
     df = panel.sort_values(["ticker", "date"]).copy()
-    df["notional"] = (df["close"].astype(float) * df["volume"].astype(float)).astype(
-        float
-    )
+    df["notional"] = (df["close"].astype(float) * df["volume"].astype(float)).astype(float)
 
     # return one scalar per group (not multiindex)
     def last_roll_mean(s: pd.Series) -> float:
@@ -193,9 +180,7 @@ def _capacity_table(weights: pd.DataFrame, adv_map: pd.Series) -> pd.DataFrame:
     out = w.merge(adv_df, on="ticker", how="left").fillna({"adv_inr": 0.0})
 
     out["notional_inr"] = out["w"].abs() * PORTFOLIO_NOTIONAL_INR
-    out["adv_pct_baseline"] = np.where(
-        out["adv_inr"] > 0, out["notional_inr"] / out["adv_inr"], np.inf
-    )
+    out["adv_pct_baseline"] = np.where(out["adv_inr"] > 0, out["notional_inr"] / out["adv_inr"], np.inf)
     for mult in (2, 3):
         out[f"adv_pct_{mult}x"] = out["adv_pct_baseline"] * mult
 

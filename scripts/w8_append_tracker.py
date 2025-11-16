@@ -19,17 +19,13 @@ def open_win(p: Path):
 def ensure_header():
     DOCS.mkdir(parents=True, exist_ok=True)
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
 
 
 def main():
     ensure_header()
     today = dt.date.today().isoformat()
-    artifacts = "; ".join(
-        ["events_calendar.csv", "events_position_flags.csv", "event_rules.yaml"]
-    )
+    artifacts = "; ".join(["events_calendar.csv", "events_position_flags.csv", "event_rules.yaml"])
     gates = "Pre/post earnings freeze + reduced risk; holidays block"
     risks = "Synthetic calendar; refine with real vendor feed later"
     decisions = "Multiply risk by event risk_mult; disallow adds/rebalance as flagged"

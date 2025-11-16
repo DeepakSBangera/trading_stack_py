@@ -24,11 +24,7 @@ def main():
         except Exception:
             row = {}
     pol = pd.read_csv(POLICY) if POLICY.exists() else pd.DataFrame()
-    weights_note = (
-        "; ".join([f"{r.sleeve}={r.weight:.3f}" for r in pol.itertuples()])
-        if not pol.empty
-        else ""
-    )
+    weights_note = "; ".join([f"{r.sleeve}={r.weight:.3f}" for r in pol.itertuples()]) if not pol.empty else ""
 
     now = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     fields = [
@@ -52,11 +48,7 @@ def main():
                 "session": "S-W27",
                 "artifact": "W27 Bandit Selection",
                 "as_of": row.get("as_of", ""),
-                "sleeves": (
-                    ", ".join(row.get("sleeves", []))
-                    if isinstance(row.get("sleeves", []), list)
-                    else ""
-                ),
+                "sleeves": (", ".join(row.get("sleeves", [])) if isinstance(row.get("sleeves", []), list) else ""),
                 "policy_csv": row.get("policy_csv", ""),
                 "weights": weights_note,
                 "git_sha8": "",

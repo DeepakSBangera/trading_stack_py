@@ -50,9 +50,7 @@ def _load_run(run_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     return px, w_m
 
 
-def _period_returns(
-    px: pd.DataFrame, start_dt: pd.Timestamp, end_dt: pd.Timestamp
-) -> pd.Series:
+def _period_returns(px: pd.DataFrame, start_dt: pd.Timestamp, end_dt: pd.Timestamp) -> pd.Series:
     """Total return per asset between (start_dt, end_dt], using last available prices."""
     # Price at start = last price at or before start_dt
     p0 = px.loc[:start_dt].tail(1).squeeze()

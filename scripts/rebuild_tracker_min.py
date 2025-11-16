@@ -59,13 +59,7 @@ def _rows_from_reports() -> list[dict]:
 
     if not rows:
         return []
-    df = (
-        pd.DataFrame(rows)
-        .sort_values("ts_ist")
-        .groupby("session", as_index=False)
-        .tail(1)
-        .sort_values("ts_ist")
-    )
+    df = pd.DataFrame(rows).sort_values("ts_ist").groupby("session", as_index=False).tail(1).sort_values("ts_ist")
     return df.to_dict(orient="records")
 
 
@@ -127,11 +121,7 @@ def main():
     ts_series = _to_ist_series(out.get("ts_ist", pd.Series(dtype="object")))
     out["ts_ist"] = ts_series.apply(lambda t: t.isoformat())
 
-    out = (
-        out.drop_duplicates(subset=REQ_COLS, keep="last")
-        .sort_values("ts_ist")
-        .reset_index(drop=True)
-    )
+    out = out.drop_duplicates(subset=REQ_COLS, keep="last").sort_values("ts_ist").reset_index(drop=True)
 
     out.to_csv(TRACKER, index=False)
     print(

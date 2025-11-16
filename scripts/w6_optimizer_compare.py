@@ -21,9 +21,7 @@ SECTOR_MAP_CSV = META / "sector_map.csv"  # optional mapping: ticker,sector
 OUT_COMPARE = REPORTS / "wk6_portfolio_compare.csv"
 OUT_EXPO = REPORTS / "factor_exposure_weekly.csv"
 OUT_CAPACITY = REPORTS / "capacity_curve.csv"
-OUT_WE_CAP = (
-    REPORTS / "wk6_weights_capped.csv"
-)  # produced by a helper here (soft caps demo)
+OUT_WE_CAP = REPORTS / "wk6_weights_capped.csv"  # produced by a helper here (soft caps demo)
 OUT_DIAG = REPORTS / "w6_diag.json"
 
 # --- knobs ---
@@ -61,15 +59,11 @@ def _load_targets():
     df = pd.read_csv(TARGETS_CSV)
     dcol = _pick(df.columns, ["date", "dt", "trading_day", "asof", "as_of"])
     tcol = _pick(df.columns, ["ticker", "symbol", "name"])
-    wcol = _pick(
-        df.columns, ["target_w", "weight", "w", "blend_w", "final_w", "target_weight"]
-    )
+    wcol = _pick(df.columns, ["target_w", "weight", "w", "blend_w", "final_w", "target_weight"])
     if not dcol or not tcol or not wcol:
         raise SystemExit("wk11_blend_targets.csv missing date/ticker/weight columns.")
     df[dcol] = pd.to_datetime(df[dcol], errors="coerce").dt.date
-    df = wdf = df[[dcol, tcol, wcol]].rename(
-        columns={dcol: "date", tcol: "ticker", wcol: "w"}
-    )
+    df = wdf = df[[dcol, tcol, wcol]].rename(columns={dcol: "date", tcol: "ticker", wcol: "w"})
     return wdf
 
 
@@ -197,9 +191,7 @@ def _capacity_curve(df: pd.DataFrame, scheme: str, adv_map: dict) -> list[dict]:
                     continue
                 names += 1
                 adv = adv_map.get(str(r["ticker"]), 5e7)  # fallback INR 5e7
-                need += min(
-                    abs(w) * N / adv * 100.0, CAP_PER_NAME_ADV_PCT
-                )  # sum of per-name utilisation clipped
+                need += min(abs(w) * N / adv * 100.0, CAP_PER_NAME_ADV_PCT)  # sum of per-name utilisation clipped
             rows.append(
                 {
                     "date": d,
@@ -219,18 +211,11 @@ def _enforce_caps(weights: pd.DataFrame, sector_map: dict) -> pd.DataFrame:
         # clip
         tmp["w_capped"] = tmp["w_mvshrink"].clip(-NAME_CAP, NAME_CAP)
         # sector cap
-        tmp["sector"] = [
-            sector_map.get(t, "UNKNOWN") for t in tmp["ticker"].astype(str)
-        ]
+        tmp["sector"] = [sector_map.get(t, "UNKNOWN") for t in tmp["ticker"].astype(str)]
         # scale down sectors above cap proportionally
         sector_sum = tmp.groupby("sector")["w_capped"].apply(lambda x: x.abs().sum())
-        scale = {
-            s: (SECTOR_CAP / val) if val > SECTOR_CAP else 1.0
-            for s, val in sector_sum.items()
-        }
-        tmp["w_capped"] = tmp.apply(
-            lambda r: r["w_capped"] * scale.get(r["sector"], 1.0), axis=1
-        )
+        scale = {s: (SECTOR_CAP / val) if val > SECTOR_CAP else 1.0 for s, val in sector_sum.items()}
+        tmp["w_capped"] = tmp.apply(lambda r: r["w_capped"] * scale.get(r["sector"], 1.0), axis=1)
         # final renorm to sum(|w|)=1 (gross normalize)
         gross = tmp["w_capped"].abs().sum()
         if gross > 0:
@@ -270,15 +255,11 @@ def main():
     compare.to_csv(OUT_COMPARE, index=False)
 
     # per-ticker table of weights for exposures & capacity
-    weights = pd.DataFrame(
-        {"date": last, "ticker": tickers, "w_ew": ew, "w_invvol": iv, "w_mvshrink": mv}
-    )
+    weights = pd.DataFrame({"date": last, "ticker": tickers, "w_ew": ew, "w_invvol": iv, "w_mvshrink": mv})
 
     # exposures by sector (if map present)
     sector_map = _load_sector_map()
-    weights["sector"] = [
-        sector_map.get(t, "UNKNOWN") for t in weights["ticker"].astype(str)
-    ]
+    weights["sector"] = [sector_map.get(t, "UNKNOWN") for t in weights["ticker"].astype(str)]
     expo = (
         weights.melt(
             id_vars=["date", "ticker", "sector"],
@@ -295,9 +276,7 @@ def main():
     adv_map = _load_adv_map()
     cap_rows = []
     for scheme in ["ew", "invvol", "mvshrink"]:
-        cap_rows += _capacity_curve(
-            weights.rename(columns={f"w_{scheme}": f"w_{scheme}"}), scheme, adv_map
-        )
+        cap_rows += _capacity_curve(weights.rename(columns={f"w_{scheme}": f"w_{scheme}"}), scheme, adv_map)
     cap = pd.DataFrame(cap_rows)
     cap.to_csv(OUT_CAPACITY, index=False)
 

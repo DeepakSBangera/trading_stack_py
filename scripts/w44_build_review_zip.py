@@ -11,8 +11,7 @@ REPORTS = ROOT / "reports"
 DOCS = ROOT / "docs"
 
 OUT = (
-    REPORTS
-    / f"W44_redteam_review_{pd.Timestamp.utcnow().tz_convert('Asia/Kolkata').strftime('%Y-%m-%d_%H-%M-%S')}.zip"
+    REPORTS / f"W44_redteam_review_{pd.Timestamp.utcnow().tz_convert('Asia/Kolkata').strftime('%Y-%m-%d_%H-%M-%S')}.zip"
 )
 
 INCLUDE = [

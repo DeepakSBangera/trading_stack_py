@@ -82,16 +82,12 @@ def _caps_from_yaml() -> tuple[float, float]:
     for k in list(kv.keys()):
         lk = k.lower().replace(" ", "_")
         v = kv[k]
-        if per_name is None and (
-            "per_name_cap" in lk or "name_cap" in lk or "single_name_cap" in lk
-        ):
+        if per_name is None and ("per_name_cap" in lk or "name_cap" in lk or "single_name_cap" in lk):
             try:
                 per_name = float(v)
             except:
                 pass
-        if sector is None and (
-            "sector_cap" in lk or "sector_caps_base" in lk or "sector_caps" in lk
-        ):
+        if sector is None and ("sector_cap" in lk or "sector_caps_base" in lk or "sector_caps" in lk):
             try:
                 sector = float(v)
             except:
@@ -114,17 +110,13 @@ def _load_targets_lastday() -> tuple[dt.date, pd.DataFrame]:
     t = _pick(df.columns, TICK_CANDS)
     w = _pick(df.columns, WEIGHT_CANDS)
     if not (d and t and w):
-        raise SystemExit(
-            "wk11_blend_targets.csv missing date/ticker/weight-like columns"
-        )
+        raise SystemExit("wk11_blend_targets.csv missing date/ticker/weight-like columns")
     df[d] = pd.to_datetime(df[d], errors="coerce").dt.date
     last = df[d].max()
     sub = df[df[d] == last].copy()
     sub = sub[[t, w]].rename(columns={t: "ticker", w: "target_w"})
     sub["ticker"] = sub["ticker"].astype(str)
-    sub["target_w"] = (
-        pd.to_numeric(sub["target_w"], errors="coerce").fillna(0.0).clip(lower=0.0)
-    )
+    sub["target_w"] = pd.to_numeric(sub["target_w"], errors="coerce").fillna(0.0).clip(lower=0.0)
     # renormalize just in case numerical noise
     s = sub["target_w"].sum()
     if s > 0:
@@ -147,9 +139,7 @@ def _load_sectors(universe: list[str]) -> pd.DataFrame:
         except Exception:
             pass
     # Fallback: assign UNKNOWN
-    return pd.DataFrame(
-        {"ticker": universe, "sector": ["UNKNOWN"] * len(universe)}, dtype=object
-    )
+    return pd.DataFrame({"ticker": universe, "sector": ["UNKNOWN"] * len(universe)}, dtype=object)
 
 
 def _property_tests(
@@ -162,11 +152,7 @@ def _property_tests(
     df["per_name_breach"] = df["target_w"] > per_name_cap
 
     # sector sums & breaches
-    sec = (
-        df.groupby("sector", as_index=False)["target_w"]
-        .sum()
-        .rename(columns={"target_w": "sector_sum"})
-    )
+    sec = df.groupby("sector", as_index=False)["target_w"].sum().rename(columns={"target_w": "sector_sum"})
     sec["sector_breach"] = sec["sector_sum"] > sector_cap
 
     # attach sector sums to each row for reporting
@@ -178,27 +164,17 @@ def _property_tests(
     sector_breaches = int(sec["sector_breach"].sum())
 
     rows = []
-    for _, r in df.sort_values(
-        ["per_name_breach", "sector_breach"], ascending=False
-    ).iterrows():
+    for _, r in df.sort_values(["per_name_breach", "sector_breach"], ascending=False).iterrows():
         rows.append(
             {
                 "ticker": r["ticker"],
                 "sector": r["sector"],
                 "target_w": round(float(r["target_w"]), 8),
-                "sector_sum": (
-                    round(float(r["sector_sum"]), 8)
-                    if not math.isnan(float(r["sector_sum"]))
-                    else None
-                ),
+                "sector_sum": (round(float(r["sector_sum"]), 8) if not math.isnan(float(r["sector_sum"])) else None),
                 "per_name_cap": per_name_cap,
                 "sector_cap": sector_cap,
                 "per_name_breach": bool(r["per_name_breach"]),
-                "sector_breach": bool(
-                    r["sector_sum"] > sector_cap
-                    if r["sector_sum"] == r["sector_sum"]
-                    else False
-                ),
+                "sector_breach": bool(r["sector_sum"] > sector_cap if r["sector_sum"] == r["sector_sum"] else False),
             }
         )
     out = pd.DataFrame(rows)
@@ -215,9 +191,7 @@ def _property_tests(
     return out
 
 
-def _edge_cases(
-    targets: pd.DataFrame, sectors: pd.DataFrame, per_name_cap: float, sector_cap: float
-) -> pd.DataFrame:
+def _edge_cases(targets: pd.DataFrame, sectors: pd.DataFrame, per_name_cap: float, sector_cap: float) -> pd.DataFrame:
     """
     Generate synthetic stress cases to ensure guards trip:
       - EC1: Force the largest name to exceed per-name cap (1.5x cap)
@@ -239,11 +213,7 @@ def _edge_cases(
 
     # EC2: bump largest sector by +10% weight mass then renorm
     ec2 = df.copy()
-    sec_sum = (
-        ec2.groupby("sector", as_index=False)["target_w"]
-        .sum()
-        .sort_values("target_w", ascending=False)
-    )
+    sec_sum = ec2.groupby("sector", as_index=False)["target_w"].sum().sort_values("target_w", ascending=False)
     if not sec_sum.empty:
         top_sec = sec_sum.iloc[0]["sector"]
         mask = ec2["sector"] == top_sec
@@ -304,12 +274,8 @@ def main():
         "sector_breaches": int(sum_meta.get("sector_breaches", 0)),
         "prop_tests_csv": str(PROP_TESTS_CSV),
         "edge_cases_csv": str(EDGE_CASES_CSV),
-        "caps_source": (
-            str(KILL_SWITCH_YAML) if KILL_SWITCH_YAML.exists() else "defaults"
-        ),
-        "sectors_source": (
-            str(SECTORS_CSV_OPT) if SECTORS_CSV_OPT.exists() else "fallback:UNKNOWN"
-        ),
+        "caps_source": (str(KILL_SWITCH_YAML) if KILL_SWITCH_YAML.exists() else "defaults"),
+        "sectors_source": (str(SECTORS_CSV_OPT) if SECTORS_CSV_OPT.exists() else "fallback:UNKNOWN"),
     }
     DIAG_JSON.write_text(json.dumps(diag, indent=2), encoding="utf-8")
     print(

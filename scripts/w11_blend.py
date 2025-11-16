@@ -79,17 +79,13 @@ def _de_corr_weights(R: pd.DataFrame, penalty: float) -> np.ndarray:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="W11 — Alpha blending & correlation control"
-    )
+    ap = argparse.ArgumentParser(description="W11 — Alpha blending & correlation control")
     ap.add_argument(
         "--inputs",
         required=True,
         help="Comma-separated list of input CSVs (each with date & ret columns).",
     )
-    ap.add_argument(
-        "--out", default="reports/wk11_alpha_blend.csv", help="Output CSV path"
-    )
+    ap.add_argument("--out", default="reports/wk11_alpha_blend.csv", help="Output CSV path")
     ap.add_argument(
         "--penalty",
         type=float,

@@ -58,9 +58,7 @@ if parqs:
                 df = pd.read_parquet(p)
                 if not isinstance(df.index, pd.DatetimeIndex):
                     if "date" in df.columns:
-                        df = df.set_index(
-                            pd.to_datetime(df["date"], errors="coerce")
-                        ).drop(columns=["date"])
+                        df = df.set_index(pd.to_datetime(df["date"], errors="coerce")).drop(columns=["date"])
                     else:
                         try:
                             df.index = pd.to_datetime(df.index, errors="coerce")
@@ -102,6 +100,4 @@ if parqs:
     print("Wrote:", out)
     print("Run folder:", adhoc)
 else:
-    raise SystemExit(
-        "No monthly_weights.csv or px.csv found in runs, and no parquet files in data/prices."
-    )
+    raise SystemExit("No monthly_weights.csv or px.csv found in runs, and no parquet files in data/prices.")

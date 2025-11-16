@@ -20,11 +20,7 @@ def _load_from_week1_report() -> pd.DataFrame | None:
     latest = max(cands, key=lambda p: p.stat().st_mtime)
     df = pd.read_csv(latest)
     # Expect typical columns from Week 1; keep whatever exists
-    keep_cols = [
-        c
-        for c in ["ticker", "score", "atr", "atr_pct", "rank", "list_priority"]
-        if c in df.columns
-    ]
+    keep_cols = [c for c in ["ticker", "score", "atr", "atr_pct", "rank", "list_priority"] if c in df.columns]
     if "ticker" not in df.columns:
         # try common alternate name
         for alt in ("symbol", "asset"):
@@ -92,9 +88,7 @@ def main() -> None:
         print("[info] Week-1 baseline not found or empty; using features fallback …")
         df = _load_from_features_fallback()
     if df is None or df.empty:
-        raise SystemExit(
-            "No signals could be built: make sure Week-1 scripts ran or features exist."
-        )
+        raise SystemExit("No signals could be built: make sure Week-1 scripts ran or features exist.")
     df.to_csv(SNAPSHOT, index=False)
     # Show a tiny preview
     print(f"Wrote: {SNAPSHOT}")

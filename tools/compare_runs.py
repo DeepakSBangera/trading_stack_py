@@ -23,12 +23,7 @@ from tradingstack.metrics import sharpe_annual
 
 def metrics_from_equity(eq: pd.DataFrame, ann_factor: float = 252.0) -> dict:
     df = eq.sort_values("date").reset_index(drop=True).copy()
-    nav = (
-        pd.to_numeric(df["_nav"], errors="coerce")
-        .replace([np.inf, -np.inf], np.nan)
-        .ffill()
-        .fillna(1.0)
-    )
+    nav = pd.to_numeric(df["_nav"], errors="coerce").replace([np.inf, -np.inf], np.nan).ffill().fillna(1.0)
     ret = nav.pct_change().fillna(0.0)
 
     days = int(len(nav))
@@ -65,14 +60,10 @@ def compare(a_path: str, b_path: str) -> pd.DataFrame:
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Compare two equity Parquets and write compare_runs.*"
-    )
+    ap = argparse.ArgumentParser(description="Compare two equity Parquets and write compare_runs.*")
     ap.add_argument("--a", required=True, help="older portfolio_v2 parquet")
     ap.add_argument("--b", required=True, help="newer portfolio_v2 parquet")
-    ap.add_argument(
-        "--out", default="./reports", help="output directory (default: ./reports)"
-    )
+    ap.add_argument("--out", default="./reports", help="output directory (default: ./reports)")
     ap.add_argument(
         "--ann-factor",
         type=float,

@@ -14,9 +14,7 @@ def main() -> None:
     DOCS.mkdir(parents=True, exist_ok=True)
     TRACKER.touch(exist_ok=True)
     row = {
-        "date_ist": pd.Timestamp.utcnow()
-        .tz_convert("Asia/Kolkata")
-        .strftime("%Y-%m-%d %H:%M"),
+        "date_ist": pd.Timestamp.utcnow().tz_convert("Asia/Kolkata").strftime("%Y-%m-%d %H:%M"),
         "session": "S-W44",
         "notes": "Red-Team & DR drill: existence/manifest/backup checks; snapshot+MD saved.",
     }

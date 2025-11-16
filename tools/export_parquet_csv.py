@@ -7,13 +7,9 @@ import pandas as pd
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Export a parquet file to CSV with optional row limit."
-    )
+    ap = argparse.ArgumentParser(description="Export a parquet file to CSV with optional row limit.")
     ap.add_argument("parquet", nargs="?", default="reports/factor_exposures.parquet")
-    ap.add_argument(
-        "--out", default=None, help="Output CSV path (default: alongside parquet)"
-    )
+    ap.add_argument("--out", default=None, help="Output CSV path (default: alongside parquet)")
     ap.add_argument(
         "--limit",
         type=int,

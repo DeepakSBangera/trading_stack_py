@@ -51,9 +51,7 @@ def main():
     comp_csv = REPORTS / "wk6_portfolio_compare.csv"
     pos_pq = REPORTS / "positions_daily.parquet"
     if not comp_csv.exists():
-        raise SystemExit(
-            "Missing reports\\wk6_portfolio_compare.csv — run w6_portfolio_compare.py first."
-        )
+        raise SystemExit("Missing reports\\wk6_portfolio_compare.csv — run w6_portfolio_compare.py first.")
     if not pos_pq.exists():
         raise SystemExit("Missing reports\\positions_daily.parquet — bootstrap first.")
 

@@ -82,9 +82,7 @@ def _load_px_series(ticker: str) -> pd.DataFrame | None:
         return None
 
 
-def _portfolio_returns(
-    weights: pd.DataFrame, last_day: dt.date
-) -> tuple[pd.Series, bool]:
+def _portfolio_returns(weights: pd.DataFrame, last_day: dt.date) -> tuple[pd.Series, bool]:
     """
     Build daily portfolio returns over the LOOKBACK window using px parquet if available.
     Fallback: synthetic Gaussian using annual vol from W4 diag.
@@ -128,9 +126,7 @@ def _portfolio_returns(
     vol_daily = vol_ann / math.sqrt(252.0)
     np.random.seed(42)
     synth = np.random.normal(loc=0.0, scale=vol_daily, size=TRADING_DAYS_LOOKBACK)
-    idx = pd.date_range(
-        end=pd.Timestamp(last_day), periods=TRADING_DAYS_LOOKBACK, freq="B"
-    )
+    idx = pd.date_range(end=pd.Timestamp(last_day), periods=TRADING_DAYS_LOOKBACK, freq="B")
     ser = pd.Series(synth, index=idx, name="ret")
     return ser, True
 

@@ -21,9 +21,7 @@ NOW_ISO = dt.datetime.now().astimezone().isoformat(timespec="seconds")
 
 def _git_sha8() -> str:
     try:
-        out = subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True
-        ).strip()
+        out = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
         return out
     except Exception:
         return "nogit"
@@ -38,12 +36,8 @@ def _read_tca():
     # daily roll-up already present; also compute overall
     orders = int(df["orders"].sum()) if "orders" in df.columns else None
     tca_cost = float(df["tca_cost"].sum()) if "tca_cost" in df.columns else None
-    med_slip = (
-        float(df["med_slip_bps"].median()) if "med_slip_bps" in df.columns else None
-    )
-    p90_slip = (
-        float(df["p90_slip_bps"].median()) if "p90_slip_bps" in df.columns else None
-    )
+    med_slip = float(df["med_slip_bps"].median()) if "med_slip_bps" in df.columns else None
+    p90_slip = float(df["p90_slip_bps"].median()) if "p90_slip_bps" in df.columns else None
     return {
         "orders": orders,
         "tca_cost_inr": tca_cost,

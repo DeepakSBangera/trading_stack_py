@@ -42,9 +42,7 @@ def _stat_file(p: Path) -> dict:
     if p.exists():
         st = p.stat()
         d["size_bytes"] = int(st.st_size)
-        d["mtime"] = dt.datetime.fromtimestamp(st.st_mtime).isoformat(
-            timespec="seconds"
-        )
+        d["mtime"] = dt.datetime.fromtimestamp(st.st_mtime).isoformat(timespec="seconds")
     return d
 
 
@@ -136,9 +134,7 @@ def main():
         latest = {}
 
     # artifacts might be under various keys depending on producer
-    raw_artifacts = (
-        latest.get("artifacts") or latest.get("outputs") or latest.get("files") or []
-    )
+    raw_artifacts = latest.get("artifacts") or latest.get("outputs") or latest.get("files") or []
     artifacts = _normalize_artifacts(raw_artifacts)
 
     rows = []

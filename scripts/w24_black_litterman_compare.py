@@ -12,9 +12,7 @@ DATA = ROOT / "data" / "prices"
 REPORTS = ROOT / "reports"
 
 # Inputs (from earlier weeks)
-TARGETS_CSV = (
-    REPORTS / "wk11_blend_targets.csv"
-)  # needs: date,ticker,base_w,target_w (we use target_w)
+TARGETS_CSV = REPORTS / "wk11_blend_targets.csv"  # needs: date,ticker,base_w,target_w (we use target_w)
 # Outputs
 OUT_CSV = REPORTS / "wk24_black_litterman_compare.csv"
 OUT_JSON = REPORTS / "w24_bl_summary.json"
@@ -35,11 +33,7 @@ def _load_targets_lastday(path: Path) -> pd.DataFrame:
     last_day = df["date"].max()
     df = df[df["date"] == last_day].copy()
     # prefer target_w if exists; else fall back to base_w or equal-weight
-    wcol = (
-        "target_w"
-        if "target_w" in df.columns
-        else ("base_w" if "base_w" in df.columns else None)
-    )
+    wcol = "target_w" if "target_w" in df.columns else ("base_w" if "base_w" in df.columns else None)
     if wcol is None:
         # create equal weight
         df["target_w"] = 1.0 / len(df)
@@ -193,12 +187,7 @@ def main():
     Σ_emp = _shrink_cov(Σ_emp, SHRINK_TO_DIAG)
 
     try:
-        w_mkt = (
-            base.set_index("ticker")
-            .reindex(panel.columns)["w_mv"]
-            .fillna(0)
-            .values.reshape(-1, 1)
-        )
+        w_mkt = base.set_index("ticker").reindex(panel.columns)["w_mv"].fillna(0).values.reshape(-1, 1)
         prior_mu = (RISK_AVERSION * (Σ_emp @ w_mkt)).flatten()
     except Exception:
         prior_mu = μ_hist
@@ -208,9 +197,7 @@ def main():
     mom = (panel.iloc[-1] / panel.iloc[-mom_window] - 1.0).rename("mom")
 
     # 5) Black–Litterman posterior and weights
-    w_bl_raw, w_bl_long, diag = _black_litterman(
-        prior_mu, Σ_emp, list(panel.columns), mom
-    )
+    w_bl_raw, w_bl_long, diag = _black_litterman(prior_mu, Σ_emp, list(panel.columns), mom)
 
     # 6) Assemble output table aligned to input tickers
     out = base.set_index("ticker")[["w_mv"]].copy()

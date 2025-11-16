@@ -20,9 +20,7 @@ REQ = ["ts_utc", "git_sha", "artifact", "config_hash"]
 
 def _git_sha() -> str:
     try:
-        out = subprocess.check_output(
-            ["git", "rev-parse", "--short=8", "HEAD"], cwd=ROOT, text=True
-        ).strip()
+        out = subprocess.check_output(["git", "rev-parse", "--short=8", "HEAD"], cwd=ROOT, text=True).strip()
         return out or "????????"
     except Exception:
         return "????????"
@@ -123,9 +121,7 @@ def main() -> None:
 
         # Normalize ts_utc robustly to tz-aware UTC ISO
         try:
-            out["ts_utc"] = (
-                pd.to_datetime(out["ts_utc"], utc=True).tz_convert("UTC").isoformat()
-            )
+            out["ts_utc"] = pd.to_datetime(out["ts_utc"], utc=True).tz_convert("UTC").isoformat()
         except Exception:
             out["ts_utc"] = _utc_now_iso()
 

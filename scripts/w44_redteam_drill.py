@@ -166,9 +166,7 @@ def _write_markdown(summary: Dict) -> None:
     DOCS.mkdir(parents=True, exist_ok=True)
     lines = []
     lines.append("# W44 — Red-Team & Recovery Drill\n")
-    lines.append(
-        f"**As-of (IST):** {pd.Timestamp.utcnow().tz_convert('Asia/Kolkata').isoformat()}\n"
-    )
+    lines.append(f"**As-of (IST):** {pd.Timestamp.utcnow().tz_convert('Asia/Kolkata').isoformat()}\n")
     lines.append("## Checks Run\n")
     for r in summary.get("checks", []):
         name = r.get("name", "unknown")
@@ -185,14 +183,10 @@ def _write_markdown(summary: Dict) -> None:
         lines.append(f"- **{name}**: {ok}{extra}")
     lines.append("\n## Result\n")
     lines.append(f"- **All-green:** {'✅' if summary.get('all_green') else '❌'}")
-    lines.append(
-        f"- **Critical files present:** {'✅' if summary.get('exist_ok') else '❌'}"
-    )
+    lines.append(f"- **Critical files present:** {'✅' if summary.get('exist_ok') else '❌'}")
     lines.append("\n## Next Steps\n")
     lines.append("- Keep the snapshot zip safe (off-box copy).")
-    lines.append(
-        "- If any check failed, file a hotfix task with rollback steps attached."
-    )
+    lines.append("- If any check failed, file a hotfix task with rollback steps attached.")
     OUT_REPORT_MD.write_text("\n".join(lines), encoding="utf-8")
 
 

@@ -6,9 +6,7 @@ from scipy.stats import kurtosis, norm, skew
 from . import _dsr_internal_helpers as _h  # created below
 
 
-def probabilistic_sharpe_ratio(
-    sr_hat: float, sr_threshold: float, n: int, skewness: float, kurt: float
-) -> float:
+def probabilistic_sharpe_ratio(sr_hat: float, sr_threshold: float, n: int, skewness: float, kurt: float) -> float:
     """
     PSR per López de Prado & Bailey.
     PSR = Phi( ((sr_hat - sr_threshold)*sqrt(n-1)) / sqrt(1 - skewness*sr_hat + ((kurt - 1)/4.0)*sr_hat**2) )
@@ -31,9 +29,7 @@ def expected_noise_sr0(num_trials: int, sr_cross_var: float) -> float:
     return _h.sr0_from_var_and_trials(sr_cross_var, num_trials)
 
 
-def deflated_sharpe_ratio(
-    returns: np.ndarray, num_trials: int, sr_cross_var: float | None = None
-) -> float:
+def deflated_sharpe_ratio(returns: np.ndarray, num_trials: int, sr_cross_var: float | None = None) -> float:
     """
     DSR = PSR with threshold SR_0 (expected max SR from noise).
     Skew & kurtosis are computed from sample returns.

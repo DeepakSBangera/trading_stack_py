@@ -41,13 +41,9 @@ def load_cfg(p: Path) -> RiskCfg:
 
 
 def latest_run_dir(base: Path) -> Path:
-    runs = sorted(
-        [d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime
-    )
+    runs = sorted([d for d in base.iterdir() if d.is_dir()], key=lambda p: p.stat().st_mtime)
     if not runs:
-        raise SystemExit(
-            "No backtest runs under reports/backtests. Run: python -m scripts.w2_backtest"
-        )
+        raise SystemExit("No backtest runs under reports/backtests. Run: python -m scripts.w2_backtest")
     return runs[-1]
 
 
@@ -60,11 +56,7 @@ def load_inputs(run: Path) -> tuple[pd.Series, pd.DataFrame]:
     else:
         eq = eq["equity"]
     px_path = run / "px.csv"
-    px = (
-        pd.read_csv(px_path, index_col=0)
-        if px_path.exists()
-        else pd.DataFrame(index=eq.index)
-    )
+    px = pd.read_csv(px_path, index_col=0) if px_path.exists() else pd.DataFrame(index=eq.index)
     px.index = pd.to_datetime(px.index)
     return eq, px
 

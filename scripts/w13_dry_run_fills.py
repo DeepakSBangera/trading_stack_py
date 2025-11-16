@@ -133,9 +133,7 @@ def _coerce_numeric(s, default=None):
     return out
 
 
-def _derive_price_from_notional_qty(
-    df: pd.DataFrame, notional_col: str, qty_series: pd.Series
-) -> pd.Series:
+def _derive_price_from_notional_qty(df: pd.DataFrame, notional_col: str, qty_series: pd.Series) -> pd.Series:
     notional = _coerce_numeric(df[notional_col], 0.0).astype(float)
     qty_abs = qty_series.abs().replace(0, np.nan)
     px = (notional.abs() / qty_abs).replace([np.inf, -np.inf], np.nan)
@@ -180,18 +178,14 @@ def _load_orders_flex() -> tuple[pd.DataFrame, dict]:
     # date
     date_col = _pick_col(df, ["date", "trading_day", "dt"])
     if date_col is None:
-        raise ValueError(
-            "Could not find a date column (expected one of: date, trading_day, dt)"
-        )
+        raise ValueError("Could not find a date column (expected one of: date, trading_day, dt)")
     df["date_norm"] = pd.to_datetime(df[date_col], errors="coerce").dt.date
     map_used["date"] = date_col
 
     # ticker
     tic_col = _pick_col(df, ["ticker", "symbol", "name"])
     if tic_col is None:
-        raise ValueError(
-            "Could not find a ticker column (expected one of: ticker, symbol, name)"
-        )
+        raise ValueError("Could not find a ticker column (expected one of: ticker, symbol, name)")
     df["ticker_norm"] = df[tic_col].astype(str)
     map_used["ticker"] = tic_col
 
@@ -240,9 +234,7 @@ def _load_orders_flex() -> tuple[pd.DataFrame, dict]:
         )
 
     # If price absent, try derive from (notional/qty)
-    if (price_series is None or price_series.isna().all()) and (
-        notional_raw is not None and qty_raw is not None
-    ):
+    if (price_series is None or price_series.isna().all()) and (notional_raw is not None and qty_raw is not None):
         price_series = _derive_price_from_notional_qty(df, notional_col, qty_raw)
         map_used["price"] = f"derived from {notional_col}/{qty_col}"
 
@@ -256,9 +248,7 @@ def _load_orders_flex() -> tuple[pd.DataFrame, dict]:
             val = _lookup_price_from_prices_dir(tck, dte)
             if val is not None:
                 price_series.at[i] = val
-                map_used.setdefault(
-                    "price_fallback", "data\\prices\\<ticker>.parquet close"
-                )
+                map_used.setdefault("price_fallback", "data\\prices\\<ticker>.parquet close")
 
     df["price_norm"] = pd.to_numeric(price_series, errors="coerce")
 
@@ -305,17 +295,10 @@ def _load_orders_flex() -> tuple[pd.DataFrame, dict]:
     map_used["side_inference"] = sign_source
 
     # sanity filters
-    df = df[
-        (df["date_norm"].notna())
-        & df["ticker_norm"].notna()
-        & df["price_norm"].notna()
-        & (df["price_norm"] > 0)
-    ]
+    df = df[(df["date_norm"].notna()) & df["ticker_norm"].notna() & df["price_norm"].notna() & (df["price_norm"] > 0)]
     df = df[(df["qty_abs"] > 0)]
     if df.empty:
-        raise ValueError(
-            "After normalization, no valid orders (check price/qty inference or add weights/notional)."
-        )
+        raise ValueError("After normalization, no valid orders (check price/qty inference or add weights/notional).")
 
     return df, map_used
 
@@ -339,11 +322,7 @@ def simulate_fills(orders: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, di
         part_pct = min(100.0 * notional_ref / adv_val, PARTICIPATION_CAP_PCT)
         rel = max(part_pct / 1.0, 1e-6)
         impact_bps = BASE_IMPACT_BPS * (rel**IMPACT_EXPONENT)
-        slippage_bps = (
-            MIN_SLIPPAGE_BPS
-            + impact_bps
-            + VWAP_DRIFT_BPS * (1.0 if side == "BUY" else -1.0)
-        )
+        slippage_bps = MIN_SLIPPAGE_BPS + impact_bps + VWAP_DRIFT_BPS * (1.0 if side == "BUY" else -1.0)
 
         signed_slip = _bps(slippage_bps) * px_ref * (1 if side == "BUY" else -1)
         px_fill = px_ref + signed_slip
@@ -370,9 +349,7 @@ def simulate_fills(orders: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, di
                 "tax_inr": round(tax_inr, 2),
                 "tca_cost_inr": round(tca_inr, 2),
                 "participation_pct": round(part_pct, 3),
-                "adv_inr": (
-                    round(float(adv_val), 2) if math.isfinite(adv_val) else np.nan
-                ),
+                "adv_inr": (round(float(adv_val), 2) if math.isfinite(adv_val) else np.nan),
             }
         )
 

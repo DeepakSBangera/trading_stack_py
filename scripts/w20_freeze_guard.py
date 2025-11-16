@@ -77,9 +77,7 @@ def _read_yaml_like(path: Path) -> dict:
                 continue
 
             # quoted string stripping
-            if (val.startswith('"') and val.endswith('"')) or (
-                val.startswith("'") and val.endswith("'")
-            ):
+            if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
                 val = val[1:-1]
 
             out[key] = val
@@ -128,9 +126,7 @@ def _git_sha_short(repo: Path) -> str | None:
 
 
 def _now_ist_iso() -> str:
-    return dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30))).isoformat(
-        timespec="seconds"
-    )
+    return dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30))).isoformat(timespec="seconds")
 
 
 def _within_window(now: dt.datetime, start: str | None, end: str | None) -> bool:

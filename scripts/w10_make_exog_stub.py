@@ -20,9 +20,7 @@ def pick_date(cols: Iterable[str]) -> str | None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="Create a stub exog CSV aligned to first price file dates."
-    )
+    ap = argparse.ArgumentParser(description="Create a stub exog CSV aligned to first price file dates.")
     ap.add_argument("--data-glob", default="data/csv/*.csv")
     ap.add_argument("--out", default="data/factors/nifty_macro.csv")
     ap.add_argument("--cols", default="mkt_ret,carry")

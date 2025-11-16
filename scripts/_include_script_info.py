@@ -73,9 +73,7 @@ def write_script_info(
     def _norm(x: str) -> str:
         try:
             p = Path(x)
-            return (
-                str(p) if not str(p).startswith(str(ROOT)) else str(p.relative_to(ROOT))
-            )
+            return str(p) if not str(p).startswith(str(ROOT)) else str(p.relative_to(ROOT))
         except Exception:
             return str(x)
 
@@ -96,9 +94,7 @@ def write_script_info(
     payload = {
         "timestamp": now,
         "session": session,
-        "script": (
-            str(sp.relative_to(ROOT)) if str(sp).startswith(str(ROOT)) else str(sp)
-        ),
+        "script": (str(sp.relative_to(ROOT)) if str(sp).startswith(str(ROOT)) else str(sp)),
         "purpose": purpose,
         "inputs": inputs_l,
         "outputs": outputs_l,
@@ -110,7 +106,5 @@ def write_script_info(
     }
 
     out_path = INFO_DIR / f"{name}.json"  # latest snapshot per script
-    out_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return out_path

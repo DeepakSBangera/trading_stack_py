@@ -52,9 +52,7 @@ def _parse_args() -> argparse.Namespace:
 # ---------------------------
 # Result coercion helpers
 # ---------------------------
-def _coerce_df_from_like(
-    obj: Any, dates: Iterable[Any] | None = None
-) -> pd.DataFrame | None:
+def _coerce_df_from_like(obj: Any, dates: Iterable[Any] | None = None) -> pd.DataFrame | None:
     """
     Try to coerce various 'equity-like' objects into a DataFrame with Date/Equity columns.
     Returns None if not possible.
@@ -64,22 +62,16 @@ def _coerce_df_from_like(
         df = obj.copy()
         if "Date" not in df.columns:
             # If there's an index that looks like dates, move it out
-            if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(
-                df.index
-            ) == len(df):
+            if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(df.index) == len(df):
                 df = df.reset_index().rename(columns={"index": "Date"})
             else:
                 # best effort date
                 if "Date" not in df.columns:
-                    if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(
-                        df.index
-                    ) == len(df):
+                    if isinstance(df.index, pd.DatetimeIndex | pd.Index) and len(df.index) == len(df):
                         df = df.reset_index().rename(columns={"index": "Date"})
                 # If first column isn't Date, but looks like dates, rename it
                 if "Date" not in df.columns and df.shape[1] >= 2:
-                    if isinstance(df.iloc[:, 0], pd.Series) and isinstance(
-                        df.index, pd.DatetimeIndex | pd.Index
-                    ):
+                    if isinstance(df.iloc[:, 0], pd.Series) and isinstance(df.index, pd.DatetimeIndex | pd.Index):
                         df.rename(columns={df.columns[0]: "Date"}, inplace=True)
         return df
 

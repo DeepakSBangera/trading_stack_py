@@ -48,9 +48,7 @@ def _parse_yaml_scalars(text: str) -> dict:
 
 def _extract_path_for_throttle(yaml_text: str) -> Path | None:
     # look for: throttle_map_csv: path
-    m = re.search(
-        r"throttle_map_csv\s*:\s*(.+)$", yaml_text, re.IGNORECASE | re.MULTILINE
-    )
+    m = re.search(r"throttle_map_csv\s*:\s*(.+)$", yaml_text, re.IGNORECASE | re.MULTILINE)
     if not m:
         return None
     val = m.group(1).strip()
@@ -84,9 +82,7 @@ def main():
             t = pd.read_csv(tpath)
             # basic monotonicity: as dd_bucket_pct decreases (worse), risk_multiplier should not increase
             if {"dd_bucket_pct", "risk_multiplier"}.issubset(t.columns):
-                t2 = t.sort_values(
-                    "dd_bucket_pct"
-                )  # ascending: most positive to most negative
+                t2 = t.sort_values("dd_bucket_pct")  # ascending: most positive to most negative
                 # compute diffs (should be non-increasing as dd gets worse)
                 dif = t2["risk_multiplier"].diff().fillna(0.0)
                 bad = (dif > 0).sum()

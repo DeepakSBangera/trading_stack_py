@@ -90,11 +90,7 @@ def train_regression_per_segment(
 
     for seg, Xtr, ytr, Xte, yte in records:
         alpha = 1.0
-        if (
-            best_params
-            and seg in best_params
-            and best_params[seg].get("alpha") is not None
-        ):
+        if best_params and seg in best_params and best_params[seg].get("alpha") is not None:
             alpha = float(best_params[seg]["alpha"])
 
         model = Pipeline(
@@ -228,13 +224,9 @@ def _sync_latest_copies(out_root: Path, tag: str, ts_dir: Path) -> Path:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="W7: Train models per walk-forward segment and write metrics."
-    )
+    ap = argparse.ArgumentParser(description="W7: Train models per walk-forward segment and write metrics.")
     ap.add_argument("--w6-dir", required=True, help="Path to W6 output folder")
-    ap.add_argument(
-        "--task", choices=["regression", "classification"], default="regression"
-    )
+    ap.add_argument("--task", choices=["regression", "classification"], default="regression")
     ap.add_argument("--tag", default="W7")
     ap.add_argument("--outdir", default="reports/W7")
     ap.add_argument(
@@ -257,13 +249,9 @@ def main() -> None:
     best_params = _load_best_params(Path(args.params)) if args.params else {}
 
     if args.task == "regression":
-        df = train_regression_per_segment(
-            records, w6_dir=w6_dir, best_params=best_params
-        )
+        df = train_regression_per_segment(records, w6_dir=w6_dir, best_params=best_params)
     else:
-        df = train_classification_per_segment(
-            records, w6_dir=w6_dir, best_params=best_params
-        )
+        df = train_classification_per_segment(records, w6_dir=w6_dir, best_params=best_params)
 
     df = _ensure_segment_col(df)
     df = df.sort_values("segment")

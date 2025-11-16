@@ -24,9 +24,7 @@ L1_CANDIDATES = [
 ]
 
 # Optional conviction & long-term lists (user-curated)
-L2_FILE = (
-    DOCS / "list2_conviction.csv"
-)  # expected columns: ticker, target_w (or weight)
+L2_FILE = DOCS / "list2_conviction.csv"  # expected columns: ticker, target_w (or weight)
 L3_FILE = DOCS / "list3_longterm.csv"  # expected columns: ticker, target_w (or weight)
 
 # Optional sector map to enforce a light sector cap
@@ -104,9 +102,7 @@ def _load_user_list(path: Path, col_name: str) -> pd.DataFrame | None:
     return out
 
 
-def _merge_three_buckets(
-    l1: pd.DataFrame, l2: pd.DataFrame | None, l3: pd.DataFrame | None
-) -> pd.DataFrame:
+def _merge_three_buckets(l1: pd.DataFrame, l2: pd.DataFrame | None, l3: pd.DataFrame | None) -> pd.DataFrame:
     df = l1.copy()
     if "w_l1" not in df.columns:
         df["w_l1"] = 0.0
@@ -225,11 +221,7 @@ def main() -> None:
     ]
     # Some columns like w_core/L2/L3 may be missing if the bucket was empty; guard-select
     cols_exist = [c for c in cols if c in final.columns]
-    out = (
-        final[cols_exist]
-        .copy()
-        .sort_values("w_total", ascending=False if "w_total" in final.columns else True)
-    )
+    out = final[cols_exist].copy().sort_values("w_total", ascending=False if "w_total" in final.columns else True)
 
     out.to_csv(OUT_CSV, index=False)
 
@@ -242,9 +234,7 @@ def main() -> None:
         "sector_cap": SECTOR_CAP if sec_map is not None else None,
         "files": {"detail_csv": str(OUT_CSV)},
         "inputs": {
-            "l1_source": next(
-                (str(p) for p in L1_CANDIDATES if p.exists()), "synthetic"
-            ),
+            "l1_source": next((str(p) for p in L1_CANDIDATES if p.exists()), "synthetic"),
             "l2_present": bool(l2 is not None),
             "l3_present": bool(l3 is not None),
             "sector_map_present": bool(sec_map is not None),

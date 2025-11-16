@@ -40,9 +40,7 @@ def _load_panel(max_tickers: int = 50) -> pd.DataFrame:
             else:
                 df = pd.read_csv(p)
             date_col = _pick_col(df.columns.tolist(), ["date", "dt", "timestamp"])
-            px_col = _pick_col(
-                df.columns.tolist(), ["adj_close", "adjusted_close", "close", "price"]
-            )
+            px_col = _pick_col(df.columns.tolist(), ["adj_close", "adjusted_close", "close", "price"])
             if date_col is None or px_col is None:
                 continue
             df = df[[date_col, px_col]].copy()
@@ -71,11 +69,7 @@ def _softmax(s: pd.Series, temp: float = 1.0) -> pd.Series:
     v = v / max(1e-9, temp)
     v = v - v.max()
     e = np.exp(v.clip(-50, 50))  # numeric safety
-    out = (
-        e / e.sum()
-        if e.sum() > 0
-        else pd.Series(np.full(len(s), 1.0 / len(s)), index=s.index)
-    )
+    out = e / e.sum() if e.sum() > 0 else pd.Series(np.full(len(s), 1.0 / len(s)), index=s.index)
     return pd.Series(out, index=s.index)
 
 

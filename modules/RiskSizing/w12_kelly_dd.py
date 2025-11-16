@@ -8,9 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-def _synthetic_equity(
-    n: int = 252, mu: float = 0.12, vol: float = 0.20
-) -> pd.DataFrame:
+def _synthetic_equity(n: int = 252, mu: float = 0.12, vol: float = 0.20) -> pd.DataFrame:
     """Build a tiny synthetic daily equity curve if no input is provided."""
     rng = np.random.default_rng(42)
     dt = 1 / 252
@@ -56,12 +54,8 @@ def run(out_path: Path, equity_csv: str | None, target_vol: float) -> None:
     if equity_csv and Path(equity_csv).exists():
         df = pd.read_csv(equity_csv)
         # try to find date/equity columns
-        date_col = next(
-            (c for c in df.columns if str(c).lower() in ("date", "timestamp")), None
-        )
-        eq_col = next(
-            (c for c in df.columns if str(c).lower() in ("equity", "nav", "pnl")), None
-        )
+        date_col = next((c for c in df.columns if str(c).lower() in ("date", "timestamp")), None)
+        eq_col = next((c for c in df.columns if str(c).lower() in ("equity", "nav", "pnl")), None)
         if date_col:
             df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
             df = df.dropna(subset=[date_col]).sort_values(date_col)
@@ -95,25 +89,17 @@ def run(out_path: Path, equity_csv: str | None, target_vol: float) -> None:
     df["target_vol"] = float(target_vol)
     df["position_scale"] = (df["kelly_fraction"].clip(0.0, 1.0)) * df["dd_throttle"]
 
-    out = df[
-        ["date", "kelly_fraction", "target_vol", "dd_throttle", "position_scale"]
-    ].copy()
+    out = df[["date", "kelly_fraction", "target_vol", "dd_throttle", "position_scale"]].copy()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(out_path, index=False)
     print(f"Wrote {out_path.as_posix()} with {len(out)} rows")
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(
-        description="W12 — Kelly fraction with drawdown throttle"
-    )
+    ap = argparse.ArgumentParser(description="W12 — Kelly fraction with drawdown throttle")
     ap.add_argument("--out", default="reports/wk12_kelly_dd.csv")
-    ap.add_argument(
-        "--equity-csv", default=None, help="Optional equity/NAV time series CSV"
-    )
-    ap.add_argument(
-        "--target-vol", type=float, default=0.20, help="Target vol used for reporting"
-    )
+    ap.add_argument("--equity-csv", default=None, help="Optional equity/NAV time series CSV")
+    ap.add_argument("--target-vol", type=float, default=0.20, help="Target vol used for reporting")
     args = ap.parse_args()
     run(Path(args.out), args.equity_csv, args.target_vol)
 

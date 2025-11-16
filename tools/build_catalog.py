@@ -188,9 +188,7 @@ def main() -> None:
 
     # Current flat layout you already use
     scan_flat_prices(REPO_ROOT / "data_synth" / "prices", vendor="synth", rows=rows)
-    scan_flat_fundamentals(
-        REPO_ROOT / "data_synth" / "fundamentals", vendor="synth", rows=rows
-    )
+    scan_flat_fundamentals(REPO_ROOT / "data_synth" / "fundamentals", vendor="synth", rows=rows)
 
     # Future hive-style layout (safe if missing)
     scan_hive(
@@ -210,11 +208,7 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(rows, columns=COLUMNS)
     if not df.empty:
-        sort_cols = [
-            c
-            for c in ["dataset", "vendor", "symbol", "year", "path"]
-            if c in df.columns
-        ]
+        sort_cols = [c for c in ["dataset", "vendor", "symbol", "year", "path"] if c in df.columns]
         df = df.sort_values(sort_cols, na_position="last")
     df.to_csv(OUT_PATH, index=False)
     print(f"✓ Wrote {OUT_PATH.as_posix()}  (files indexed: {len(df)})")

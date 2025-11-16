@@ -42,9 +42,7 @@ def safe_write_csv(df: pd.DataFrame, base_path: Path) -> Path:
         df.to_csv(base_path, index=False)
         return base_path
     except PermissionError:
-        stamped = base_path.with_name(
-            f"{base_path.stem}_{_timestamp()}{base_path.suffix}"
-        )
+        stamped = base_path.with_name(f"{base_path.stem}_{_timestamp()}{base_path.suffix}")
         df.to_csv(stamped, index=False)
         return stamped
 

@@ -21,11 +21,7 @@ def main():
     for f in glob.glob("reports/grid_*.csv"):
         try:
             df = pd.read_csv(f)
-            top = (
-                df.sort_values(["Sharpe", "CAGR"], ascending=[False, False])
-                .head(1)
-                .to_dict("records")[0]
-            )
+            top = df.sort_values(["Sharpe", "CAGR"], ascending=[False, False]).head(1).to_dict("records")[0]
             rows.append(
                 {
                     "type": "grid",
@@ -44,11 +40,7 @@ def main():
     for f in glob.glob("reports/walkforward_*.csv"):
         try:
             df = pd.read_csv(f)
-            psr_med = (
-                float(df["PSR"].median())
-                if "PSR" in df.columns and not df.empty
-                else None
-            )
+            psr_med = float(df["PSR"].median()) if "PSR" in df.columns and not df.empty else None
             rows.append(
                 {
                     "type": "walkforward",

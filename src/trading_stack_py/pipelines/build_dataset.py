@@ -6,8 +6,8 @@ import time
 
 import numpy as np
 import pandas as pd
-
 from trading_stack_py.cv.walkforward import WalkForwardCV
+
 from trading_stack_py.features import feature_functions as F
 from trading_stack_py.utils.returns import to_excess_returns
 
@@ -140,9 +140,7 @@ def main():
         f.write("# W6 Dataset Builder\n\n")
         f.write(f"- Rows after dropna: **{n}**\n")
         f.write(f"- Features: {feat_cols}\n")
-        f.write(
-            f"- Target: **{args.target_kind}** over **{args.target_h}** period(s)\n"
-        )
+        f.write(f"- Target: **{args.target_kind}** over **{args.target_h}** period(s)\n")
         f.write(
             f"- CV: train/test/step/expanding/embargo/min_train = "
             f"{args.train}/{args.test}/{args.step or args.test}/{args.expanding}/{args.embargo}/{args.min_train}\n"

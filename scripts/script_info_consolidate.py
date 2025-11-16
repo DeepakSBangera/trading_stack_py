@@ -60,9 +60,7 @@ def _atomic_write_bytes(path: Path, data: bytes, retries: int = 15, delay: float
     fallback = path.with_suffix(path.suffix + f".{int(time.time())}.pending")
     with open(fallback, "wb") as f:
         f.write(data)
-    print(
-        f"[warn] Could not replace {path.name} (locked). Wrote pending copy: {fallback.name}"
-    )
+    print(f"[warn] Could not replace {path.name} (locked). Wrote pending copy: {fallback.name}")
 
 
 def _atomic_write_text(path: Path, text: str):
@@ -103,9 +101,7 @@ def write_markdown(df: pd.DataFrame):
         lines.append("\n_No script info cards found._\n")
     else:
         lines.append("\n## Registry (latest per script)\n")
-        lines.append(
-            "| Script | Session | Last Run (IST) | Purpose | Outputs | Artifacts | git |\n"
-        )
+        lines.append("| Script | Session | Last Run (IST) | Purpose | Outputs | Artifacts | git |\n")
         lines.append("|---|---|---|---|---|---|---|\n")
         for _, r in df.sort_values("script").iterrows():
             lines.append(

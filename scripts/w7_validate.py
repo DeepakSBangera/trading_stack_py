@@ -28,13 +28,9 @@ def main():
     tl = REPORTS / "regime_timeline.csv"
     sched = REPORTS / "regime_risk_schedule.csv"
     if not tl.exists():
-        raise SystemExit(
-            "Missing reports\\regime_timeline.csv — run w7_compute_regimes.py first."
-        )
+        raise SystemExit("Missing reports\\regime_timeline.csv — run w7_compute_regimes.py first.")
     if not sched.exists():
-        raise SystemExit(
-            "Missing reports\\regime_risk_schedule.csv — run w7_apply_gates.py first."
-        )
+        raise SystemExit("Missing reports\\regime_risk_schedule.csv — run w7_apply_gates.py first.")
 
     mg = load_yaml(CFG_MG) if CFG_MG.exists() else {"policy": {}}
     base_mult = float(mg.get("policy", {}).get("base_risk_multiplier", 1.0))
@@ -48,17 +44,11 @@ def main():
 
     # Basic checks
     checks = []
-    checks.append(
-        {"check": "timeline_nonempty", "value": tl_df.shape[0] > 0, "limit": True}
-    )
-    checks.append(
-        {"check": "schedule_nonempty", "value": sc_df.shape[0] > 0, "limit": True}
-    )
+    checks.append({"check": "timeline_nonempty", "value": tl_df.shape[0] > 0, "limit": True})
+    checks.append({"check": "schedule_nonempty", "value": sc_df.shape[0] > 0, "limit": True})
 
     # Bounds on multipliers
-    min_allowed = (
-        base_mult * bear_mult * min(hi_mult, 1.0)
-    )  # worst case: BEAR & HIGH_VOL
+    min_allowed = base_mult * bear_mult * min(hi_mult, 1.0)  # worst case: BEAR & HIGH_VOL
     max_allowed = base_mult * bull_mult
     mmin = float(sc_df["total_risk_multiplier"].min())
     mmax = float(sc_df["total_risk_multiplier"].max())
@@ -80,9 +70,7 @@ def main():
     # Gate consistency: if macro_gate == FAIL then total_risk_multiplier should be <= base*bear or <= neutral*base (conservative)
     fail = tl_df.merge(sc_df[["date", "total_risk_multiplier"]], on="date", how="left")
     conservative_cap = base_mult * max(bear_mult, neutral_mult)
-    fail["ok_when_fail"] = (fail["macro_gate"] != "FAIL") | (
-        fail["total_risk_multiplier"] <= conservative_cap + 1e-9
-    )
+    fail["ok_when_fail"] = (fail["macro_gate"] != "FAIL") | (fail["total_risk_multiplier"] <= conservative_cap + 1e-9)
     checks.append(
         {
             "check": "fail_days_conservative",

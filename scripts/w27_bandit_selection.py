@@ -135,9 +135,7 @@ def _load_metrics() -> pd.DataFrame:
             out = df[[dcol, scol, icol]].copy()
             out.columns = ["date", "sleeve", "ic"]
             out["date"] = pd.to_datetime(out["date"], errors="coerce")
-            out["ret_bps"] = (
-                pd.to_numeric(out["ic"], errors="coerce") * 12.0 * 1e1
-            )  # heuristic scale
+            out["ret_bps"] = pd.to_numeric(out["ic"], errors="coerce") * 12.0 * 1e1  # heuristic scale
             out = out.dropna(subset=["date", "sleeve", "ret_bps"])
             return out[["date", "sleeve", "ret_bps"]]
 
@@ -238,15 +236,11 @@ def main():
         mean_bps = _ewma(sub["ret_bps"], EWMA_ALPHA_MEAN) if not sub.empty else 0.0
         vol_bps = _ewma(sub["ret_bps"].abs(), EWMA_ALPHA_VOL) if not sub.empty else 1.0
         score = mean_bps / max(vol_bps, EPS)
-        rows.append(
-            {"sleeve": s, "mean_bps": mean_bps, "vol_bps": vol_bps, "score": score}
-        )
+        rows.append({"sleeve": s, "mean_bps": mean_bps, "vol_bps": vol_bps, "score": score})
     tab = pd.DataFrame(rows).set_index("sleeve")
 
     # Raw softmax allocation
-    raw_w = pd.Series(
-        _softmax(tab["score"].values, TEMPERATURE), index=tab.index, name="weight_raw"
-    )
+    raw_w = pd.Series(_softmax(tab["score"].values, TEMPERATURE), index=tab.index, name="weight_raw")
 
     # Apply safety caps & max-delta vs last policy
     last = _load_last_policy()

@@ -165,9 +165,7 @@ def main():
 
     # Notional estimates using T closes (best-effort if available)
     pos["px_T"] = [_lookup_close(t, T) for t in pos["ticker"].astype(str)]
-    pos["notional_T1_inr"] = pos["pos_T1"].abs() * pd.to_numeric(
-        pos["px_T"], errors="coerce"
-    ).fillna(0.0)
+    pos["notional_T1_inr"] = pos["pos_T1"].abs() * pd.to_numeric(pos["px_T"], errors="coerce").fillna(0.0)
 
     # Drift vs targets: if T1 exists, compare to targets on T1; else compare to targets on T
     dref = T1 if T1 is not None else T
@@ -176,9 +174,7 @@ def main():
     # compute portfolio notional proxy
     port_notional = float(pos["notional_T1_inr"].sum())
     pos = pos.merge(tgt, how="left", on="ticker")
-    pos["w_realized"] = np.where(
-        port_notional > 0.0, (pos["notional_T1_inr"] / port_notional), 0.0
-    )
+    pos["w_realized"] = np.where(port_notional > 0.0, (pos["notional_T1_inr"] / port_notional), 0.0)
     pos["drift_w"] = pos["w_realized"].fillna(0.0) - pos["target_w"].fillna(0.0)
 
     # Outputs
@@ -206,11 +202,7 @@ def main():
         "names": int(pos_out.shape[0]),
         "gross_notional_inr": float(port_notional),
         "abs_drift_sum": float(pos_out["drift_w"].abs().sum()),
-        "abs_drift_p90": (
-            float(np.percentile(pos_out["drift_w"].abs(), 90))
-            if pos_out.shape[0]
-            else 0.0
-        ),
+        "abs_drift_p90": (float(np.percentile(pos_out["drift_w"].abs(), 90)) if pos_out.shape[0] else 0.0),
         "top5_by_abs_drift": ";".join(
             pos_out.reindex(pos_out["drift_w"].abs().sort_values(ascending=False).index)
             .head(5)

@@ -21,16 +21,10 @@ def sharpe_daily(rets, risk_free_daily: float = 0.0, eps: float = 1e-12) -> floa
     return float(mu / (sd + eps))
 
 
-def sharpe_annual(
-    rets, ann_factor: float = 252.0, risk_free_annual: float = 0.0, eps: float = 1e-12
-) -> float:
+def sharpe_annual(rets, ann_factor: float = 252.0, risk_free_annual: float = 0.0, eps: float = 1e-12) -> float:
     """Annualized Sharpe from daily simple returns."""
     r = _to_series(rets).astype(float).replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    rf_daily = (
-        (1.0 + float(risk_free_annual)) ** (1.0 / ann_factor) - 1.0
-        if risk_free_annual
-        else 0.0
-    )
+    rf_daily = (1.0 + float(risk_free_annual)) ** (1.0 / ann_factor) - 1.0 if risk_free_annual else 0.0
     r = r - rf_daily
     mu = r.mean()
     sd = r.std(ddof=1)

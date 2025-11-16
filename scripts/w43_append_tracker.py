@@ -11,9 +11,7 @@ TRACKER = DOCS / "living_tracker.csv"
 
 def main() -> None:
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     row = f'{now},S-W43,4,"reports/wk43_barbell_compare.csv; reports/wk43_barbell_compare_summary.json","W0 gates ok","Caps applied","Split {{"L1":0.60,"L2":0.25,"L3":0.15}}"\n'
     with TRACKER.open("a", encoding="utf-8") as f:

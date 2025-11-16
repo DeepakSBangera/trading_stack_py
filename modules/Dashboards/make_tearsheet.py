@@ -24,11 +24,7 @@ def main():
     args = ap.parse_args()
 
     def _load(path):
-        return (
-            pd.read_parquet(path)
-            if path.lower().endswith(".parquet")
-            else pd.read_csv(path)
-        )
+        return pd.read_parquet(path) if path.lower().endswith(".parquet") else pd.read_csv(path)
 
     eqdf = _load(args.equity_csv)
     if "date" not in eqdf.columns:
@@ -53,22 +49,12 @@ def main():
         None,
     )
     if eq_col is None:
-        num_cols = [
-            c
-            for c in eqdf.columns
-            if c != "date" and pd.api.types.is_numeric_dtype(eqdf[c])
-        ]
+        num_cols = [c for c in eqdf.columns if c != "date" and pd.api.types.is_numeric_dtype(eqdf[c])]
         if not num_cols:
             raise SystemExit("No numeric equity-like column found.")
         eq_col = num_cols[-1]
 
-    eq = (
-        pd.to_numeric(eqdf[eq_col], errors="coerce")
-        .replace([np.inf, -np.inf], np.nan)
-        .interpolate()
-        .bfill()
-        .ffill()
-    )
+    eq = pd.to_numeric(eqdf[eq_col], errors="coerce").replace([np.inf, -np.inf], np.nan).interpolate().bfill().ffill()
     ret = daily_returns(eq)
 
     # summary stats

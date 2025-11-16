@@ -93,12 +93,8 @@ def _load_targets() -> pd.DataFrame:
     ticol = cols.get("ticker", "ticker")
     wcol = cols.get("target_w", "target_w")
     if dcol not in df.columns or ticol not in df.columns or wcol not in df.columns:
-        raise ValueError(
-            "wk11_blend_targets.csv must have columns: date,ticker,target_w"
-        )
-    df = df[[dcol, ticol, wcol]].rename(
-        columns={dcol: "date", ticol: "ticker", wcol: "target_w"}
-    )
+        raise ValueError("wk11_blend_targets.csv must have columns: date,ticker,target_w")
+    df = df[[dcol, ticol, wcol]].rename(columns={dcol: "date", ticol: "ticker", wcol: "target_w"})
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df["ticker"] = df["ticker"].astype(str)
     df["target_w"] = pd.to_numeric(df["target_w"], errors="coerce").fillna(0.0)
@@ -140,17 +136,13 @@ def _simulate_one(
             if abs(delta_w) >= entry_pp:
                 trigger = True
                 side = "BUY" if delta_w > 0 else "SELL"
-            elif abs(delta_w) >= exit_pp and (
-                w == 0.0 or np.sign(delta_w) != np.sign(prev_w)
-            ):
+            elif abs(delta_w) >= exit_pp and (w == 0.0 or np.sign(delta_w) != np.sign(prev_w)):
                 # lighter exit trim (or sign flip)
                 trigger = True
                 side = "BUY" if delta_w > 0 else "SELL"
 
             # hold constraint
-            last_d = last_trade_day_by_ticker.get(
-                tck, d - pd.Timedelta(days=min_hold_days + 1)
-            )
+            last_d = last_trade_day_by_ticker.get(tck, d - pd.Timedelta(days=min_hold_days + 1))
             if trigger and (d - last_d).days < min_hold_days:
                 trigger = False  # skip due to hold
 
@@ -160,16 +152,10 @@ def _simulate_one(
                 if not math.isfinite(adv_val) or adv_val <= 0:
                     adv_val = 5e7  # 5 cr fallback ADV INR
 
-                participation = min(
-                    100.0 * trade_notional / adv_val, PARTICIPATION_CAP_PCT
-                )
+                participation = min(100.0 * trade_notional / adv_val, PARTICIPATION_CAP_PCT)
                 rel = max(participation / 1.0, 1e-6)
                 impact_bps = BASE_IMPACT_BPS * (rel**IMPACT_EXPONENT)
-                slippage_bps = (
-                    MIN_SLIPPAGE_BPS
-                    + impact_bps
-                    + (VWAP_DRIFT_BPS if side == "BUY" else -VWAP_DRIFT_BPS)
-                )
+                slippage_bps = MIN_SLIPPAGE_BPS + impact_bps + (VWAP_DRIFT_BPS if side == "BUY" else -VWAP_DRIFT_BPS)
 
                 # Costs (in INR)
                 slip_inr = abs(_bps(slippage_bps) * trade_notional)

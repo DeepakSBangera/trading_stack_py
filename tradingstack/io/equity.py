@@ -28,9 +28,7 @@ def _ensure_utc(s: pd.Series) -> pd.Series:
 
 
 def _nav_from_returns(rets: pd.Series, start_nav: float = 1.0) -> pd.Series:
-    rets = (
-        pd.to_numeric(rets, errors="coerce").fillna(0.0).replace([np.inf, -np.inf], 0.0)
-    )
+    rets = pd.to_numeric(rets, errors="coerce").fillna(0.0).replace([np.inf, -np.inf], 0.0)
     nav = (1.0 + rets).cumprod() * float(start_nav)
     # Safety for flat series
     nav = nav.replace([np.inf, -np.inf], np.nan).ffill().fillna(start_nav)
@@ -79,36 +77,19 @@ def load_equity(path: str | pathlib.Path) -> pd.DataFrame:
     ret_col = _find_first(df, RET_CANDIDATES)
 
     if nav_col is not None:
-        nav = (
-            pd.to_numeric(df[nav_col], errors="coerce")
-            .replace([np.inf, -np.inf], np.nan)
-            .ffill()
-            .fillna(1.0)
-        )
+        nav = pd.to_numeric(df[nav_col], errors="coerce").replace([np.inf, -np.inf], np.nan).ffill().fillna(1.0)
         nav = nav.astype(float)
         ret = nav.pct_change().fillna(0.0)
     elif ret_col is not None:
-        ret = (
-            pd.to_numeric(df[ret_col], errors="coerce")
-            .replace([np.inf, -np.inf], np.nan)
-            .fillna(0.0)
-        )
+        ret = pd.to_numeric(df[ret_col], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
         nav = _nav_from_returns(ret)
     else:
         # Fallback: some earlier files had 'ret_gross' / 'ret_net'
         if "ret_gross" in df.columns:
-            ret = (
-                pd.to_numeric(df["ret_gross"], errors="coerce")
-                .replace([np.inf, -np.inf], np.nan)
-                .fillna(0.0)
-            )
+            ret = pd.to_numeric(df["ret_gross"], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
             nav = _nav_from_returns(ret)
         elif "ret_net" in df.columns:
-            ret = (
-                pd.to_numeric(df["ret_net"], errors="coerce")
-                .replace([np.inf, -np.inf], np.nan)
-                .fillna(0.0)
-            )
+            ret = pd.to_numeric(df["ret_net"], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
             nav = _nav_from_returns(ret)
         else:
             raise ValueError("no NAV/return columns found")
@@ -121,9 +102,5 @@ def load_equity(path: str | pathlib.Path) -> pd.DataFrame:
         }
     )
     # drop duplicate dates; keep last
-    out = (
-        out.sort_values("date")
-        .drop_duplicates(subset=["date"], keep="last")
-        .reset_index(drop=True)
-    )
+    out = out.sort_values("date").drop_duplicates(subset=["date"], keep="last").reset_index(drop=True)
     return out

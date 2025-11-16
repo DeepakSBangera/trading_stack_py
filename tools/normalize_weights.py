@@ -44,9 +44,7 @@ def _renorm_per_day(df):
     return df.groupby(df["date"], group_keys=False).apply(_renorm)
 
 
-def _load_equity_dates(
-    equity_path: pathlib.Path, nrows_expected: int | None = None
-) -> pd.Series:
+def _load_equity_dates(equity_path: pathlib.Path, nrows_expected: int | None = None) -> pd.Series:
     eq = pd.read_parquet(equity_path)
     if "date" not in eq.columns:
         raise ValueError(f"equity file missing 'date': {equity_path}")
@@ -55,9 +53,7 @@ def _load_equity_dates(
     if d.isna().any():
         raise ValueError(f"equity 'date' has NaT values: {equity_path}")
     if nrows_expected is not None and len(d) != nrows_expected:
-        raise ValueError(
-            f"row count mismatch: weights={nrows_expected} vs equity dates={len(d)} ({equity_path})"
-        )
+        raise ValueError(f"row count mismatch: weights={nrows_expected} vs equity dates={len(d)} ({equity_path})")
     return d
 
 
@@ -72,14 +68,10 @@ def normalize(df: pd.DataFrame, equity_dates: pd.Series | None) -> pd.DataFrame:
         date_series = _try_clean_dates(df[dcol])
         if date_series is None and equity_dates is not None:
             if len(df) != len(equity_dates):
-                raise ValueError(
-                    f"row mismatch: long-weights={len(df)} vs equity dates={len(equity_dates)}"
-                )
+                raise ValueError(f"row mismatch: long-weights={len(df)} vs equity dates={len(equity_dates)}")
             date_series = equity_dates.reset_index(drop=True)
         if date_series is None:
-            raise TypeError(
-                "Could not parse dates in long weights; provide --equity to borrow dates."
-            )
+            raise TypeError("Could not parse dates in long weights; provide --equity to borrow dates.")
         out = pd.DataFrame(
             {
                 "date": date_series,
@@ -97,9 +89,7 @@ def normalize(df: pd.DataFrame, equity_dates: pd.Series | None) -> pd.DataFrame:
         date_series = _try_clean_dates(wide_reset["date"])
         if date_series is None and equity_dates is not None:
             if len(wide_reset) != len(equity_dates):
-                raise ValueError(
-                    f"row mismatch: wide-weights={len(wide_reset)} vs equity dates={len(equity_dates)}"
-                )
+                raise ValueError(f"row mismatch: wide-weights={len(wide_reset)} vs equity dates={len(equity_dates)}")
             date_series = equity_dates.reset_index(drop=True)
         if date_series is None:
             raise TypeError(
@@ -129,12 +119,8 @@ def main():
     ap = argparse.ArgumentParser(
         description="Normalize weights (wide or long) to date,ticker,weight; borrow dates from equity if needed."
     )
-    ap.add_argument(
-        "--in", dest="inp", required=True, help="input weights parquet (wide or long)"
-    )
-    ap.add_argument(
-        "--out", dest="outp", required=True, help="output parquet (date,ticker,weight)"
-    )
+    ap.add_argument("--in", dest="inp", required=True, help="input weights parquet (wide or long)")
+    ap.add_argument("--out", dest="outp", required=True, help="output parquet (date,ticker,weight)")
     ap.add_argument(
         "--equity",
         dest="equity",

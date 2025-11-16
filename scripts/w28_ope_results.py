@@ -116,9 +116,7 @@ def _load_ret_bps_table() -> pd.DataFrame:
             tmp["date"] = pd.to_datetime(tmp["date"], errors="coerce")
             tmp["ret_bps"] = pd.to_numeric(tmp["val"], errors="coerce") * 1e4
             tmp = tmp.dropna(subset=["date", "sleeve", "ret_bps"])
-            wide = tmp.pivot_table(
-                index="date", columns="sleeve", values="ret_bps", aggfunc="last"
-            )
+            wide = tmp.pivot_table(index="date", columns="sleeve", values="ret_bps", aggfunc="last")
             # keep only our sleeves
             wide = wide.reindex(columns=SLEEVES)
             wide = wide.reset_index()
@@ -137,9 +135,7 @@ def _load_ret_bps_table() -> pd.DataFrame:
             tmp["date"] = pd.to_datetime(tmp["date"], errors="coerce")
             tmp["ret_bps"] = pd.to_numeric(tmp["ic"], errors="coerce") * 12.0 * 10.0
             tmp = tmp.dropna(subset=["date", "sleeve", "ret_bps"])
-            wide = tmp.pivot_table(
-                index="date", columns="sleeve", values="ret_bps", aggfunc="last"
-            )
+            wide = tmp.pivot_table(index="date", columns="sleeve", values="ret_bps", aggfunc="last")
             wide = wide.reindex(columns=SLEEVES)
             wide = wide.reset_index()
             return wide
@@ -157,9 +153,7 @@ def _load_ret_bps_table() -> pd.DataFrame:
             tmp["date"] = pd.to_datetime(tmp["date"], errors="coerce")
             tmp["ret_bps"] = pd.to_numeric(tmp["val"], errors="coerce") * 1e4
             tmp = tmp.dropna(subset=["date", "sleeve", "ret_bps"])
-            wide = tmp.pivot_table(
-                index="date", columns="sleeve", values="ret_bps", aggfunc="last"
-            )
+            wide = tmp.pivot_table(index="date", columns="sleeve", values="ret_bps", aggfunc="last")
             wide = wide.reindex(columns=SLEEVES)
             wide = wide.reset_index()
             return wide
@@ -216,16 +210,10 @@ def _build_logged_dataset(ret_wide: pd.DataFrame, pi_b: pd.Series) -> pd.DataFra
         acts.append(a)
         probs.append(float(pi_b[a]))
         # reward = that sleeve's ret in decimal
-        rbps = (
-            float(pd.to_numeric(r[a], errors="coerce"))
-            if a in df.columns
-            else float("nan")
-        )
+        rbps = float(pd.to_numeric(r[a], errors="coerce")) if a in df.columns else float("nan")
         rews.append(rbps * BPS_TO_DEC if math.isfinite(rbps) else 0.0)
 
-    out = pd.DataFrame(
-        {"date": df["date"], "action": acts, "pi_b": probs, "reward": rews}
-    )
+    out = pd.DataFrame({"date": df["date"], "action": acts, "pi_b": probs, "reward": rews})
     # attach per-sleeve ret_bps columns for diagnostics / DM oracle
     for s in SLEEVES:
         if s in df.columns:
@@ -266,11 +254,7 @@ def _qhat_per_sleeve(dataset: pd.DataFrame) -> pd.Series:
         col = f"ret_{s}_bps"
         if col in dataset.columns:
             series = pd.to_numeric(dataset[col], errors="coerce") * BPS_TO_DEC
-            q[s] = (
-                float(series.ewm(alpha=EWMA_ALPHA_Q).mean().iloc[-1])
-                if series.notna().any()
-                else 0.0
-            )
+            q[s] = float(series.ewm(alpha=EWMA_ALPHA_Q).mean().iloc[-1]) if series.notna().any() else 0.0
         else:
             q[s] = 0.0
     return pd.Series(q)
@@ -348,13 +332,9 @@ def _bootstrap(
         elif method == "SNIPS":
             v = _snips(samp, pi_e)
         elif method == "DM":
-            v = float(
-                np.mean([_dm_oracle_fullinfo(row, pi_e) for _, row in samp.iterrows()])
-            )
+            v = float(np.mean([_dm_oracle_fullinfo(row, pi_e) for _, row in samp.iterrows()]))
         elif method == "DR":
-            v = _dr(
-                samp, pi_e, qhat if qhat is not None else pd.Series(0.0, index=SLEEVES)
-            )
+            v = _dr(samp, pi_e, qhat if qhat is not None else pd.Series(0.0, index=SLEEVES))
         else:
             v = 0.0
         vals.append(v)
@@ -441,11 +421,7 @@ def main():
     res.to_csv(RESULTS_CSV, index=False)
 
     summary = {
-        "as_of": (
-            str(pd.to_datetime(ret_wide["date"].max()).date())
-            if not ret_wide.empty
-            else ""
-        ),
+        "as_of": (str(pd.to_datetime(ret_wide["date"].max()).date()) if not ret_wide.empty else ""),
         "sleeves": SLEEVES,
         "lookback_days": LOOKBACK_DAYS,
         "bootstrap": N_BOOTSTRAP,

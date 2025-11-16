@@ -9,9 +9,7 @@ def _ensure_dt(df: pd.DataFrame, col: str = "date") -> pd.DataFrame:
     return out.sort_values(col)
 
 
-def compute_turnover(
-    positions: pd.DataFrame, date_col="date", id_col="ticker", w_col="weight"
-) -> pd.DataFrame:
+def compute_turnover(positions: pd.DataFrame, date_col="date", id_col="ticker", w_col="weight") -> pd.DataFrame:
     """
     positions: long-form with [date, ticker, weight] where weight in [-1,1]
     Returns daily turnover % = 0.5 * sum(|w_t - w_{t-1}|) * 100.
@@ -35,14 +33,10 @@ def annualized_churn(daily_turnover: pd.DataFrame, date_col="date") -> float:
     return min(ann, 10000.0)
 
 
-def join_with_adv(
-    positions: pd.DataFrame, adv: pd.DataFrame, date_col="date", id_col="ticker"
-) -> pd.DataFrame:
+def join_with_adv(positions: pd.DataFrame, adv: pd.DataFrame, date_col="date", id_col="ticker") -> pd.DataFrame:
     a = _ensure_dt(positions, date_col)
     b = _ensure_dt(adv, date_col)
-    return a.merge(
-        b[[date_col, id_col, "adv_value"]], on=[date_col, id_col], how="left"
-    )
+    return a.merge(b[[date_col, id_col, "adv_value"]], on=[date_col, id_col], how="left")
 
 
 def liquidity_screens(

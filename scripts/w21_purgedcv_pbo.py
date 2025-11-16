@@ -14,9 +14,7 @@ DATA = ROOT / "data" / "prices"
 REPORTS = ROOT / "reports"
 OUT_CSV = REPORTS / "wk21_purgedcv_pbo.csv"
 OUT_JSON = REPORTS / "w21_summary.json"
-TARGETS_CSV = (
-    REPORTS / "wk11_blend_targets.csv"
-)  # used to build a daily portfolio return
+TARGETS_CSV = REPORTS / "wk11_blend_targets.csv"  # used to build a daily portfolio return
 
 # -------- knobs --------
 TRADING_DAYS_PER_YEAR = 252
@@ -65,9 +63,7 @@ def _time_splits(dates: np.ndarray, k_folds: int, embargo_days: int):
         # embargo: remove a few days around test window from train (both sides)
         left_cut = max(0, s - embargo_days)
         right_cut = min(n, e + embargo_days)
-        train_idx = np.concatenate(
-            [np.arange(0, left_cut, dtype=int), np.arange(right_cut, n, dtype=int)]
-        )
+        train_idx = np.concatenate([np.arange(0, left_cut, dtype=int), np.arange(right_cut, n, dtype=int)])
         yield train_idx, test_idx
 
 
@@ -128,16 +124,12 @@ def _build_portfolio_daily_returns(targets_csv: Path) -> pd.DataFrame:
     wcol = cols.get("target_w") or cols.get("weight") or cols.get("w")
 
     if not dcol or not ticol or not wcol:
-        raise ValueError(
-            "wk11_blend_targets.csv must have columns: date, ticker, target_w"
-        )
+        raise ValueError("wk11_blend_targets.csv must have columns: date, ticker, target_w")
 
     tdf = tdf[[dcol, ticol, wcol]].copy()
     tdf[dcol] = _safe_to_datetime(tdf[dcol])
     tdf = tdf.dropna(subset=[dcol, ticol, wcol])
-    tdf = tdf.rename(
-        columns={dcol: "date", ticol: "ticker", wcol: "weight"}
-    ).sort_values(["date", "ticker"])
+    tdf = tdf.rename(columns={dcol: "date", ticol: "ticker", wcol: "weight"}).sort_values(["date", "ticker"])
 
     # Normalize weights per day (safety)
     tdf["weight"] = pd.to_numeric(tdf["weight"], errors="coerce").fillna(0.0)
@@ -179,11 +171,7 @@ def _build_portfolio_daily_returns(targets_csv: Path) -> pd.DataFrame:
         return pd.DataFrame(columns=["date", "ret_port"])
 
     j["w_ret"] = j["weight"] * j["ret"]
-    port = (
-        j.groupby("date", as_index=False)["w_ret"]
-        .sum()
-        .rename(columns={"w_ret": "ret_port"})
-    )
+    port = j.groupby("date", as_index=False)["w_ret"].sum().rename(columns={"w_ret": "ret_port"})
     port = port.dropna(subset=["ret_port"]).sort_values("date")
     return port
 
@@ -203,11 +191,7 @@ def _oos_eval(daily: pd.DataFrame, k_folds: int, embargo_days: int):
         daily = daily.reset_index().rename(columns={"index": "date"})
 
     daily["date"] = pd.to_datetime(daily["date"], errors="coerce")
-    daily = (
-        daily.dropna(subset=["date", "ret_port"])
-        .sort_values("date")
-        .reset_index(drop=True)
-    )
+    daily = daily.dropna(subset=["date", "ret_port"]).sort_values("date").reset_index(drop=True)
 
     if len(daily) < MIN_VALID_ROWS:
         folds_df = pd.DataFrame(columns=["fold", "n_is", "n_oos", "sr_is", "sr_oos"])
@@ -220,9 +204,7 @@ def _oos_eval(daily: pd.DataFrame, k_folds: int, embargo_days: int):
     is_series, oos_series = [], []
     t_is = t_oos = 0
 
-    for k, (tr_idx, te_idx) in enumerate(
-        _time_splits(dates, k_folds, embargo_days), start=1
-    ):
+    for k, (tr_idx, te_idx) in enumerate(_time_splits(dates, k_folds, embargo_days), start=1):
         r_is = pd.Series(rets[tr_idx])
         r_oos = pd.Series(rets[te_idx])
 

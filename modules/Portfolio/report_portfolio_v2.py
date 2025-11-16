@@ -18,9 +18,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 
 def parse_args():
-    p = argparse.ArgumentParser(
-        description="Momentum backtest (top-N by lookback return, configurable rebalance)."
-    )
+    p = argparse.ArgumentParser(description="Momentum backtest (top-N by lookback return, configurable rebalance).")
     p.add_argument(
         "--tickers",
         default="",
@@ -31,9 +29,7 @@ def parse_args():
         default="",
         help="CSV with column 'ticker' (overrides --tickers if present).",
     )
-    p.add_argument(
-        "--start", required=True, help="Backtest start date, e.g. 2015-01-01"
-    )
+    p.add_argument("--start", required=True, help="Backtest start date, e.g. 2015-01-01")
     p.add_argument(
         "--lookback",
         type=int,
@@ -47,9 +43,7 @@ def parse_args():
         default=4,
         help="Select top-N by lookback return (default 4)",
     )
-    p.add_argument(
-        "--max-holdings", type=int, default=0, help="Cap total names held (0=off)."
-    )
+    p.add_argument("--max-holdings", type=int, default=0, help="Cap total names held (0=off).")
     p.add_argument(
         "--weight-cap",
         type=float,
@@ -62,9 +56,7 @@ def parse_args():
         default=0.0,
         help="Drop names below this weight (0–1).",
     )
-    p.add_argument(
-        "--cash-buffer", type=float, default=0.0, help="Fraction to keep in cash (0–1)."
-    )
+    p.add_argument("--cash-buffer", type=float, default=0.0, help="Fraction to keep in cash (0–1).")
     p.add_argument(
         "--rebalance",
         choices=["ME", "WE", "QE"],
@@ -104,9 +96,7 @@ def parse_args():
         default="",
         help="Optional benchmark ticker (e.g., ^NSEI). Empty to disable.",
     )
-    p.add_argument(
-        "--outdir", default="reports", help="Output directory (default reports)"
-    )
+    p.add_argument("--outdir", default="reports", help="Output directory (default reports)")
     return p.parse_args()
 
 
@@ -270,16 +260,10 @@ def main():
         # Transaction cost at boundary
         turnover = (w_new - prev_w).abs().sum()
         if start_block < len(rets):
-            rets.iloc[start_block] = (
-                rets.iloc[start_block] - (args.cost_bps / 1e4) * turnover
-            )
+            rets.iloc[start_block] = rets.iloc[start_block] - (args.cost_bps / 1e4) * turnover
 
         # Trades log
-        block_end_date = (
-            rets.index[end_block - 1]
-            if end_block > start_block
-            else rets.index[start_block]
-        )
+        block_end_date = rets.index[end_block - 1] if end_block > start_block else rets.index[start_block]
         for tkr in rets.columns:
             prev = float(prev_w.loc[tkr])
             new = float(w_new.loc[tkr])
@@ -328,11 +312,7 @@ def main():
     dd = eq / eq.cummax() - 1.0
 
     cagr = cagr_from_equity(eq)
-    sharpe = (
-        float(np.sqrt(252) * port_ret.mean() / port_ret.std())
-        if port_ret.std() > 0
-        else 0.0
-    )
+    sharpe = float(np.sqrt(252) * port_ret.mean() / port_ret.std()) if port_ret.std() > 0 else 0.0
     maxdd = float(dd.min())
     calmar = float(cagr / abs(maxdd)) if maxdd < 0 else 0.0
 
@@ -369,10 +349,7 @@ def main():
         f"VT{int(args.vol_target)}",
         f"TB{args.turnover_band:.2f}",
     ]
-    stem = (
-        f"portfolioV2_{'-'.join([t.replace('.', '_') for t in tickers])}_"
-        + "_".join(parts)
-    )
+    stem = f"portfolioV2_{'-'.join([t.replace('.', '_') for t in tickers])}_" + "_".join(parts)
 
     equity_csv = outdir / f"{stem}.csv"
     weights_csv = outdir / f"{stem}_weights.csv"
@@ -380,9 +357,9 @@ def main():
     png = outdir / f"{stem}.png"
 
     # ------- Save -------
-    pd.DataFrame({"equity": eq, "drawdown": dd, "port_ret": port_ret}).rename_axis(
-        "date"
-    ).to_csv(equity_csv, float_format="%.10f")
+    pd.DataFrame({"equity": eq, "drawdown": dd, "port_ret": port_ret}).rename_axis("date").to_csv(
+        equity_csv, float_format="%.10f"
+    )
 
     weights.rename_axis("date").to_csv(weights_csv, float_format="%.6f")
     pd.DataFrame(trade_rows).to_csv(trades_csv, index=False)

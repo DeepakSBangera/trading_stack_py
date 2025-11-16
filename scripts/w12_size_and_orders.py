@@ -15,12 +15,8 @@ CONFIG = ROOT / "config" / "capacity_policy.yaml"
 # Inputs
 TARGETS = REPORTS / "wk11_blend_targets.csv"  # from W11
 SCHED = REPORTS / "risk_schedule_blended.csv"  # from W8
-POSPQ = (
-    REPORTS / "positions_daily.parquet"
-)  # current portfolio snapshot (weights, port_value)
-ADV_PQ = (
-    REPORTS / "adv_value.parquet"
-)  # ADV in currency per name per day (if available)
+POSPQ = REPORTS / "positions_daily.parquet"  # current portfolio snapshot (weights, port_value)
+ADV_PQ = REPORTS / "adv_value.parquet"  # ADV in currency per name per day (if available)
 
 # Outputs
 OUT_SCHEDULE = REPORTS / "wk12_orders_schedule.csv"  # orders for all dates
@@ -70,15 +66,9 @@ def main():
         df["target_w"] = df["target_w"].fillna(0.0).clip(lower=0.0)
 
         # derive allow flags (already embedded in W11 targets logic, but keep for clarity)
-        allow_new = (
-            df["allow_new_final"].fillna(True).astype(bool)
-            if "allow_new_final" in df.columns
-            else True
-        )
+        allow_new = df["allow_new_final"].fillna(True).astype(bool) if "allow_new_final" in df.columns else True
         reb_ok = (
-            df["rebalance_allowed_final"].fillna(True).astype(bool)
-            if "rebalance_allowed_final" in df.columns
-            else True
+            df["rebalance_allowed_final"].fillna(True).astype(bool) if "rebalance_allowed_final" in df.columns else True
         )
 
         # baseline current for this date: use latest snapshot (simple demo)
@@ -180,15 +170,9 @@ def main():
             # portfolio value from latest snapshot
             pos = pd.read_parquet(POSPQ)
             pos["date"] = pd.to_datetime(pos["date"])
-            pv = float(
-                pos.loc[pos["date"] == pos["date"].max(), "port_value"]
-                .drop_duplicates()
-                .iloc[-1]
-            )
+            pv = float(pos.loc[pos["date"] == pos["date"].max(), "port_value"].drop_duplicates().iloc[-1])
             last = last.merge(adv_day[["ticker", "adv_value"]], on="ticker", how="left")
-            cap_pct = (
-                float(pol.get("adv_cap_pct_L1", pol.get("adv_cap_pct", 10))) / 100.0
-            )
+            cap_pct = float(pol.get("adv_cap_pct_L1", pol.get("adv_cap_pct", 10))) / 100.0
             last["target_value"] = last["target_w"] * pv
             last["per_name_cap_value"] = cap_pct * last["adv_value"]
             last["adv_cap_breach"] = last["target_value"] > last["per_name_cap_value"]
@@ -211,17 +195,9 @@ def main():
                 "orders_lastday_csv": str(OUT_TODAY),
                 "validation_csv": str(OUT_VCHECK),
                 "last_day": last_day,
-                "per_name_cap_breach_any": bool(
-                    vrep.loc[vrep["check"] == "per_name_cap_breach_any", "value"].iloc[
-                        0
-                    ]
-                ),
+                "per_name_cap_breach_any": bool(vrep.loc[vrep["check"] == "per_name_cap_breach_any", "value"].iloc[0]),
                 "sector_cap_breach_any": (
-                    bool(
-                        vrep.loc[
-                            vrep["check"] == "sector_cap_breach_any", "value"
-                        ].iloc[0]
-                    )
+                    bool(vrep.loc[vrep["check"] == "sector_cap_breach_any", "value"].iloc[0])
                     if (vrep["check"] == "sector_cap_breach_any").any()
                     else False
                 ),

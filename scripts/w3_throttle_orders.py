@@ -61,9 +61,7 @@ def main():
     # Canary log: summarize violations before/after
     before = int(od["was_violation"].sum())
     after = int(od["is_violation_after"].sum())
-    viol_by_ticker = (
-        od.loc[od["was_violation"], "ticker"].value_counts().head(10).to_dict()
-    )
+    viol_by_ticker = od.loc[od["was_violation"], "ticker"].value_counts().head(10).to_dict()
     canary = {
         "violations_before": before,
         "violations_after": after,

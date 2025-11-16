@@ -1,17 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ---------------- Black ----------------
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+extend-exclude = '''
+(\.venv|_archive|data(_live|_synth)?|_snapshots|\.git|reports/_run_info)
+'''
+
+# ---------------- Ruff -----------------
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+extend-exclude = [
+  ".venv",
+  "_archive",
+  "data",
+  "data_live",
+  "data_synth",
+  "_snapshots",
+  ".git",
+  "reports/_run_info",
+]
+
 [tool.ruff.lint]
+select = [
+  "E", "F", "W",   # pycodestyle/pyflakes/warnings
+  "I",             # import sorting
+  "UP",            # pyupgrade
+  "B",             # flake8-bugbear
+  "PIE",           # flake8-pie
+  "A",             # flake8-builtins
+  "C4",            # flake8-comprehensions
+  "ICN",           # import conventions
+]
 ignore = [
   "UP038",   # isinstance(..., (A, B))
-  "E501",    # line length (black handles wrapping)
-  "C408",    # dict(...) literal nit (we’ll modernize later)
-  "ISC001",  # conflict with formatter
+  "E501",    # line length (Black governs wrapping)
+  "C408",    # dict(...) literal nit
+  "ISC001",  # conflicts with formatter
 ]
-select = [
-  "E", "F", "W",
-  "I",       # import sorting
-  "UP",      # pyupgrade (minus UP038)
-  "B",       # flake8-bugbear
-  "PIE",
-  "A",
-  "C4",
-  "ICN",
-]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tradingstack", "trading_stack_py"]
+force-sort-within-sections = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/w17_canary_dashboard.py" = ["E501"]
+"scripts/w28_ope_results.py" = ["E501"]
+"scripts/w31_exec_bandit.py" = ["E501"]
+"scripts/w33_barbell_results.py" = ["E501"]
+"scripts/w36_options_overlay.py" = ["E501"]
+"scripts/w42_after_tax_schedule.py" = ["E501"]

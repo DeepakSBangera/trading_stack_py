@@ -147,11 +147,7 @@ def main():
     mono_rows = []
 
     # Build quick lookup for survivorship audit
-    want_last = (
-        set(univ_by_date.loc[univ_by_date["date"] == last, "tickers"].iloc[0])
-        if last
-        else set()
-    )
+    want_last = set(univ_by_date.loc[univ_by_date["date"] == last, "tickers"].iloc[0]) if last else set()
 
     have_last = set()
     for tic in sorted(want_last):

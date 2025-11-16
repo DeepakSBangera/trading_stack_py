@@ -23,9 +23,7 @@ def main():
 
     tickers = sorted(set(df["ticker"].dropna().astype(str)))
     out.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame({"ticker": tickers, "sector": ["Unknown"] * len(tickers)}).to_csv(
-        out, index=False
-    )
+    pd.DataFrame({"ticker": tickers, "sector": ["Unknown"] * len(tickers)}).to_csv(out, index=False)
     print(f"[OK] Wrote template: {out}")
 
 

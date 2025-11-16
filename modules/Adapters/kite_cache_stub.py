@@ -22,9 +22,7 @@ def append_pit(log_path: str, event: dict):
 def main():
     ds = load_config()
     cache_root, universe_csv, pit_log = kite_paths()
-    ensure_dirs(
-        cache_root, os.path.join(cache_root, "_pit"), os.path.dirname(universe_csv)
-    )
+    ensure_dirs(cache_root, os.path.join(cache_root, "_pit"), os.path.dirname(universe_csv))
 
     # Create a placeholder universe file if missing
     if not os.path.exists(universe_csv):
@@ -32,9 +30,7 @@ def main():
             f.write("ticker,tradingsymbol,exchange\n")  # you can fill this later
 
     if not kite_enabled():
-        append_pit(
-            pit_log, {"mode": ds.mode, "kite.enabled": False, "action": "scaffold_only"}
-        )
+        append_pit(pit_log, {"mode": ds.mode, "kite.enabled": False, "action": "scaffold_only"})
         print("Kite scaffold ready (enabled=False). No API calls.")
         print(f"cache_root={cache_root}")
         print(f"universe_file={universe_csv}")

@@ -19,9 +19,7 @@ def open_win(p: Path):
 def ensure_header():
     DOCS.mkdir(parents=True, exist_ok=True)
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
 
 
 def main():
@@ -37,9 +35,7 @@ def main():
     )
     gates = "Macro gate: BULL/NEUTRAL & vol<=threshold & DD<max; else FAIL"
     risks = "Proxy-based regimes; may lag turning points"
-    decisions = (
-        "Apply total_risk_multiplier to order sizing; block promos if macro_gate=FAIL"
-    )
+    decisions = "Apply total_risk_multiplier to order sizing; block promos if macro_gate=FAIL"
     line = f'{today},S-W7,~1.0h,"{artifacts}","{gates}","{risks}","{decisions}"\n'
     with TRACKER.open("a", encoding="utf-8") as f:
         f.write(line)

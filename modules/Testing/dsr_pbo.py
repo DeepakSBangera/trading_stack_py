@@ -154,9 +154,7 @@ def write_decision(
     pbo_txt = "NA" if (pbo is None or np.isnan(pbo)) else f"{pbo:.4f}"
     lines = []
     lines.append(f"DSR={dsr:.4f} (min {min_dsr})")
-    lines.append(
-        f"PBO={pbo_txt}" + ("" if pbo is None or np.isnan(pbo) else f" (max {max_pbo})")
-    )
+    lines.append(f"PBO={pbo_txt}" + ("" if pbo is None or np.isnan(pbo) else f" (max {max_pbo})"))
     ok_dsr = dsr >= min_dsr
     ok_pbo = True if (pbo is None or np.isnan(pbo)) else (pbo <= max_pbo)
     decision = "PROMOTE" if (ok_dsr and ok_pbo) else "REJECT"
@@ -165,9 +163,7 @@ def write_decision(
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="Compute DSR/PBO from best available equity parquet."
-    )
+    ap = argparse.ArgumentParser(description="Compute DSR/PBO from best available equity parquet.")
     ap.add_argument(
         "--out",
         default="reports/wk5_walkforward_dsr.parquet",
@@ -184,9 +180,7 @@ def main():
         default=10,
         help="Number of trials for selection bias context",
     )
-    ap.add_argument(
-        "--min-dsr", type=float, default=0.00, help="Minimum DSR threshold to promote"
-    )
+    ap.add_argument("--min-dsr", type=float, default=0.00, help="Minimum DSR threshold to promote")
     ap.add_argument(
         "--max-pbo",
         type=float,
@@ -214,9 +208,7 @@ def main():
         # No usable data; emit zeros/NA and REJECT gate
         write_parquet(out_path, 0, 0.0, 0.0, 0.0, float("nan"), "NONE", args.n_trials)
         write_decision(note_path, 0.0, args.min_dsr, float("nan"), args.max_pbo)
-        print(
-            f"DSR/PBO done. days=0 sr_annual=0.0000 dsr=0.0000 pbo=NA | source=NONE | out={out_path}"
-        )
+        print(f"DSR/PBO done. days=0 sr_annual=0.0000 dsr=0.0000 pbo=NA | source=NONE | out={out_path}")
         return
 
     days = int(ret.shape[0])

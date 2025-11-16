@@ -27,9 +27,7 @@ def _ann(index) -> int:
 
 
 # -------- fallbacks (used only if your native functions are absent) ----------
-def _fb_sharpe_ratio(
-    returns: pd.Series, rf: float = 0.0, annualization: int | None = None
-) -> float:
+def _fb_sharpe_ratio(returns: pd.Series, rf: float = 0.0, annualization: int | None = None) -> float:
     r = pd.to_numeric(returns, errors="coerce").astype("float64").dropna()
     if r.empty:
         return np.nan
@@ -42,9 +40,7 @@ def _fb_sharpe_ratio(
     return (excess.mean() / sd) * math.sqrt(annualization)
 
 
-def _fb_sortino_ratio(
-    returns: pd.Series, rf: float = 0.0, annualization: int | None = None
-) -> float:
+def _fb_sortino_ratio(returns: pd.Series, rf: float = 0.0, annualization: int | None = None) -> float:
     r = pd.to_numeric(returns, errors="coerce").astype("float64").dropna()
     if r.empty:
         return np.nan
@@ -97,40 +93,22 @@ def _fb_omega_ratio(returns: pd.Series, threshold: float = 0.0) -> float:
 
 
 # -------- bind to your existing modules if present ---------------------------
-_sharpe_impl = _resolve(
-    "tradingstack.metrics.sharpe", ["sharpe_ratio", "sharpe", "calc_sharpe"]
-)
-_sortino_impl = _resolve(
-    "tradingstack.metrics.sortino", ["sortino_ratio", "sortino", "calc_sortino"]
-)
-_mdd_impl = _resolve(
-    "tradingstack.metrics.drawdown", ["max_drawdown", "drawdown", "calc_max_drawdown"]
-)
-_calmar_impl = _resolve(
-    "tradingstack.metrics.calmar", ["calmar_ratio", "calmar", "calc_calmar"]
-)
-_omega_impl = _resolve(
-    "tradingstack.metrics.omega", ["omega_ratio", "omega", "calc_omega"]
-)
+_sharpe_impl = _resolve("tradingstack.metrics.sharpe", ["sharpe_ratio", "sharpe", "calc_sharpe"])
+_sortino_impl = _resolve("tradingstack.metrics.sortino", ["sortino_ratio", "sortino", "calc_sortino"])
+_mdd_impl = _resolve("tradingstack.metrics.drawdown", ["max_drawdown", "drawdown", "calc_max_drawdown"])
+_calmar_impl = _resolve("tradingstack.metrics.calmar", ["calmar_ratio", "calmar", "calc_calmar"])
+_omega_impl = _resolve("tradingstack.metrics.omega", ["omega_ratio", "omega", "calc_omega"])
 
 
-def sharpe_ratio(
-    returns: pd.Series, rf: float = 0.0, annualization: int | None = None
-) -> float:
+def sharpe_ratio(returns: pd.Series, rf: float = 0.0, annualization: int | None = None) -> float:
     if _sharpe_impl:  # type: ignore[truthy-function]
-        return _sharpe_impl(
-            returns, rf=rf, annualization=annualization or _ann(returns.index)
-        )
+        return _sharpe_impl(returns, rf=rf, annualization=annualization or _ann(returns.index))
     return _fb_sharpe_ratio(returns, rf=rf, annualization=annualization)
 
 
-def sortino_ratio(
-    returns: pd.Series, rf: float = 0.0, annualization: int | None = None
-) -> float:
+def sortino_ratio(returns: pd.Series, rf: float = 0.0, annualization: int | None = None) -> float:
     if _sortino_impl:
-        return _sortino_impl(
-            returns, rf=rf, annualization=annualization or _ann(returns.index)
-        )
+        return _sortino_impl(returns, rf=rf, annualization=annualization or _ann(returns.index))
     return _fb_sortino_ratio(returns, rf=rf, annualization=annualization)
 
 

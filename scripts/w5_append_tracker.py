@@ -19,17 +19,13 @@ def open_win(p: Path):
 def ensure_header():
     DOCS.mkdir(parents=True, exist_ok=True)
     if not TRACKER.exists():
-        TRACKER.write_text(
-            "date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8"
-        )
+        TRACKER.write_text("date,session,hours,artifacts,gates,risks,decisions\n", encoding="utf-8")
 
 
 def main():
     ensure_header()
     today = dt.date.today().isoformat()
-    artifacts = "; ".join(
-        ["wk5_walkforward_dsr.csv", "w5_promote_retire.csv", "canary_log.csv"]
-    )
+    artifacts = "; ".join(["wk5_walkforward_dsr.csv", "w5_promote_retire.csv", "canary_log.csv"])
     line = (
         f"{today},S-W5,~1.0h,"
         f'"{artifacts}",'

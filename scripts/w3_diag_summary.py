@@ -33,18 +33,12 @@ def main():
         "liquidity": {
             "rows": int(liq.shape[0]),
             "violations": int(liq["violation"].sum()),
-            "violators_top5": liq[liq["violation"] == True]["ticker"]
-            .value_counts()
-            .head(5)
-            .to_dict(),
+            "violators_top5": liq[liq["violation"] == True]["ticker"].value_counts().head(5).to_dict(),
         },
         "pretrade": {
             "rows": int(pv.shape[0]),
             "violations": int(pv["violation"].sum()),
-            "violators_top5": pv[pv["violation"] == True]["ticker"]
-            .value_counts()
-            .head(5)
-            .to_dict(),
+            "violators_top5": pv[pv["violation"] == True]["ticker"].value_counts().head(5).to_dict(),
         },
     }
     print(json.dumps(summ, indent=2))

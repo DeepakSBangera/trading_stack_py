@@ -36,9 +36,7 @@ def main():
     tl = REPORTS / "regime_timeline.csv"
     throttle_csv = REPORTS / "dd_throttle_map.csv"
     if not tl.exists():
-        raise SystemExit(
-            "Missing regime_timeline.csv — run w7_compute_regimes.py first."
-        )
+        raise SystemExit("Missing regime_timeline.csv — run w7_compute_regimes.py first.")
     if not throttle_csv.exists():
         raise SystemExit("Missing dd_throttle_map.csv — run W4 dd_throttle_map first.")
 
@@ -70,9 +68,7 @@ def main():
         # regime multiplier
         regime = str(r["trend_regime"])
         vol = str(r["vol_regime"])
-        reg_mult = (
-            m_bull if regime == "BULL" else m_bear if regime == "BEAR" else m_neutral
-        )
+        reg_mult = m_bull if regime == "BULL" else m_bear if regime == "BEAR" else m_neutral
         if vol == "HIGH_VOL":
             reg_mult *= m_highvol / 1.0  # additional scaling for high vol
 

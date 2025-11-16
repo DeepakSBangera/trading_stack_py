@@ -17,9 +17,7 @@ def record_manifest(session_label: str = "") -> None:
     py = ROOT / ".venv" / "Scripts" / "python.exe"
     runner = ROOT / "scripts" / "w_manifest.py"
     try:
-        subprocess.run(
-            [str(py), str(runner), session_label], cwd=str(ROOT), check=False
-        )
+        subprocess.run([str(py), str(runner), session_label], cwd=str(ROOT), check=False)
     except Exception as e:
         # Never fail the parent script because of manifest issues.
         print(f"[manifest] skipped ({e})")

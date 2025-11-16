@@ -28,13 +28,9 @@ def load_yaml(path: Path) -> dict:
 def main():
     pos_pq = REPORTS / "positions_daily.parquet"
     if not pos_pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run W3 bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run W3 bootstrap first.")
     if not CAL.exists():
-        raise SystemExit(
-            "Missing events_calendar.csv — run w8_make_events_calendar.py first."
-        )
+        raise SystemExit("Missing events_calendar.csv — run w8_make_events_calendar.py first.")
     if not CFG.exists():
         raise SystemExit("Missing config\\event_rules.yaml")
 
@@ -64,9 +60,7 @@ def main():
 
     # build per-day/ticker flags
     rows = []
-    df_template = pd.DataFrame(
-        [(d, t) for d in sorted(all_dates) for t in tickers], columns=["date", "ticker"]
-    )
+    df_template = pd.DataFrame([(d, t) for d in sorted(all_dates) for t in tickers], columns=["date", "ticker"])
     df = df_template.merge(
         pos[["date", "ticker", "port_value"]].drop_duplicates(),
         on=["date", "ticker"],

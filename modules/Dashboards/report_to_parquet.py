@@ -4,9 +4,7 @@ import os
 
 import pandas as pd
 
-SKIP_PREFIXES = (
-    "wk",
-)  # governance summaries often start with "wk"; we skip them by default
+SKIP_PREFIXES = ("wk",)  # governance summaries often start with "wk"; we skip them by default
 
 
 def convert_one(path: str, delete_csv: bool) -> str:
@@ -47,9 +45,7 @@ def main():
     # De-dupe; optionally skip governance if flag not set
     to_convert = sorted(set(to_convert))
     if not args.include_governance:
-        to_convert = [
-            p for p in to_convert if os.path.basename(p).startswith("portfolioV2_")
-        ]
+        to_convert = [p for p in to_convert if os.path.basename(p).startswith("portfolioV2_")]
     if not to_convert:
         print("No matching CSVs found.")
         return

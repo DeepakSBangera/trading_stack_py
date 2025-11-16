@@ -25,11 +25,7 @@ def rank_and_weight(
     cash_buffer=0.03,
     max_holdings=None,
 ):
-    score = (
-        0.5 * zscore_rank(mom, False)
-        + 0.3 * zscore_rank(quality, False)
-        + 0.2 * zscore_rank(vol, True)
-    )
+    score = 0.5 * zscore_rank(mom, False) + 0.3 * zscore_rank(quality, False) + 0.2 * zscore_rank(vol, True)
     picks = score.apply(lambda row: row.nlargest(top_n).index.tolist(), axis=1)
 
     weights = []

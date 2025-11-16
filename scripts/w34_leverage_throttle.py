@@ -83,9 +83,7 @@ def _load_dates_from_core() -> list:
     core = _read_csv(CORE_TARGETS)
     if core is None or core.empty or "date" not in core.columns:
         return []
-    dates = (
-        pd.to_datetime(core["date"], errors="coerce").dt.date.dropna().unique().tolist()
-    )
+    dates = pd.to_datetime(core["date"], errors="coerce").dt.date.dropna().unique().tolist()
     return sorted(dates)
 
 
@@ -186,11 +184,7 @@ def main():
                 reason_bits.append("trend")
             if not throttle_ok:
                 reason_bits.append("dd_throttle")
-            reason = (
-                "auto_revert: " + ",".join(reason_bits)
-                if reason_bits
-                else "auto_revert: unknown"
-            )
+            reason = "auto_revert: " + ",".join(reason_bits) if reason_bits else "auto_revert: unknown"
 
         rows.append(
             {

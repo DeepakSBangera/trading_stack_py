@@ -72,9 +72,7 @@ def rolling_sector_exposures_from_weights(
         bucket.setdefault(sec, []).append(col)
 
     # Sum ticker weights inside each sector (NaNs ignored by sum)
-    sector_df = pd.DataFrame(
-        {sec: W[cols].sum(axis=1) for sec, cols in bucket.items()}, index=W.index
-    )
+    sector_df = pd.DataFrame({sec: W[cols].sum(axis=1) for sec, cols in bucket.items()}, index=W.index)
 
     # Smooth with rolling mean
     out = sector_df.rolling(window=window, min_periods=min_periods or 1).mean()
@@ -152,12 +150,7 @@ def quality_inverse_downside_vol(
     # mask: only downside
     downside = (r - (mar / trading_days)).clip(upper=0.0)
     # rolling sqrt(mean(square(downside)))
-    dd = (
-        downside.pow(2)
-        .rolling(window=window, min_periods=min_periods or 1)
-        .mean()
-        .pow(0.5)
-    )
+    dd = downside.pow(2).rolling(window=window, min_periods=min_periods or 1).mean().pow(0.5)
     q = 1.0 / dd.replace(0.0, np.nan)
     return q
 

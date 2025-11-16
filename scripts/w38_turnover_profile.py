@@ -144,9 +144,7 @@ def _topn_weights(scores_row: pd.Series, n: int) -> pd.Series:
     return w
 
 
-def _apply_hysteresis(
-    prev_w: pd.Series, target_w: pd.Series, band_bps: float
-) -> pd.Series:
+def _apply_hysteresis(prev_w: pd.Series, target_w: pd.Series, band_bps: float) -> pd.Series:
     """
     Only move weight where |delta| > band. band_bps in basis points (1 bps = 0.0001).
     """
@@ -203,9 +201,7 @@ def main():
                 "notes",
             ]
         ).to_csv(TURNOVER_CSV, index=False)
-        RECO_JSON.write_text(
-            json.dumps({"recommended": None, "tested": 0}, indent=2), encoding="utf-8"
-        )
+        RECO_JSON.write_text(json.dumps({"recommended": None, "tested": 0}, indent=2), encoding="utf-8")
         print(json.dumps({"rows": 0, "reason": "empty universe"}, indent=2))
         return
 
@@ -223,9 +219,7 @@ def main():
                 "notes",
             ]
         ).to_csv(TURNOVER_CSV, index=False)
-        RECO_JSON.write_text(
-            json.dumps({"recommended": None, "tested": 0}, indent=2), encoding="utf-8"
-        )
+        RECO_JSON.write_text(json.dumps({"recommended": None, "tested": 0}, indent=2), encoding="utf-8")
         print(json.dumps({"rows": 0, "reason": "no price panel"}, indent=2))
         return
 
@@ -243,9 +237,7 @@ def main():
     prev = None
     for dt in dates:
         if not mask_daily.loc[dt]:
-            W_base.append(
-                prev if prev is not None else pd.Series(0.0, index=panel.columns)
-            )
+            W_base.append(prev if prev is not None else pd.Series(0.0, index=panel.columns))
             continue
         row = scores.loc[dt]
         w_t = _topn_weights(row, n_top)
@@ -265,18 +257,10 @@ def main():
             rows = []
             for dt in dates:
                 if mask.loc[dt]:
-                    tgt = (
-                        _topn_weights(scores.loc[dt], n_top)
-                        .reindex(panel.columns)
-                        .fillna(0.0)
-                    )
+                    tgt = _topn_weights(scores.loc[dt], n_top).reindex(panel.columns).fillna(0.0)
                     w_t = _apply_hysteresis(prev, tgt, band)
                 else:
-                    w_t = (
-                        prev
-                        if prev is not None
-                        else pd.Series(0.0, index=panel.columns)
-                    )
+                    w_t = prev if prev is not None else pd.Series(0.0, index=panel.columns)
                 prev = w_t
                 rows.append(w_t)
             W = pd.DataFrame(rows, index=dates, columns=panel.columns).fillna(0.0)
@@ -289,15 +273,9 @@ def main():
             # stats
             tau = _turnover_series(W).loc[R.index].fillna(0.0)
             annual_turn = float(tau.mean() * 252.0)  # ~252 trading days
-            cost_drag = float(
-                annual_turn * (COST_BPS_PER_TURN / 10000.0) * 1e4
-            )  # in bps
+            cost_drag = float(annual_turn * (COST_BPS_PER_TURN / 10000.0) * 1e4)  # in bps
             # tracking vs baseline
-            corr = (
-                float(pd.Series(R).corr(pd.Series(Rb)))
-                if R.std(ddof=1) > 0 and Rb.std(ddof=1) > 0
-                else np.nan
-            )
+            corr = float(pd.Series(R).corr(pd.Series(Rb))) if R.std(ddof=1) > 0 and Rb.std(ddof=1) > 0 else np.nan
             rmse = float(np.sqrt(((R - Rb) ** 2).mean()) * 1e4)  # daily RMSE in bps
 
             results.append(
@@ -321,9 +299,7 @@ def main():
     cand = out[out["tracking_corr"] >= MIN_TRACKING_CORR].copy()
     if cand.empty:
         # fallback: best corr, then min cost
-        cand = out.sort_values(
-            ["tracking_corr", "cost_drag_bps"], ascending=[False, True]
-        ).head(1)
+        cand = out.sort_values(["tracking_corr", "cost_drag_bps"], ascending=[False, True]).head(1)
     reco = cand.sort_values("cost_drag_bps", ascending=True).iloc[0].to_dict()
 
     RECO_JSON.write_text(
@@ -332,9 +308,7 @@ def main():
                 "recommended": reco,
                 "tested": tested,
                 "window_days": (
-                    int(reco["notes"].split("window_days=")[-1])
-                    if "window_days=" in reco["notes"]
-                    else None
+                    int(reco["notes"].split("window_days=")[-1]) if "window_days=" in reco["notes"] else None
                 ),
                 "knobs": {
                     "lookback": LOOKBACK,

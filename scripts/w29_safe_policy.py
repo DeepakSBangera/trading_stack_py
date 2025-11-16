@@ -107,9 +107,7 @@ def _load_inputs():
     # Sanitize dataset
     ds = ds.copy()
     if "action" not in ds or "pi_b" not in ds or "reward" not in ds:
-        raise ValueError(
-            "w28_ope_dataset.csv missing required columns: action, pi_b, reward"
-        )
+        raise ValueError("w28_ope_dataset.csv missing required columns: action, pi_b, reward")
     ds["action"] = ds["action"].astype(str).str.strip()
     ds["pi_b"] = pd.to_numeric(ds["pi_b"], errors="coerce").fillna(0.0)
     ds["reward"] = pd.to_numeric(ds["reward"], errors="coerce").fillna(0.0)
@@ -198,14 +196,10 @@ def _project_simplex(v: np.ndarray) -> np.ndarray:
 
 def _l1_distance(p: pd.Series, q: pd.Series) -> float:
     s = p.index
-    return float(
-        np.abs(p.reindex(s).fillna(0.0).values - q.reindex(s).fillna(0.0).values).sum()
-    )
+    return float(np.abs(p.reindex(s).fillna(0.0).values - q.reindex(s).fillna(0.0).values).sum())
 
 
-def _propose_safe_policy(
-    sleeves: list[str], pi_b: pd.Series, qhat: pd.Series, counts: pd.Series
-) -> pd.Series:
+def _propose_safe_policy(sleeves: list[str], pi_b: pd.Series, qhat: pd.Series, counts: pd.Series) -> pd.Series:
     """
     Start from π_b. Identify supported set S = {a: N_b(a) >= N_MIN_VISITS}.
     - For unsupported U: enforce π_e(a) <= π_b(a).
@@ -278,9 +272,7 @@ def _propose_safe_policy(
                     w[s] += share
             else:
                 for s in supported:
-                    w[s] += (
-                        float(excess) * float(max(qhat.get(s, 0.0), 0.0)) / float(denom)
-                    )
+                    w[s] += float(excess) * float(max(qhat.get(s, 0.0), 0.0)) / float(denom)
 
     # Final L1 cap
     if _l1_distance(p, w) > L1_CAP:
@@ -316,9 +308,7 @@ def main():
     v_c_snips = _snips_value(ds, pi_cand)
 
     # Bootstrap DR gain
-    gain_mean, gain_lo, gain_hi = _bootstrap_gain(
-        ds, pi_b, pi_cand, qhat, n=N_BOOTSTRAP, seed=RNG_SEED
-    )
+    gain_mean, gain_lo, gain_hi = _bootstrap_gain(ds, pi_b, pi_cand, qhat, n=N_BOOTSTRAP, seed=RNG_SEED)
 
     # Accept only if CI lower bound >= 0 (non-negative improvement)
     accepted = gain_lo >= 0.0

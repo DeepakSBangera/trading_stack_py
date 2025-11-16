@@ -145,11 +145,7 @@ def _atomic_append_text(path: Path, line: str, retries: int = 15, delay: float =
                     # Cannot read because someone locks it; wait and retry
                     time.sleep(delay)
                     continue
-            data = (
-                existing
-                + ("" if existing.endswith("\n") or existing == "" else "\n")
-                + line
-            )
+            data = existing + ("" if existing.endswith("\n") or existing == "" else "\n") + line
             _atomic_write_text(path, data)
             return
         except PermissionError:
@@ -193,9 +189,7 @@ def main():
     header = "timestamp,session,branch,git_sha8,artifacts_count,configs_count\n"
     row = f"{ts},{session_label},{git.get('branch') or ''},{(git.get('sha') or '')[:8]},{len(arts)},{len(cfg)}\n"
     try:
-        existing = (
-            OUT_INDEX.read_text(encoding="utf-8") if OUT_INDEX.exists() else header
-        )
+        existing = OUT_INDEX.read_text(encoding="utf-8") if OUT_INDEX.exists() else header
         if not existing.startswith("timestamp,"):
             existing = header  # sanitize bad header
     except PermissionError:

@@ -75,9 +75,7 @@ def _sday_to_ann(sig_day: float) -> float:
     return max(1e-8, sig_day * math.sqrt(DAYS_IN_YEAR))
 
 
-def _black_scholes_premium(
-    spot: float, strike: float, iv_ann: float, days: int, is_call: bool
-) -> float:
+def _black_scholes_premium(spot: float, strike: float, iv_ann: float, days: int, is_call: bool) -> float:
     """
     Black-Scholes option price (no dividends, r=0). Returns premium in same units as spot (per unit).
     """
@@ -149,11 +147,7 @@ def _build_nav(targets: pd.DataFrame, prices_wide: pd.DataFrame) -> pd.DataFrame
     td = targets.copy()
     td["date"] = pd.to_datetime(td["date"])
     # Normalize weights each date to sum=1 over available tickers that have price that day
-    w = (
-        td.pivot(index="date", columns="ticker", values="target_w")
-        .sort_index()
-        .fillna(0.0)
-    )
+    w = td.pivot(index="date", columns="ticker", values="target_w").sort_index().fillna(0.0)
     # Optional: normalize row-wise to 1.0 to avoid scale issues if sums drift
     ws = w.div(w.sum(axis=1).replace(0, np.nan), axis=0).fillna(0.0)
 
@@ -216,23 +210,17 @@ def _apply_protective_puts(
         prem_day.append(prem)
         # one-day payoff approximation when next-day drop moves below strike
         # Approximated by max(K - S_next, 0). We proxy with daily return only (ignoring path within day).
-        put_pay.append(
-            0.0
-        )  # payoff applied at next step via shock tests more reliably than daily; keep 0 here.
+        put_pay.append(0.0)  # payoff applied at next step via shock tests more reliably than daily; keep 0 here.
 
     df["prem_day"] = prem_day
     # Hedge reduces effective return on down days (delta effect). Simpler: apply linear down-day cushion:
     # Cushion ≈ hedge_ratio * max(0, -ret)
-    df["ret_overlay"] = df["ret"] + hedge_ratio * df["ret"].clip(
-        upper=0.0
-    )  # reduce losses proportionally
+    df["ret_overlay"] = df["ret"] + hedge_ratio * df["ret"].clip(upper=0.0)  # reduce losses proportionally
     df["nav_overlay_gross"] = (1.0 + df["ret_overlay"].fillna(0.0)).cumprod()
     # subtract premium drag (as bps of notional hedged on the NAV base)
     # Daily drag ≈ hedge_ratio * prem_day / spot
     df["drag"] = hedge_ratio * df["prem_day"] / df["spot"].replace(0, np.nan)
-    df["nav_overlay"] = (
-        df["nav_overlay_gross"] * (1.0 - df["drag"].fillna(0.0))
-    ).cumprod()
+    df["nav_overlay"] = (df["nav_overlay_gross"] * (1.0 - df["drag"].fillna(0.0))).cumprod()
     return df[["date", "ret", "nav", "nav_overlay", "drag"]]
 
 
@@ -265,9 +253,7 @@ def _apply_covered_calls(
     cap_penalty = call_coverage * capped_extra
     ret_after_cap = df["ret"] - cap_penalty
     # Add premium (as % of NAV) on covered fraction
-    prem_pct = call_coverage * (df["prem_day"] / df["spot"].replace(0, np.nan)).fillna(
-        0.0
-    )
+    prem_pct = call_coverage * (df["prem_day"] / df["spot"].replace(0, np.nan)).fillna(0.0)
     df["ret_overlay"] = ret_after_cap + prem_pct
     df["nav_overlay"] = (1.0 + df["ret_overlay"].fillna(0.0)).cumprod()
     return df[["date", "ret", "nav", "nav_overlay"]]
@@ -293,17 +279,13 @@ def _shock_loss(
         k = moneyness * s
         payoff = cover * max(k - s_next, 0.0)
         # premium for that day (approx)
-        prem = cover * (
-            _black_scholes_premium(s, k, iv_ann, TENOR_DAYS, is_call=False) / TENOR_DAYS
-        )
+        prem = cover * (_black_scholes_premium(s, k, iv_ann, TENOR_DAYS, is_call=False) / TENOR_DAYS)
         nav_after = s_next + payoff - prem
         return (nav_after / s) - 1.0
     else:
         # CALL: on down shock, no cap; small premium gain
         k = moneyness * s
-        prem = cover * (
-            _black_scholes_premium(s, k, iv_ann, TENOR_DAYS, is_call=True) / TENOR_DAYS
-        )
+        prem = cover * (_black_scholes_premium(s, k, iv_ann, TENOR_DAYS, is_call=True) / TENOR_DAYS)
         nav_after = s_next + prem
         return (nav_after / s) - 1.0
 
@@ -375,22 +357,14 @@ def main():
     if not nav_df.empty:
         for hr in PUT_HEDGE_RATIOS:
             for m in PUT_MONEYNESS:
-                put_df = _apply_protective_puts(
-                    nav_df, hedge_ratio=hr, moneyness=m, iv_ann=iv_ann_series
-                )
+                put_df = _apply_protective_puts(nav_df, hedge_ratio=hr, moneyness=m, iv_ann=iv_ann_series)
                 dd_put = _drawdown_stats(put_df["nav_overlay"])["max_dd"]
                 # premium drag estimate (annualized) = mean(daily drag)*252
                 cost_bps_ann = 1e4 * put_df["drag"].fillna(0.0).mean() * DAYS_IN_YEAR
                 # shocks from last valid day
                 last_idx = put_df["nav"].last_valid_index()
-                last_nav = (
-                    float(put_df.loc[last_idx, "nav"]) if last_idx is not None else 1.0
-                )
-                iv_last = (
-                    float(iv_ann_series.iloc[-1])
-                    if not iv_ann_series.empty
-                    else MIN_IV_ANN
-                )
+                last_nav = float(put_df.loc[last_idx, "nav"]) if last_idx is not None else 1.0
+                iv_last = float(iv_ann_series.iloc[-1]) if not iv_ann_series.empty else MIN_IV_ANN
                 s10 = _shock_loss(last_nav, -0.10, "PUT", hr, m, iv_last)  # return (%)
                 s20 = _shock_loss(last_nav, -0.20, "PUT", hr, m, iv_last)
                 score = _score_row("PUT", cost_bps_ann, base_dd, dd_put, s10, s20)
@@ -415,22 +389,14 @@ def main():
     if not nav_df.empty:
         for cr in CALL_COVER_RATIOS:
             for m in CALL_MONEYNESS:
-                call_df = _apply_covered_calls(
-                    nav_df, call_coverage=cr, moneyness=m, iv_ann=iv_ann_series
-                )
+                call_df = _apply_covered_calls(nav_df, call_coverage=cr, moneyness=m, iv_ann=iv_ann_series)
                 dd_call = _drawdown_stats(call_df["nav_overlay"])["max_dd"]
                 # premium adds return; we approximate cost as negative bps (i.e., benefit)
                 # but for ranking consistency, we’ll keep cost_bps_ann ~ 0 here since premium already boosts NAV.
                 cost_bps_ann = 0.0
                 last_idx = call_df["nav"].last_valid_index()
-                last_nav = (
-                    float(call_df.loc[last_idx, "nav"]) if last_idx is not None else 1.0
-                )
-                iv_last = (
-                    float(iv_ann_series.iloc[-1])
-                    if not iv_ann_series.empty
-                    else MIN_IV_ANN
-                )
+                last_nav = float(call_df.loc[last_idx, "nav"]) if last_idx is not None else 1.0
+                iv_last = float(iv_ann_series.iloc[-1]) if not iv_ann_series.empty else MIN_IV_ANN
                 s10 = _shock_loss(last_nav, -0.10, "CALL", cr, m, iv_last)
                 s20 = _shock_loss(last_nav, -0.20, "CALL", cr, m, iv_last)
                 score = _score_row("CALL", cost_bps_ann, base_dd, dd_call, s10, s20)

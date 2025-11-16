@@ -16,12 +16,12 @@ def load_table(path: str) -> pd.DataFrame:
 
 
 def pick_source(reports_dir: str):
-    trades = latest(
-        os.path.join(reports_dir, "portfolioV2_*_trades.parquet")
-    ) or latest(os.path.join(reports_dir, "portfolioV2_*_trades.csv"))
-    weights = latest(
-        os.path.join(reports_dir, "portfolioV2_*_weights.parquet")
-    ) or latest(os.path.join(reports_dir, "portfolioV2_*_weights.csv"))
+    trades = latest(os.path.join(reports_dir, "portfolioV2_*_trades.parquet")) or latest(
+        os.path.join(reports_dir, "portfolioV2_*_trades.csv")
+    )
+    weights = latest(os.path.join(reports_dir, "portfolioV2_*_weights.parquet")) or latest(
+        os.path.join(reports_dir, "portfolioV2_*_weights.csv")
+    )
     return trades, weights
 
 
@@ -55,23 +55,16 @@ def monthly_from_trades(df: pd.DataFrame):
         None,
     )
     if cand is None and {"weight_before", "weight_after"}.issubset(df.columns):
-        df["weight_delta"] = pd.to_numeric(
-            df["weight_after"], errors="coerce"
-        ) - pd.to_numeric(df["weight_before"], errors="coerce")
+        df["weight_delta"] = pd.to_numeric(df["weight_after"], errors="coerce") - pd.to_numeric(
+            df["weight_before"], errors="coerce"
+        )
         cand = "weight_delta"
     if cand is None:
         return None
     df["ym"] = df["date"].dt.to_period("M").dt.to_timestamp()
-    out = (
-        df.groupby("ym")[cand]
-        .apply(lambda s: s.abs().sum())
-        .rename("monthly_turnover")
-        .reset_index()
-    )
+    out = df.groupby("ym")[cand].apply(lambda s: s.abs().sum()).rename("monthly_turnover").reset_index()
     out["monthly_turnover"] = (
-        pd.to_numeric(out["monthly_turnover"], errors="coerce")
-        .replace([np.inf, -np.inf], np.nan)
-        .fillna(0.0)
+        pd.to_numeric(out["monthly_turnover"], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
     )
     out["source"] = "trades"
     return out
@@ -83,20 +76,11 @@ def monthly_from_weights(path: str):
         raise SystemExit("weights missing 'date'")
     date_col = "date"
     symbol_col = next(
-        (
-            c
-            for c in w.columns
-            if c.lower() in ("symbol", "ticker", "name", "secid") and c != date_col
-        ),
+        (c for c in w.columns if c.lower() in ("symbol", "ticker", "name", "secid") and c != date_col),
         None,
     )
     weight_col = next(
-        (
-            c
-            for c in w.columns
-            if c.lower() in ("weight", "w", "target_weight", "final_weight")
-            and c != date_col
-        ),
+        (c for c in w.columns if c.lower() in ("weight", "w", "target_weight", "final_weight") and c != date_col),
         None,
     )
     if symbol_col is None or weight_col is None:
@@ -107,9 +91,7 @@ def monthly_from_weights(path: str):
             raise SystemExit("weights missing symbol/weight")
     w[date_col] = pd.to_datetime(w[date_col], errors="coerce")
     w = w.dropna(subset=[date_col])
-    mat = w.pivot_table(
-        index=date_col, columns=symbol_col, values=weight_col, aggfunc="last"
-    ).sort_index()
+    mat = w.pivot_table(index=date_col, columns=symbol_col, values=weight_col, aggfunc="last").sort_index()
     mat = mat.apply(pd.to_numeric, errors="coerce").fillna(0.0)
     dmat = mat.diff().abs().fillna(0.0)
     gross_half = dmat.sum(axis=1) * 0.5
@@ -140,15 +122,11 @@ def main():
     if out is None:
         raise SystemExit("No usable trades/weights source found in reports/")
 
-    outpq = args.outparquet or os.path.join(
-        args.reports, "wk3_turnover_profile.parquet"
-    )
+    outpq = args.outparquet or os.path.join(args.reports, "wk3_turnover_profile.parquet")
     out.to_parquet(outpq, index=False, compression="snappy")
     print(f"✓ Wrote {outpq}")
     print(f"Source: {src}")
-    print(
-        f"Method: {out.iloc[0]['source'] if 'source' in out.columns and len(out) > 0 else 'unknown'}"
-    )
+    print(f"Method: {out.iloc[0]['source'] if 'source' in out.columns and len(out) > 0 else 'unknown'}")
 
 
 if __name__ == "__main__":

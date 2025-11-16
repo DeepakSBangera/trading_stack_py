@@ -14,9 +14,7 @@ from econo.forecast import arima_forecast
 def main() -> None:
     files = glob.glob("econo/timeseries/*.csv")
     if not files:
-        print(
-            "[INFO] No time series under econo/timeseries. Add CSVs with columns: date,value"
-        )
+        print("[INFO] No time series under econo/timeseries. Add CSVs with columns: date,value")
         return
     diag_rows, fc_frames = [], []
     for fp in files:
@@ -29,9 +27,7 @@ def main() -> None:
         try:
             adf = adf_test(s)
             kps = kpss_test(s)
-            diag_rows.append(
-                {"series": name, **adf, **{f"kpss_{k}": v for k, v in kps.items()}}
-            )
+            diag_rows.append({"series": name, **adf, **{f"kpss_{k}": v for k, v in kps.items()}})
         except Exception as e:  # noqa: BLE001
             diag_rows.append({"series": name, "error": str(e)})
         try:

@@ -21,14 +21,8 @@ def _load_portfolio(p: Path) -> tuple[pd.Series, pd.Series | None]:
     df = pd.read_parquet(p)
     df = coerce_date_index(df, date_col="date")  # normalizes index to daily tz-naive
 
-    nav_col = next(
-        (c for c in ("nav_net", "nav_gross", "_nav", "nav") if c in df.columns), None
-    )
-    if (
-        nav_col is None
-        and "ret_net" not in df.columns
-        and "ret_gross" not in df.columns
-    ):
+    nav_col = next((c for c in ("nav_net", "nav_gross", "_nav", "nav") if c in df.columns), None)
+    if nav_col is None and "ret_net" not in df.columns and "ret_gross" not in df.columns:
         raise ValueError("portfolio parquet must contain nav_* column or ret_* column")
 
     if "ret_net" in df.columns:

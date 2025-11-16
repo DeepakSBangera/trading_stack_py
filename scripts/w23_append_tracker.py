@@ -26,9 +26,7 @@ def _git_sha_short() -> str:
 
 def main():
     if not SUMJ.exists():
-        raise FileNotFoundError(
-            f"{SUMJ} not found. Run w23_factor_risk_model.py first."
-        )
+        raise FileNotFoundError(f"{SUMJ} not found. Run w23_factor_risk_model.py first.")
     with open(SUMJ, encoding="utf-8") as f:
         s = json.load(f)
 
@@ -37,9 +35,7 @@ def main():
     with open(TRACK, "a", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         if write_header:
-            w.writerow(
-                ["session", "module", "artifact", "rows", "sr_is", "sr_oos", "git_sha8"]
-            )
+            w.writerow(["session", "module", "artifact", "rows", "sr_is", "sr_oos", "git_sha8"])
         w.writerow(
             [
                 "S-W23",

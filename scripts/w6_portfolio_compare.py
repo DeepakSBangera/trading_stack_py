@@ -58,9 +58,7 @@ def cap_by_name(w: pd.Series, cap: float) -> pd.Series:
     return w / w.sum()
 
 
-def enforce_sector_caps(
-    w: pd.Series, sectors: pd.Series, sector_cap: float, iters: int = 20
-) -> pd.Series:
+def enforce_sector_caps(w: pd.Series, sectors: pd.Series, sector_cap: float, iters: int = 20) -> pd.Series:
     w = w.clip(lower=0.0)
     if w.sum() == 0:
         return w
@@ -89,9 +87,7 @@ def hhi(w: pd.Series) -> float:
 def main():
     pq = REPORTS / "positions_daily.parquet"
     if not pq.exists():
-        raise SystemExit(
-            "Missing reports\\positions_daily.parquet — run bootstrap first."
-        )
+        raise SystemExit("Missing reports\\positions_daily.parquet — run bootstrap first.")
     pos = pd.read_parquet(pq)
     pos["date"] = pd.to_datetime(pos["date"])
     last = pos.loc[pos["date"].idxmax()]
