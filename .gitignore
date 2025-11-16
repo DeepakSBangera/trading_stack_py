@@ -108,3 +108,6 @@ data/**
 data_live/**
 data_synth/**
 _archive/**
+
+# Local snapshots
+_snapshots/*.zip
