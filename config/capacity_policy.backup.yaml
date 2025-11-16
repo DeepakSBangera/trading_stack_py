@@ -1,0 +1,26 @@
+version: 1
+adv_lookback_days: 20
+adv_cap_pct: 10
+adv_cap_pct_L1: 6
+adv_cap_pct_L2: 8
+adv_cap_pct_L3: 10
+turnover_bands_pct_per_day:
+  L1: 2.0
+  L2: 1.2
+  L3: 1.8
+slippage_bp_targets:
+  L1: 10
+  L2: 15
+  L3: 20
+pairwise_corr_cap: 0.65
+sector_cap_base_pct: 35
+sector_cap_aggr_pct: 45
+kelly_base: 0.25
+lists:
+  L1:
+  - NIFTY50
+  L2:
+  - NIFTY100x50
+  - LIQUID-MID
+  L3:
+  - EXTENDED

@@ -1,0 +1,30 @@
+﻿# config/event_rules.yaml — W8 Events Sleeve (Locked Draft)
+version: 1
+
+policy:
+  # Windows around earnings (trading-day counts)
+  pre_event_freeze_days: 1           # days before earnings: freeze adds / throttle orders
+  post_event_hold_days: 1            # days after earnings: keep reduced risk
+  earnings_reduce_multiplier: 0.75   # risk multiplier during the window
+  block_new_positions_pre_event: true
+  block_rebalance_on_event_day: true
+
+  # Market holidays (full-day)
+  holiday_block_trading: true        # no trading on holidays
+  holiday_multiplier: 0.00
+
+  # Dividends (optional softer rule)
+  dividend_reduce_multiplier: 0.90
+  dividend_pre_days: 0
+  dividend_post_days: 0
+
+calendar_fields:
+  - date
+  - ticker
+  - event_type        # earnings | holiday | dividend
+  - session           # pre | post | full-day
+  - description
+notes:
+  - Use this as an overlay with macro/kill-switch schedules when sizing orders.
+  - events_position_flags.csv is the per-day/ticker rule realization (allow_new, rebalance_allowed, risk_mult).
+

@@ -1,239 +1,282 @@
 from __future__ import annotations
 
 import json
-import math
+import os
 from pathlib import Path
-from datetime import datetime, timezone
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-# --- repo roots
-ROOT = Path(r"F:\Projects\trading_stack_py")
+ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
+PRICES = DATA / "prices"
+CSV = DATA / "csv"
 REPORTS = ROOT / "reports"
-DOCS = ROOT / "docs"
 
-# Inputs (we try these in order; first one found is used)
-TARGETS_W11 = REPORTS / "wk11_blend_targets.csv"   # columns: date,ticker,target_w,...
-ORDERS_W12  = REPORTS / "wk12_orders_lastday.csv"  # columns: ticker,side,qty,px_ref,notional_ref,...
-WIRES_W19   = REPORTS / "wires" / "w19_orders_wire.csv"
-SECTOR_MAP  = REPORTS / "sectors_map.csv"          # optional: ticker,sector
-# Price panel folder (optional, for ADV from OHLC if present)
-PRICES_DIR  = ROOT / "data" / "prices"
+# ---------------------------- Config ----------------------------
+PORTFOLIO_NOTIONAL_INR = float(os.getenv("W39_NOTIONAL_INR", "10000000"))  # ₹1.0 crore
+MIN_ADV_INR = float(os.getenv("W39_MIN_ADV_INR", "5000000"))  # ₹50 lakhs
+MAX_ADV_PCT = float(os.getenv("W39_MAX_ADV_PCT", "0.10"))  # 10% of ADV
+ADV_LOOKBACK = int(os.getenv("W39_ADV_LOOKBACK", "20"))
 
-OUT_CSV     = REPORTS / "wk39_capacity_audit.csv"
-OUT_SUMMARY = REPORTS / "wk39_capacity_summary.json"
+WEIGHT_SOURCES = [
+    REPORTS / "wk43_barbell_compare.csv",
+    REPORTS / "wk41_momentum_tilt.csv",
+    REPORTS / "wk11_alpha_blend.csv",
+    REPORTS / "wk12_kelly_dd.csv",
+]
 
-# Defaults
-DEFAULT_NOTIONAL_INR = 10_000_000.0  # portfolio notional fallback
-FALLBACK_ADV_INR     = 5_000_000.0   # if we can't infer ADV per ticker
-MAX_PCT_ADV_CAP      = 0.10          # recommended per-order ADV cap (10%) baseline
-SECTOR_CAP           = 0.35          # sector NAV cap (35%)
-NAME_CAP             = 0.06          # per-name NAV cap (6%)
+DETAIL_CSV = REPORTS / "wk39_capacity_audit.csv"
+SUMMARY_JSON = REPORTS / "wk39_capacity_summary.json"
 
-def _pick_first_existing(paths: list[Path]) -> Path | None:
-    for p in paths:
-        if p.exists():
-            return p
+
+def _pick(cols: list[str], want: list[str]) -> str | None:
+    m = {c.lower(): c for c in cols}
+    for w in want:
+        if w.lower() in m:
+            return m[w.lower()]
     return None
 
-def _load_targets_or_orders() -> pd.DataFrame:
-    """
-    Returns a DataFrame of latest intended positions or orders with:
-    ticker, target_w (weight), notional (optional), px_ref (optional)
-    """
-    # 1) wk11 targets
-    if TARGETS_W11.exists():
-        df = pd.read_csv(TARGETS_W11, parse_dates=["date"])
-        last = df["date"].max()
-        out = df[df["date"] == last].copy()
-        out = out.rename(columns={"target_w": "weight"})
-        out["weight"] = pd.to_numeric(out["weight"], errors="coerce").fillna(0.0)
-        out = out[["ticker", "weight"]].drop_duplicates()
-        return out
 
-    # 2) wk12 orders_lastday
-    if ORDERS_W12.exists():
-        df = pd.read_csv(ORDERS_W12)
-        cols = {c.lower(): c for c in df.columns}
-        t = cols.get("ticker", "ticker")
-        n = cols.get("notional_ref") or cols.get("notional") or None
-        p = cols.get("px_ref") or cols.get("price") or None
-        q = cols.get("qty") or None
-        out = df[[t]].copy()
-        out.columns = ["ticker"]
-        out["weight"] = np.nan  # unknown; we’ll evaluate capacity on notional later if available
-        if n and n in df.columns:
-            out["notional_ref"] = pd.to_numeric(df[n], errors="coerce")
-        if p and p in df.columns:
-            out["px_ref"] = pd.to_numeric(df[p], errors="coerce")
-        if q and q in df.columns:
-            out["qty"] = pd.to_numeric(df[q], errors="coerce")
-        return out.drop_duplicates(subset=["ticker"])
+def _load_weights() -> pd.DataFrame:
+    latest: pd.DataFrame | None = None
+    src_used: str | None = None
 
-    # 3) wires W19
-    if WIRES_W19.exists():
-        df = pd.read_csv(WIRES_W19)
-        cols = {c.lower(): c for c in df.columns}
-        t = cols.get("ticker", "ticker")
-        n = cols.get("notional") or None
-        out = df[[t]].copy()
-        out.columns = ["ticker"]
-        out["weight"] = np.nan
-        if n and n in df.columns:
-            out["notional_ref"] = pd.to_numeric(df[n], errors="coerce")
-        return out.drop_duplicates(subset=["ticker"])
+    for path in WEIGHT_SOURCES:
+        if path.exists():
+            try:
+                x = pd.read_csv(path, parse_dates=["date"])
+                t = _pick(list(x.columns), ["ticker", "symbol", "name"])
+                w = _pick(
+                    list(x.columns), ["w", "weight", "w_total", "w_capped", "w_norm"]
+                )
+                d = _pick(list(x.columns), ["date", "dt"])
+                if t is None or w is None:
+                    continue
+                if d is None and "date" not in x.columns:
+                    x["date"] = pd.Timestamp("today").normalize()
+                    d = "date"
+                x = (
+                    x[[d, t, w]]
+                    .rename(columns={d: "date", t: "ticker", w: "w"})
+                    .dropna()
+                )
+                last = x["date"].max()
+                x = x[x["date"] == last].copy()
+                x["w"] = x["w"].astype(float)
+                s = float(x["w"].abs().sum())
+                if s > 0:
+                    x["w"] = x["w"] / s
+                latest = x[["ticker", "w"]].copy()
+                src_used = str(path)
+                break
+            except Exception:
+                pass
 
-    # 4) empty fallback
-    return pd.DataFrame(columns=["ticker", "weight"])
+    if latest is not None and not latest.empty:
+        latest["ticker"] = latest["ticker"].astype(str)
+        return latest.assign(source=src_used if src_used else "unknown")
 
-def _adv_from_prices(ticker: str) -> float | None:
-    """
-    Try to estimate INR ADV using recent 60 trading days from parquet: price*volume.
-    File naming assumption: data/prices/{TICKER}.parquet with columns 'date','close','volume'
-    """
-    p = PRICES_DIR / f"{ticker}.parquet"
-    if not p.exists():
-        return None
-    try:
-        x = pd.read_parquet(p)
-        cols = {c.lower(): c for c in x.columns}
-        c = cols.get("close") or cols.get("px_close") or None
-        v = cols.get("volume") or None
-        if not c or not v:
+    # Fallback: derive tickers from price files and make equal weights (top 30)
+    tickers = set()
+    if PRICES.exists():
+        for p in PRICES.glob("*.parquet"):
+            tickers.add(p.stem.split(".")[0])
+    if not tickers and CSV.exists():
+        for p in CSV.glob("*.csv"):
+            tickers.add(p.stem.split(".")[0])
+
+    tickers = sorted(list(tickers))[:30]
+    if not tickers:
+        raise SystemExit("No weights and no tickers found to build capacity audit.")
+
+    w = pd.DataFrame({"ticker": tickers, "w": 1.0 / max(1, len(tickers))})
+    return w.assign(source="synthetic_equal")
+
+
+def _load_panel_close_vol() -> pd.DataFrame:
+    """Return [date, ticker, close, volume] panel from Parquet/CSV."""
+    frames = []
+
+    def _from_parquet(path: Path) -> pd.DataFrame | None:
+        try:
+            x = pd.read_parquet(path)
+            cols = list(x.columns)
+            d = _pick(cols, ["date", "dt"])
+            c = _pick(cols, ["close", "px_close", "price"])
+            v = _pick(cols, ["volume", "qty", "shares"])
+            if d is None or c is None:
+                return None
+            out = x[[d, c] + ([v] if v else [])].rename(columns={d: "date", c: "close"})
+            out["volume"] = out[v] if v else np.nan
+            out = out.drop(columns=[v], errors="ignore")
+            out["ticker"] = path.stem.split(".")[0]
+            return out
+        except Exception:
             return None
-        s = x[[c, v]].dropna().copy()
-        s["turnover_inr"] = pd.to_numeric(s[c], errors="coerce") * pd.to_numeric(s[v], errors="coerce")
-        s = s.dropna()
+
+    def _from_csv(path: Path) -> pd.DataFrame | None:
+        try:
+            x = pd.read_csv(path, parse_dates=["date"], infer_datetime_format=True)
+            cols = list(x.columns)
+            d = _pick(cols, ["date", "dt"])
+            c = _pick(cols, ["close", "px_close", "price", "adj_close"])
+            v = _pick(cols, ["volume", "qty", "shares"])
+            if d is None or c is None:
+                return None
+            out = x[[d, c] + ([v] if v else [])].rename(columns={d: "date", c: "close"})
+            out["volume"] = out[v] if v else np.nan
+            out = out.drop(columns=[v], errors="ignore")
+            out["ticker"] = path.stem.split(".")[0]
+            return out
+        except Exception:
+            return None
+
+    if PRICES.exists():
+        for p in PRICES.glob("*.parquet"):
+            d = _from_parquet(p)
+            if d is not None:
+                frames.append(d)
+    if not frames and CSV.exists():
+        for p in CSV.glob("*.csv"):
+            d = _from_csv(p)
+            if d is not None:
+                frames.append(d)
+
+    if not frames:
+        raise SystemExit(
+            "No price files found in data/prices or data/csv with close/volume."
+        )
+
+    panel = pd.concat(frames, ignore_index=True)
+    panel = panel.dropna(subset=["close"])
+    panel["date"] = pd.to_datetime(panel["date"]).dt.tz_localize(None)
+
+    # ✅ FIX: use transform to keep index aligned; then fill remaining with 0
+    panel["volume"] = (
+        panel.groupby("ticker", sort=False)["volume"]
+        .transform(lambda s: s.fillna(s.median()))
+        .fillna(0)
+        .astype(float)
+    )
+    return panel.sort_values(["ticker", "date"]).reset_index(drop=True)
+
+
+def _adv_inr(panel: pd.DataFrame, lookback: int) -> pd.Series:
+    """20d ADV in INR ≈ mean(close×volume) over trailing window, per ticker."""
+    df = panel.sort_values(["ticker", "date"]).copy()
+    df["notional"] = (df["close"].astype(float) * df["volume"].astype(float)).astype(
+        float
+    )
+
+    # return one scalar per group (not multiindex)
+    def last_roll_mean(s: pd.Series) -> float:
         if s.empty:
-            return None
-        # 60d mean as ADV proxy
-        return float(s["turnover_inr"].tail(60).mean())
-    except Exception:
-        return None
+            return np.nan
+        roll = s.rolling(lookback, min_periods=max(5, lookback // 2)).mean()
+        return float(roll.iloc[-1])
 
-def _load_sector_map() -> dict[str, str]:
-    if not SECTOR_MAP.exists():
-        return {}
-    try:
-        df = pd.read_csv(SECTOR_MAP)
-        cols = {c.lower(): c for c in df.columns}
-        t = cols.get("ticker", "ticker")
-        s = cols.get("sector", "sector")
-        return {str(r[t]).strip(): str(r[s]).strip() for _, r in df.iterrows() if pd.notna(r.get(t)) and pd.notna(r.get(s))}
-    except Exception:
-        return {}
+    adv = df.groupby("ticker", sort=False)["notional"].apply(last_roll_mean)
+    return adv.fillna(0.0)
 
-def _recommend_caps(audit: pd.DataFrame) -> dict:
-    """
-    Recommend per-name ADV% cap and sector cap based on liquidity distribution.
-    """
-    if audit.empty:
-        return {
-            "name_cap_nav": NAME_CAP,
-            "sector_cap_nav": SECTOR_CAP,
-            "per_order_pct_adv_cap": MAX_PCT_ADV_CAP,
-        }
-    advs = audit["adv_inr"].replace([np.inf, -np.inf], np.nan).dropna()
-    if advs.empty:
-        return {
-            "name_cap_nav": NAME_CAP,
-            "sector_cap_nav": SECTOR_CAP,
-            "per_order_pct_adv_cap": MAX_PCT_ADV_CAP,
-        }
-    # If median ADV is small, tighten per-order cap; else keep baseline.
-    med_adv = float(advs.median())
-    pct_cap = 0.05 if med_adv < 3_000_000 else (0.10 if med_adv < 15_000_000 else 0.15)
-    return {
-        "name_cap_nav": NAME_CAP,
-        "sector_cap_nav": SECTOR_CAP,
-        "per_order_pct_adv_cap": pct_cap,
-    }
+
+def _capacity_table(weights: pd.DataFrame, adv_map: pd.Series) -> pd.DataFrame:
+    w = weights.copy()
+    w["ticker"] = w["ticker"].astype(str)
+    w = w.groupby("ticker", as_index=False)["w"].sum()
+    s = float(w["w"].abs().sum())
+    if s > 0:
+        w["w"] = w["w"] / s
+
+    adv_df = adv_map.rename("adv_inr").reset_index()
+    adv_df.columns = ["ticker", "adv_inr"]
+    out = w.merge(adv_df, on="ticker", how="left").fillna({"adv_inr": 0.0})
+
+    out["notional_inr"] = out["w"].abs() * PORTFOLIO_NOTIONAL_INR
+    out["adv_pct_baseline"] = np.where(
+        out["adv_inr"] > 0, out["notional_inr"] / out["adv_inr"], np.inf
+    )
+    for mult in (2, 3):
+        out[f"adv_pct_{mult}x"] = out["adv_pct_baseline"] * mult
+
+    out["viol_min_adv"] = out["adv_inr"] < MIN_ADV_INR
+    out["viol_cap_baseline"] = out["adv_pct_baseline"] > MAX_ADV_PCT
+    out["viol_cap_2x"] = out["adv_pct_2x"] > MAX_ADV_PCT
+    out["viol_cap_3x"] = out["adv_pct_3x"] > MAX_ADV_PCT
+
+    def reco_row(r) -> str:
+        hints = []
+        if r["viol_min_adv"]:
+            hints.append("min-ADV")
+        if r["viol_cap_baseline"]:
+            hints.append("cap@1x")
+        if r["viol_cap_2x"]:
+            hints.append("cap@2x")
+        if r["viol_cap_3x"]:
+            hints.append("cap@3x")
+        return ",".join(hints) if hints else "ok"
+
+    out["reco"] = out.apply(reco_row, axis=1)
+    cols = [
+        "ticker",
+        "w",
+        "adv_inr",
+        "notional_inr",
+        "adv_pct_baseline",
+        "adv_pct_2x",
+        "adv_pct_3x",
+        "viol_min_adv",
+        "viol_cap_baseline",
+        "viol_cap_2x",
+        "viol_cap_3x",
+        "reco",
+    ]
+    out = out[cols].sort_values(["reco", "adv_pct_baseline"], ascending=[True, False])
+    return out
+
 
 def main():
     REPORTS.mkdir(parents=True, exist_ok=True)
+    weights = _load_weights()
+    panel = _load_panel_close_vol()
+    adv = _adv_inr(panel, ADV_LOOKBACK)
+    tab = _capacity_table(weights, adv)
 
-    # Source positions/orders
-    df = _load_targets_or_orders()
-    if df.empty:
-        info = {
-            "error": "No inputs found (wk11 targets or wk12/w19 orders).",
-            "searched": [str(TARGETS_W11), str(ORDERS_W12), str(WIRES_W19)],
-        }
-        OUT_SUMMARY.write_text(json.dumps(info, indent=2), encoding="utf-8")
-        print(json.dumps(info, indent=2))
-        return
+    n = int(tab.shape[0])
+    viol_min = int(tab["viol_min_adv"].sum())
+    viol_1x = int(tab["viol_cap_baseline"].sum())
+    viol_2x = int(tab["viol_cap_2x"].sum())
+    viol_3x = int(tab["viol_cap_3x"].sum())
 
-    # Estimate portfolio notional if weights present; else sum order notionals if available.
-    have_weights = "weight" in df.columns and df["weight"].notna().any()
-    if have_weights:
-        portfolio_notional = DEFAULT_NOTIONAL_INR
-    else:
-        n = df.get("notional_ref")
-        portfolio_notional = float(n.sum()) if n is not None and pd.notna(n).any() else DEFAULT_NOTIONAL_INR
+    detail = tab.copy()
+    for c in ["adv_inr", "notional_inr"]:
+        detail[c] = detail[c].round(2)
+    for c in ["adv_pct_baseline", "adv_pct_2x", "adv_pct_3x"]:
+        detail[c] = (detail[c] * 100).replace(np.inf, np.nan).round(3)
 
-    # ADV inference
-    adv_list = []
-    for t in sorted(set(df["ticker"].astype(str))):
-        adv = _adv_from_prices(t)
-        adv_list.append((t, FALLBACK_ADV_INR if adv is None or math.isnan(adv) or adv <= 0 else adv))
-    adv_df = pd.DataFrame(adv_list, columns=["ticker", "adv_inr"])
+    detail.to_csv(DETAIL_CSV, index=False)
 
-    # Join
-    merged = df.merge(adv_df, on="ticker", how="left")
-    # If we have weights, infer per-name notional; else use order notional if any
-    if have_weights:
-        merged["w_eff"] = pd.to_numeric(merged["weight"], errors="coerce").fillna(0.0).clip(lower=0.0)
-        merged["notional_inr"] = merged["w_eff"] * portfolio_notional
-    else:
-        merged["notional_inr"] = pd.to_numeric(merged.get("notional_ref"), errors="coerce")
-
-    # Percent of ADV for the implied trade size (if qty/px given, notional_ref covers it)
-    merged["pct_adv_for_trade"] = (merged["notional_inr"] / merged["adv_inr"]).replace([np.inf, -np.inf], np.nan)
-    merged["pct_adv_for_trade"] = merged["pct_adv_for_trade"].fillna(0.0)
-
-    # Simple market-impact proxy: slippage_bps ≈ k * sqrt(pct_of_adv)
-    # (Kissell-style roughness; purely indicative)
-    K = 35.0
-    merged["slippage_bps_est"] = (K * np.sqrt(merged["pct_adv_for_trade"].clip(lower=0.0))).round(3)
-
-    # Stress curve: 1% → 20% of ADV
-    stress = []
-    for _, r in merged.iterrows():
-        t = str(r["ticker"])
-        adv = float(r["adv_inr"])
-        for p in [0.01, 0.02, 0.05, 0.10, 0.15, 0.20]:
-            slip = K * np.sqrt(p)
-            trade_inr = p * adv
-            stress.append((t, p, trade_inr, round(slip, 3)))
-    stress_df = pd.DataFrame(stress, columns=["ticker", "pct_of_adv", "trade_inr", "slippage_bps_est"])
-
-    # Sector grouping if available
-    sector_map = _load_sector_map()
-    merged["sector"] = merged["ticker"].map(sector_map).fillna("UNKNOWN")
-
-    # Save audit
-    merged = merged[["ticker", "sector", "adv_inr", "notional_inr", "pct_adv_for_trade", "slippage_bps_est"]]
-    merged.to_csv(OUT_CSV, index=False)
-
-    rec = _recommend_caps(merged)
     summary = {
-        "as_of_ist": datetime.now().astimezone().isoformat(),
-        "rows": int(merged.shape[0]),
-        "portfolio_notional_inr": portfolio_notional,
-        "recommendations": rec,
-        "files": {
-            "audit_csv": str(OUT_CSV),
+        "as_of_ist": pd.Timestamp.now(tz="Asia/Kolkata").isoformat(),
+        "names": n,
+        "portfolio_notional_inr": PORTFOLIO_NOTIONAL_INR,
+        "min_adv_inr": MIN_ADV_INR,
+        "max_adv_pct": MAX_ADV_PCT,
+        "adv_lookback_days": ADV_LOOKBACK,
+        "violations": {
+            "min_adv": viol_min,
+            "cap_1x": viol_1x,
+            "cap_2x": viol_2x,
+            "cap_3x": viol_3x,
         },
-        "notes": "ADV estimated from prices when available; otherwise fallback used. Slippage is indicative.",
+        "files": {"detail_csv": str(DETAIL_CSV)},
+        "notes": "ADV ≈ mean(close×volume, last 20d). adv_pct columns are % of a single day's ADV; lower is safer.",
     }
-    OUT_SUMMARY.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    with open(SUMMARY_JSON, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+
     print(json.dumps(summary, indent=2))
 
-    # Also write stress table alongside the audit for manual inspection
-    stress_path = REPORTS / "wk39_capacity_stress.csv"
-    stress_df.to_csv(stress_path, index=False)
 
 if __name__ == "__main__":
     main()

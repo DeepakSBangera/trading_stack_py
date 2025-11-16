@@ -10,7 +10,7 @@ WANT = ["CAGR", "Sharpe", "MaxDD", "VolAnn"]  # extend if you add more
 
 def fmt_pct(x):
     try:
-        return f"{100*x:.2f}%"
+        return f"{100 * x:.2f}%"
     except Exception:
         return str(x)
 

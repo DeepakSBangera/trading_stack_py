@@ -369,8 +369,9 @@ def main():
         f"VT{int(args.vol_target)}",
         f"TB{args.turnover_band:.2f}",
     ]
-    stem = f"portfolioV2_{'-'.join([t.replace('.','_') for t in tickers])}_" + "_".join(
-        parts
+    stem = (
+        f"portfolioV2_{'-'.join([t.replace('.', '_') for t in tickers])}_"
+        + "_".join(parts)
     )
 
     equity_csv = outdir / f"{stem}.csv"

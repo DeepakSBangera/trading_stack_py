@@ -10,6 +10,24 @@
 #   reports\factor_exposures.csv   (robust writer: retries + temp replace)
 #   reports\factor_exposures_summary.txt
 # ---------------------------------------------------------------------
+
+# --- repo-path bootstrap (paste at line 1) ---
+import pathlib
+import sys
+
+_repo_root = pathlib.Path(__file__).resolve().parents[2]
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
+# --- end bootstrap ---
+
+# --- repo-import shim: lets modules/* import the local package without installing
+import pathlib
+import sys
+
+sys.path.insert(
+    0, str(pathlib.Path(__file__).resolve().parents[2])
+)  # add repo root to sys.path
+
 from __future__ import annotations
 
 import argparse

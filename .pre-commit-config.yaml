@@ -1,7 +1,7 @@
 repos:
   # Use the official pre-commit mirror for Black (pins to PyPI version)
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 25.9.0
+    rev: 25.11.0
     hooks:
       - id: black
         language_version: python3.11
@@ -14,7 +14,7 @@ repos:
           )
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.8
+    rev: v0.14.4
     hooks:
       - id: ruff
         args: [--fix]
@@ -35,7 +35,7 @@ repos:
           )
 
   - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
       - id: detect-secrets
         exclude: |

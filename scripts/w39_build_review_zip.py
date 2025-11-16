@@ -1,29 +1,31 @@
-﻿from __future__ import annotations
-from pathlib import Path
-from datetime import datetime
-import zipfile
-import json
+from __future__ import annotations
 
-ROOT = Path(r"F:\Projects\trading_stack_py")
+import json
+import zipfile
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 
+
 def main():
+    ts = pd.Timestamp.now(tz="Asia/Kolkata").strftime("%Y-%m-%d_%H-%M-%S")
+    zip_path = REPORTS / f"W39_capacity_review_{ts}.zip"
     REPORTS.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    out = REPORTS / f"W39_capacity_review_{ts}.zip"
-    wants = [
+
+    want = [
         REPORTS / "wk39_capacity_audit.csv",
         REPORTS / "wk39_capacity_summary.json",
-        REPORTS / "wk39_capacity_stress.csv",
-        ROOT / "docs" / "living_tracker.csv",
     ]
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
-        for p in wants:
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        for p in want:
             if p.exists():
-                zf.write(p, arcname=p.relative_to(ROOT))
-    info = {"created": str(out)}
-    print(json.dumps(info, indent=2))
+                z.write(p, arcname=p.name)
+
+    print(json.dumps({"created": str(zip_path)}))
+
 
 if __name__ == "__main__":
     main()
-

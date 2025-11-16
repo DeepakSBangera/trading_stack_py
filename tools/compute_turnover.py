@@ -147,7 +147,7 @@ def main():
     print(f"✓ Wrote {outpq}")
     print(f"Source: {src}")
     print(
-        f"Method: {out.iloc[0]['source'] if 'source' in out.columns and len(out)>0 else 'unknown'}"
+        f"Method: {out.iloc[0]['source'] if 'source' in out.columns and len(out) > 0 else 'unknown'}"
     )
 
 

@@ -1,90 +1,103 @@
 from __future__ import annotations
 
-import argparse
-from datetime import datetime
+import datetime as _dt
+import html
+import pathlib
+
+# --- repo-import shim: allow local package imports without install
+import sys  # noqa: E401
 from pathlib import Path
 
-HTML = """<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Daily Report Index</title>
-<style>
-  body { font-family: Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-  h1 { margin: 0 0 12px 0; font-size: 20px; }
-  .small { color: #666; font-size: 12px; margin-bottom: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 14px; }
-  .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
-  img { max-width: 100%; height: auto; border: 1px solid #eee; }
-  a { text-decoration: none; color: #0b5ed7; }
-</style>
-</head>
-<body>
-<h1>Daily Report Index</h1>
-<div class="small">Generated: {now}</div>
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))  # repo root
 
-<div class="grid">
-  <div class="card">
-    <h2 style="margin:0 0 8px 0;font-size:16px;">Tearsheet v2</h2>
-    <div>{tearsheet_links}</div>
-    {tearsheet_img}
-  </div>
+REPORTS = Path("reports")
 
-  <div class="card">
-    <h2 style="margin:0 0 8px 0;font-size:16px;">Artifacts</h2>
-    <ul>
-      <li><a href="rolling_metrics.parquet">rolling_metrics.parquet</a></li>
-      <li><a href="rolling_metrics_summary.txt">rolling_metrics_summary.txt</a></li>
-      <li><a href="factor_exposures.parquet">factor_exposures.parquet</a></li>
-      <li><a href="factor_exposures_summary.txt">factor_exposures_summary.txt</a></li>
-      <li><a href="portfolio_v2.parquet">portfolio_v2.parquet</a></li>
-    </ul>
-  </div>
-</div>
-
-</body>
+_RAW_HTML = r"""
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Report Index</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; margin: 24px; }
+      h1   { margin-bottom: 12px; }
+      .grid { display: grid; grid-template-columns: 1fr 140px 200px; gap: 8px 16px; }
+      .hdr  { font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+      .row  { padding: 4px 0; border-bottom: 1px dashed #eee; }
+      a     { text-decoration: none; }
+      .muted { color: #666; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Reports</h1>
+    <div class="muted">Generated at {generated_at}</div>
+    <div class="grid" style="margin-top:12px">
+      <div class="hdr">File</div><div class="hdr">Size</div><div class="hdr">Last Write</div>
+      {rows}
+    </div>
+  </body>
 </html>
 """
 
+# Escape non-placeholder braces so str.format() doesn't choke on CSS
+HTML = (
+    _RAW_HTML.replace("{", "{{")
+    .replace("}", "}}")
+    .replace("{{generated_at}}", "{generated_at}")
+    .replace("{{rows}}", "{rows}")
+)
+
+
+def _fmt_bytes(n: int) -> str:
+    for unit in ["B", "KB", "MB", "GB"]:
+        if n < 1024 or unit == "GB":
+            return (
+                f"{n:.0f} {unit}"
+                if unit == "B"
+                else (
+                    f"{n / 1024:.1f} {unit}" if unit in ("KB", "MB", "GB") else f"{n} B"
+                )
+            )
+        n /= 1024
+    return f"{n:.0f} B"
+
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Write a simple reports/index_daily.html")
-    ap.add_argument("--outdir", default="reports")
-    ap.add_argument("--tearsheet-png", default="reports/tearsheet_v2.png")
-    ap.add_argument("--tearsheet-html", default="reports/tearsheet_v2.html")
-    args = ap.parse_args()
+    REPORTS.mkdir(parents=True, exist_ok=True)
+    files = []
+    for p in REPORTS.rglob("*"):
+        if not p.is_file():
+            continue
+        # Skip huge binaries to keep the page snappy
+        if p.suffix.lower() in {".zip", ".pkl"}:
+            continue
+        rel = p.relative_to(REPORTS).as_posix()
+        stat = p.stat()
+        files.append((rel, stat.st_size, stat.st_mtime))
 
-    outdir = Path(args.outdir)
-    outdir.mkdir(parents=True, exist_ok=True)
+    files.sort(key=lambda x: x[0].lower())
 
-    png_path = Path(args.tearsheet_png)
-    html_path = Path(args.tearsheet_html)
+    rows = []
+    for rel, size, mtime in files:
+        href = html.escape(rel)
+        name = html.escape(rel)
+        size_s = _fmt_bytes(size)
+        ts = _dt.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
+        rows.append(
+            f'<div class="row"><div><a href="{href}">{name}</a></div>'
+            f"<div>{size_s}</div><div>{ts}</div></div>"
+        )
 
-    # Links (show only what exists)
-    links: list[str] = []
-    if html_path.exists():
-        rel = html_path.name if html_path.parent == outdir else str(html_path)
-        links.append(f'<a href="{rel}">Open interactive HTML</a>')
-    if png_path.exists():
-        rel = png_path.name if png_path.parent == outdir else str(png_path)
-        links.append(f'<a href="{rel}" style="margin-left:10px;">Open PNG</a>')
-    tearsheet_links = " | ".join(links) if links else "<em>No tearsheet found</em>"
-
-    # Inline preview if PNG present
-    if png_path.exists():
-        rel_img = png_path.name if png_path.parent == outdir else str(png_path)
-        tearsheet_img = f'<div style="margin-top:10px;"><img src="{rel_img}" alt="Tearsheet v2" /></div>'
-    else:
-        tearsheet_img = ""
-
-    html = HTML.format(
-        now=datetime.now().strftime("%Y-%m-%d %H:%M"),
-        tearsheet_links=tearsheet_links,
-        tearsheet_img=tearsheet_img,
+    html_out = HTML.format(
+        generated_at=_dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        rows=(
+            "\n".join(rows)
+            if rows
+            else '<div class="row"><div>(no files)</div><div></div><div></div></div>'
+        ),
     )
-
-    (outdir / "index_daily.html").write_text(html, encoding="utf-8")
-    print(f"[OK] Wrote: {outdir / 'index_daily.html'}")
+    (REPORTS / "index.html").write_text(html_out, encoding="utf-8")
+    print(f"[OK] Wrote: {REPORTS / 'index.html'}")
 
 
 if __name__ == "__main__":

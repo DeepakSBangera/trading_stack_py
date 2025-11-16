@@ -1,48 +1,62 @@
-# Central exports, stable public API via compat shim (no breaking renames)
+from __future__ import annotations
 
-# Optional IO exports (keep working even if IO package not present yet)
-try:
-    from tradingstack.io.equity import *  # noqa: F401,F403
-except Exception:
-    pass
-
-# Point metrics via compatibility layer (maps to your actual function names)
-from tradingstack.metrics.compat import (
-    calmar_ratio,
-    max_drawdown,
-    omega_ratio,
-    sharpe_ratio,
-    sortino_ratio,
+# ---- factors
+from .factors.exposures import (
+    load_sector_mapping as load_sector_mapping,
+)
+from .factors.exposures import (
+    momentum_12_1_proxy as momentum_12_1_proxy,
+)
+from .factors.exposures import (
+    quality_inverse_downside_vol as quality_inverse_downside_vol,
+)
+from .factors.exposures import (
+    rolling_sector_exposures_from_weights as rolling_sector_exposures_from_weights,
+)
+from .metrics.attribution import (
+    align_weights_and_returns as align_weights_and_returns,
+)
+from .metrics.attribution import (
+    build_returns_from_prices as build_returns_from_prices,
+)
+from .metrics.attribution import (
+    contribution_by_ticker as contribution_by_ticker,
+)
+from .metrics.attribution import (
+    group_contribution as group_contribution,
+)
+from .metrics.attribution import (
+    pivot_weights as pivot_weights,
+)
+from .metrics.sharpe import (
+    sharpe_annual as sharpe_annual,
 )
 
-# Rolling metrics (Session 2)
-from tradingstack.metrics.rolling import (
-    compute_rolling_metrics_from_nav,
-    rolling_drawdown,
-    rolling_sharpe,
-    rolling_sortino,
-    rolling_volatility,
-    trend_regime,
+# Public package surface (clean, minimal)
+# ---- metrics
+from .metrics.sharpe import (
+    sharpe_daily as sharpe_daily,
 )
 
-# Optional attribution exports, if present
-try:
-    from tradingstack.metrics.attribution import *  # noqa: F401,F403
-except Exception:
-    pass
+# Backward-compat aliases expected elsewhere
+momentum_proxy_12_1_from_nav = momentum_12_1_proxy
+quality_proxy_inv_downside_vol = quality_inverse_downside_vol
 
 __all__ = [
-    # point metrics (normalized)
-    "sharpe_ratio",
-    "sortino_ratio",
-    "max_drawdown",
-    "calmar_ratio",
-    "omega_ratio",
-    # rolling metrics
-    "rolling_volatility",
-    "rolling_sharpe",
-    "rolling_sortino",
-    "rolling_drawdown",
-    "trend_regime",
-    "compute_rolling_metrics_from_nav",
+    # metrics
+    "sharpe_daily",
+    "sharpe_annual",
+    "align_weights_and_returns",
+    "build_returns_from_prices",
+    "contribution_by_ticker",
+    "group_contribution",
+    "pivot_weights",
+    # factors
+    "load_sector_mapping",
+    "rolling_sector_exposures_from_weights",
+    "momentum_12_1_proxy",
+    "quality_inverse_downside_vol",
+    # aliases
+    "momentum_proxy_12_1_from_nav",
+    "quality_proxy_inv_downside_vol",
 ]

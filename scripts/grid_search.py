@@ -48,7 +48,7 @@ def main():
 
     os.makedirs("reports", exist_ok=True)
     out = pd.DataFrame(rows).sort_values(["Sharpe", "CAGR"], ascending=[False, False])
-    out_path = os.path.join("reports", f"grid_{args.ticker.replace('.','_')}.csv")
+    out_path = os.path.join("reports", f"grid_{args.ticker.replace('.', '_')}.csv")
     out.to_csv(out_path, index=False)
     print(f"Saved: {out_path}")
     print(out.head(10).to_string(index=False))

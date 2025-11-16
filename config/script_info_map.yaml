@@ -1,0 +1,14 @@
+﻿# 2) FULL FILE CONTENTS — paste all below
+# config/script_info_map.yaml
+# Optional hints the wrapper uses when writing cards (purpose text per script).
+# Add rows any time; wrapper reads this file each run.
+map:
+  w7_compute_regimes.py: "Compute regimes & macro gate timeline"
+  w7_apply_gates.py: "Apply macro/vol/DD gates to build daily risk schedule"
+  w7_validate.py: "Validate regime schedule vs policy bounds"
+  w8_make_events_calendar.py: "Build synthetic events calendar (earnings/holidays)"
+  w8_apply_event_rules.py: "Expand event rules to per-day/ticker flags"
+  w8_combine_schedules.py: "Blend macro/DD and events multipliers"
+  w11_build_targets.py: "Build target weights from capped base × blended schedule"
+  w12_size_and_orders.py: "Create order intents; basic capacity checks"
+

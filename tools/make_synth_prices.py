@@ -12,7 +12,7 @@ def business_days(start, end):
 
 
 def make_names(n):
-    return [f"S{str(i+1).zfill(3)}.SYN" for i in range(n)]
+    return [f"S{str(i + 1).zfill(3)}.SYN" for i in range(n)]
 
 
 def synth_prices(
@@ -90,7 +90,7 @@ def main():
 
     rows = []
     for sym, df in frames.items():
-        p = out_dir / f"{sym.replace('.SYN','')}.parquet"
+        p = out_dir / f"{sym.replace('.SYN', '')}.parquet"
         df.to_parquet(p)
         rows.append(
             {

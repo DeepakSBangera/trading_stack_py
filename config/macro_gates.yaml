@@ -1,0 +1,28 @@
+﻿# config/macro_gates.yaml — W7 Macro/Regime gates (Locked Draft)
+version: 1
+
+inputs:
+  # use portfolio value from positions_daily.parquet (internal PnL proxy)
+  trend_lookback_days: 60          # MA window for trend regime
+  vol_window_days: 20              # rolling window for realized vol (daily)
+  vol_high_mult_vs_target: 1.50    # >= this × target vol => HIGH_VOL
+  dd_levels_pct: [5, 10, 15, 20, 25, 30]  # drawdown cutoffs
+
+policy:
+  # prefer target from kill_switch if present; else 12%
+  default_target_ann_vol_pct: 12.0
+  allow_trade_in_bear: false       # if false and BEAR → block promotions / new risk
+  allow_trade_in_high_vol: true    # if false and HIGH_VOL → block promotions / new risk
+  max_trailing_dd_pct: 30.0        # hard halt (should match kill_switch.yaml)
+  base_risk_multiplier: 1.00       # baseline (can be <1 to bias conservatism)
+  high_vol_multiplier: 0.75        # when HIGH_VOL
+  bear_multiplier: 0.50            # when BEAR
+  bull_multiplier: 1.00            # when BULL
+  neutral_multiplier: 0.90         # when NEUTRAL
+
+notes:
+  - Regimes derived from internal portfolio proxy (positions_daily.parquet).
+  - vol_target pulled from kill_switch.yaml if present, else policy.default_target_ann_vol_pct.
+  - Overall gate FAILs if (BEAR and !allow_trade_in_bear) or (HIGH_VOL and !allow_trade_in_high_vol)
+    or trailing DD >= max_trailing_dd_pct.
+

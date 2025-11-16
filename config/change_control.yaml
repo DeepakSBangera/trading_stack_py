@@ -1,0 +1,23 @@
+﻿# config/change_control.yaml
+freeze_on: true                 # master toggle: true = freeze active
+reason: "Post-W19 release hard freeze"
+effective_from: "2025-11-02T22:59:00+05:30"  # when freeze starts
+effective_to:   "2025-11-09T23:59:00+05:30"  # when freeze ends (optional)
+allowed_branches:
+  - "release/*"
+  - "hotfix/*"
+blocked_scripts:
+  - "w3_*"
+  - "w4_*"
+  - "w5_*"
+  - "w6_*"
+  - "w7_*"
+  - "w8_*"
+  - "w11_*"
+  - "w12_*"
+  - "w13_*"
+  - "normalize_*"
+  - "seed_*"
+notes: |
+  During freeze: only release/hotfix changes allowed. No data regeneration.
+  Use W20 scripts to build release snapshot bundles.

@@ -87,7 +87,7 @@ def main() -> None:
 
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
-    out = reports_dir / f"run_{args.ticker.replace('.','_')}.csv"
+    out = reports_dir / f"run_{args.ticker.replace('.', '_')}.csv"
     bt.to_csv(out, index=False)
 
     # --- Robust stats: prefer last row if present; else compute via summarize(bt)
@@ -109,7 +109,7 @@ def main() -> None:
         trades = int(st.get("Trades", 0))
 
     # helpful signal breadcrumbs
-    sig_out = reports_dir / f"signal_{args.ticker.replace('.','_')}.csv"
+    sig_out = reports_dir / f"signal_{args.ticker.replace('.', '_')}.csv"
     try:
         sig.to_csv(sig_out, index=False)
     except Exception:

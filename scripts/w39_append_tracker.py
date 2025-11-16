@@ -1,34 +1,30 @@
-﻿from __future__ import annotations
-from pathlib import Path
-from datetime import datetime
-import csv
+from __future__ import annotations
 
-ROOT = Path(r"F:\Projects\trading_stack_py")
+from pathlib import Path
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 TRACKER = DOCS / "living_tracker.csv"
 
-def ensure_header():
-    DOCS.mkdir(parents=True, exist_ok=True)
-    if not TRACKER.exists():
-        with open(TRACKER, "w", newline="", encoding="utf-8") as f:
-            f.write("date,session,hours,artifacts,gates,risks,decisions\n")
 
 def main():
-    ensure_header()
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    row = [
-        now,
-        "S-W39",
-        "4",  # hours
-        "wk39_capacity_audit.csv; wk39_capacity_summary.json; wk39_capacity_stress.csv",
-        "capacity caps drafted",
-        "none",
-        "adopt per-order %ADV cap; sector/name caps noted",
-    ]
-    with open(TRACKER, "a", newline="", encoding="utf-8") as f:
-        csv.writer(f).writerow(row)
-    print({"tracker_csv": str(TRACKER), "session": "S-W39"})
+    DOCS.mkdir(parents=True, exist_ok=True)
+    if TRACKER.exists():
+        df = pd.read_csv(TRACKER)
+    else:
+        df = pd.DataFrame(columns=["session", "ts_ist", "note"])
+
+    row = {
+        "session": "S-W39",
+        "ts_ist": pd.Timestamp.now(tz="Asia/Kolkata").isoformat(),
+        "note": "Capacity & Liquidity Discipline — ADV caps, min ₹ADV, stress 2x/3x",
+    }
+    df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    df.to_csv(TRACKER, index=False)
+    print({"tracker_csv": str(TRACKER), "session": "S-W39", "note": "n/a"})
+
 
 if __name__ == "__main__":
     main()
-

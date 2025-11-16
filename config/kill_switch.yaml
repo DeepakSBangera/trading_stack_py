@@ -1,0 +1,38 @@
+﻿# config/kill_switch.yaml — W4 matrix (Locked Draft)
+version: 1
+policy:
+  # Target annualized volatility (portfolio level, %) — used by W4 scripts
+  vol_target_annual_pct: 12.0
+  # Max single-day loss (% of equity) before canary actions
+  max_daily_dd_pct: 2.0
+  # Hard stop on trailing drawdown (% from peak)
+  max_trailing_dd_pct: 30.0
+  # Order-throttle floor when drawdown exceeds band (fraction of normal)
+  throttle_floor: 0.25
+  # Kelly cap (also present in capacity_policy.yaml; this is an override if needed)
+  kelly_cap: 0.25
+
+triggers:
+  # Fast tripwires (daily)
+  - name: daily_drawdown
+    metric: "daily_return_pct"
+    condition: "value <= -max_daily_dd_pct"
+    actions: ["PAUSE_NEW_POS", "REDUCE_ORDERS_TO_50PCT", "PAGE_OWNER"]
+
+  - name: vol_spike
+    metric: "rolling_20d_ann_vol_pct"
+    condition: "value >= 1.5 * policy.vol_target_annual_pct"
+    actions: ["REDUCE_GROSS_25PCT", "RAISE_STOPS_10PCT", "PAGE_OWNER"]
+
+  # Slow burn (trailing DD)
+  - name: trailing_dd
+    metric: "from_peak_dd_pct"
+    condition: "value >= max_trailing_dd_pct"
+    actions: ["HALT_TRADING", "CUT_GROSS_TO_THROTTLE_FLOOR", "PAGE_OWNER"]
+
+# Drawdown → throttle map is produced as CSV (reports/dd_throttle_map.csv) in W4
+notes:
+  - All percentages are portfolio-level
+  - W4 script emits: wk4_voltarget_stops.csv, dd_throttle_map.csv
+  - dd_throttle_map.csv is consumed by order sizing to scale risk when in DD
+

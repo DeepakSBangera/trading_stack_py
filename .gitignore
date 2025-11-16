@@ -97,3 +97,14 @@ Thumbs.db
 .venv-*
 *.duckdb_wal
 *.duckdb*
+
+
+# temp & review bundles
+reports/review_zip_tmp/**
+reports/bundle_tmp/**
+reports/*.parquet
+reports/*.zip
+data/**
+data_live/**
+data_synth/**
+_archive/**

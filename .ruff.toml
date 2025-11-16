@@ -1,0 +1,13 @@
+﻿target-version = "py311"
+
+[lint]
+# keep useful checks; soften a couple of stylistic “modernize types” rules for now
+select = ["E","F","I","B","C4","UP"]
+ignore = ["UP006","UP007"]
+
+[lint.per-file-ignores]
+# Repo-import shims & legacy future-import placement (safe to ignore)
+"modules/AlphaFactors/make_factor_exposures.py" = ["E402","F404"]
+"tools/make_factor_exposures.py"                = ["E402"]
+"tradingstack/metrics/__init__.py"              = ["E402"]
+"scripts/w3_make_costs_and_churn.py"            = ["E402"]
